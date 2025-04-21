@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2017",
+    "lib": ["es2017", "dom"],
     "module": "esnext",
     "strict": true,
     "noImplicitAny": false,

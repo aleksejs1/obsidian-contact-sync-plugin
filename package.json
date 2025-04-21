@@ -1,6 +1,6 @@
 {
   "name": "obsidian-contact-sync-plugin",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "",
   "main": "rollup.config.js",
   "type": "module",
