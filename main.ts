@@ -382,8 +382,18 @@ class ContactSyncSettingTab extends PluginSettingTab {
 
     containerEl.createEl("h2", { text: "Google Contacts Sync Settings" });
 
+    const manual = document.createDocumentFragment();
+    manual.append(
+      "Here is the manual about creating your own client: ",
+      manual.createEl("a", {
+        href: "https://github.com/YukiGasai/obsidian-google-calendar/blob/1.10.16/documentation/content/Install.pdf",
+        text: "manual",
+      })
+    );
+
     new Setting(containerEl)
       .setName("Google Client ID")
+      .setDesc(manual)
       .addText((text) =>
         text
           .setPlaceholder("Enter your client ID")
