@@ -12,12 +12,15 @@ const DEFAULT_SETTINGS = {
     noteTemplate: '# Notes\n',
     fileNamePrefix: '',
     propertyNamePrefix: '',
-    syncLabel: ''
+    syncLabel: '',
+    syncIntervalMinutes: 0,
+    syncOnStartup: false
 };
 class GoogleContactsSyncPlugin extends obsidian.Plugin {
     constructor() {
         super(...arguments);
         this.settings = DEFAULT_SETTINGS;
+        this.syncIntervalId = null;
     }
     async onload() {
         this.addCommand({
@@ -27,9 +30,38 @@ class GoogleContactsSyncPlugin extends obsidian.Plugin {
         });
         await this.loadSettings();
         this.addSettingTab(new ContactSyncSettingTab(this.app, this));
+        if (this.settings.syncOnStartup || this.shouldSyncNow()) {
+            this.syncContacts();
+        }
+        this.setupAutoSync();
+    }
+    setupAutoSync() {
+        if (this.syncIntervalId)
+            clearInterval(this.syncIntervalId);
+        const interval = this.settings.syncIntervalMinutes;
+        if (interval > 0) {
+            this.syncIntervalId = window.setInterval(() => {
+                if (this.shouldSyncNow()) {
+                    this.syncContacts();
+                }
+            }, interval * 60 * 1000);
+        }
+    }
+    shouldSyncNow() {
+        const { lastSyncTime, syncIntervalMinutes } = this.settings;
+        if (syncIntervalMinutes === 0)
+            return false;
+        if (!lastSyncTime)
+            return true;
+        const last = new Date(lastSyncTime).getTime();
+        const now = Date.now();
+        const diffMinutes = (now - last) / 1000 / 60;
+        return diffMinutes >= syncIntervalMinutes;
     }
     async syncContacts() {
         var _a, _b, _c, _d;
+        this.settings.lastSyncTime = new Date().toISOString();
+        await this.saveSettings();
         if (!this.settings.accessToken || Date.now() > this.settings.tokenExpiresAt) {
             const refreshed = await this.refreshAccessToken();
             if (!refreshed) {
@@ -385,6 +417,33 @@ class ContactSyncSettingTab extends obsidian.PluginSettingTab {
             .setValue(this.plugin.settings.syncLabel)
             .onChange(async (value) => {
             this.plugin.settings.syncLabel = value;
+            await this.plugin.saveSettings();
+        }));
+        new obsidian.Setting(containerEl)
+            .setName("Auto sync period")
+            .setDesc("Period in minutes. If 0, then never. 1 day = 1440")
+            .addText((text) => text
+            .setPlaceholder("e.g. 1440")
+            .setValue(this.plugin.settings.syncIntervalMinutes.toString())
+            .onChange(async (value) => {
+            const parsed = parseInt(value);
+            if (!isNaN(parsed) && parsed > 0) {
+                this.plugin.settings.syncIntervalMinutes = parsed;
+                this.plugin.setupAutoSync();
+            }
+            else {
+                this.plugin.settings.syncIntervalMinutes = 0;
+            }
+            await this.plugin.saveSettings();
+            this.plugin.setupAutoSync();
+        }));
+        new obsidian.Setting(containerEl)
+            .setName("Sync on startup")
+            .setDesc("Automatically sync contacts when the plugin is loaded.")
+            .addToggle((toggle) => toggle
+            .setValue(this.plugin.settings.syncOnStartup)
+            .onChange(async (value) => {
+            this.plugin.settings.syncOnStartup = value;
             await this.plugin.saveSettings();
         }));
     }
