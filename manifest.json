@@ -1,10 +1,11 @@
 {
   "id": "google-contacts-sync",
   "name": "Google Contacts Sync",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "minAppVersion": "0.12.0",
-  "description": "Syncs Google Contacts into Obsidian as markdown files",
+  "description": "Synchronize your Google Contacts with separate contact-notes",
   "author": "aleksejs1",
   "authorUrl": "kovalovs.lv",
-  "main": "main.js"
+  "main": "main.js",
+  "isDesktopOnly": true
 }
