@@ -61,6 +61,24 @@ const DEFAULT_SETTINGS: ContactSyncSettings = {
   syncOnStartup: false
 };
 
+const URL_PEOPLE_API = "https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata&pageSize=2000";
+const URL_CONTACT_GROUPS = "https://people.googleapis.com/v1/contactGroups";
+const URL_OAUTH_SCOPE = "https://www.googleapis.com/auth/contacts.readonly";
+const URL_OAUTH_TOKEN = "https://oauth2.googleapis.com/token";
+const URL_OAUTH_AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
+const LINK_TO_MANUAL = "https://github.com/YukiGasai/obsidian-google-calendar/blob/1.10.16/documentation/content/Install.pdf";
+const URI_OATUH_REDIRECT = "urn:ietf:wg:oauth:2.0:oob"
+
+function getAuthUrl(clientId: string): string {
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: URI_OATUH_REDIRECT,
+    response_type: "code",
+    scope: URL_OAUTH_SCOPE,
+  });
+  return `${URL_OAUTH_AUTH}?${params.toString()}`;
+}
+
 export default class GoogleContactsSyncPlugin extends Plugin {
   settings: ContactSyncSettings = DEFAULT_SETTINGS;
 
@@ -181,7 +199,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       if (!(folder instanceof TFolder)) return null;
 
       const files = this.getAllMarkdownFilesInFolder(folder);
-      // const files = this.app.vault.getMarkdownFiles();
+
       for (const file of files) {
         const content = await this.app.vault.read(file);
         const match = content.match(/^---\n([\s\S]+?)\n---/);
@@ -271,7 +289,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
     const res = await requestUrl({
-      url: "https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata&pageSize=2000",
+      url: URL_PEOPLE_API,
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -284,7 +302,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
   async fetchGoogleGroups(token: string): Promise<Record<string, string>> {
     const groupResponse = await requestUrl({
-      url: 'https://people.googleapis.com/v1/contactGroups',
+      url: URL_CONTACT_GROUPS,
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`
@@ -310,7 +328,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
     try {
       const response = await requestUrl({
-        url: "https://oauth2.googleapis.com/token",
+        url: URL_OAUTH_TOKEN,
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
@@ -375,7 +393,7 @@ class ContactSyncSettingTab extends PluginSettingTab {
     manual.append(
       "Here is the manual about creating your own client: ",
       manual.createEl("a", {
-        href: "https://github.com/YukiGasai/obsidian-google-calendar/blob/1.10.16/documentation/content/Install.pdf",
+        href: LINK_TO_MANUAL,
         text: "manual",
       })
     );
@@ -415,11 +433,7 @@ class ContactSyncSettingTab extends PluginSettingTab {
               new Notice("Please enter your Client ID first.");
               return;
             }
-            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
-              this.plugin.settings.clientId
-            )}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&response_type=code&scope=https://www.googleapis.com/auth/contacts.readonly`;
-
-            window.open(url, "_blank");
+            window.open(getAuthUrl(this.plugin.settings.clientId), "_blank");
           })
       );
 
@@ -440,13 +454,13 @@ class ContactSyncSettingTab extends PluginSettingTab {
             "code": code,
             "client_id": this.plugin.settings.clientId,
             "client_secret": this.plugin.settings.clientSecret,
-            "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+            "redirect_uri": URI_OATUH_REDIRECT,
             "grant_type": "authorization_code"
           }
 
           try {
             const response = await requestUrl({
-              url: "https://oauth2.googleapis.com/token",
+              url: URL_OAUTH_TOKEN,
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
