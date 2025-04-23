@@ -89,34 +89,13 @@ class GoogleContactsSyncPlugin extends obsidian.Plugin {
             }
             const id = (_a = contact.resourceName) === null || _a === void 0 ? void 0 : _a.split("/").pop();
             const syncedAt = new Date().toISOString();
-            let frontmatterLines = [`${propertyPrefix}id: ${id}`, `${propertyPrefix}synced: ${syncedAt}`];
-            if (contact.names && contact.names.length > 0) {
-                contact.names.forEach((nameObj, index) => {
-                    const rawName = nameObj.displayName;
-                    const name = typeof rawName === "string" ? rawName : "";
-                    const safeName = name.replace(/[\\/:*?"<>|]/g, "_");
-                    const ending = index === 0 ? "" : `_${index + 1}`;
-                    frontmatterLines.push(`${propertyPrefix}name${ending}: ${safeName}`);
-                });
-            }
-            if (contact.emailAddresses && contact.emailAddresses.length > 0) {
-                contact.emailAddresses.forEach((emailObj, index) => {
-                    const rawEmail = emailObj.value;
-                    const email = typeof rawEmail === "string" ? rawEmail : "";
-                    const safeEmail = email.replace(/[\\/:*?"<>|]/g, "_");
-                    const ending = index === 0 ? "" : `_${index + 1}`;
-                    frontmatterLines.push(`${propertyPrefix}email${ending}: ${safeEmail}`);
-                });
-            }
-            if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-                contact.phoneNumbers.forEach((phoneObj, index) => {
-                    const rawPhone = phoneObj.value;
-                    const phone = typeof rawPhone === "string" ? rawPhone : "";
-                    const safePhone = phone.replace(/[\\/:*?"<>|]/g, "_");
-                    const ending = index === 0 ? "" : `_${index + 1}`;
-                    frontmatterLines.push(`${propertyPrefix}phone${ending}: ${safePhone}`);
-                });
-            }
+            let frontmatterLines = {
+                [`${propertyPrefix}id`]: String(id !== null && id !== void 0 ? id : ""),
+                [`${propertyPrefix}synced`]: String(syncedAt !== null && syncedAt !== void 0 ? syncedAt : "")
+            };
+            this.addContactFieldToFrontmatter(frontmatterLines, contact.names, "name", propertyPrefix, item => item.displayName);
+            this.addContactFieldToFrontmatter(frontmatterLines, contact.emailAddresses, "email", propertyPrefix, item => item.value);
+            this.addContactFieldToFrontmatter(frontmatterLines, contact.phoneNumbers, "phone", propertyPrefix, item => item.value);
             if (contact.birthdays && contact.birthdays.length > 0) {
                 contact.birthdays.forEach((bday, index) => {
                     var _a;
@@ -124,14 +103,19 @@ class GoogleContactsSyncPlugin extends obsidian.Plugin {
                     const ending = index === 0 ? "" : `_${index + 1}`;
                     if (date) {
                         const birthdayStr = `${(_a = date.year) !== null && _a !== void 0 ? _a : "XXXX"}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
-                        frontmatterLines.push(`${propertyPrefix}birthday${ending}: ${birthdayStr}`);
+                        frontmatterLines[`${propertyPrefix}birthday${ending}`] = birthdayStr;
                     }
                 });
             }
-            const frontmatter = `---\n${frontmatterLines.join("\n")}\n---`;
+            const yaml = obsidian.stringifyYaml(frontmatterLines);
+            const frontmatter = `---\n${yaml}---`;
             const name = ((_c = (_b = contact.names) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.displayName) || "Unnamed";
             let existingFile = null;
-            const files = this.app.vault.getMarkdownFiles();
+            const folder = this.app.vault.getAbstractFileByPath(folderPath);
+            if (!(folder instanceof obsidian.TFolder))
+                return null;
+            const files = this.getAllMarkdownFilesInFolder(folder);
+            // const files = this.app.vault.getMarkdownFiles();
             for (const file of files) {
                 const content = await this.app.vault.read(file);
                 const match = content.match(/^---\n([\s\S]+?)\n---/);
@@ -142,14 +126,8 @@ class GoogleContactsSyncPlugin extends obsidian.Plugin {
             }
             if (existingFile) {
                 const content = await this.app.vault.read(existingFile);
-                const split = content.split("---");
-                if (split.length >= 3) {
-                    const freeText = split.slice(2).join("---").trim();
-                    await this.app.vault.modify(existingFile, `${frontmatter}\n\n${freeText}`);
-                }
-                else {
-                    await this.app.vault.modify(existingFile, `${frontmatter}\n\n`);
-                }
+                const updatedContent = this.updateFrontmatterWithContactData(content, frontmatterLines);
+                await this.app.vault.modify(existingFile, updatedContent);
             }
             else {
                 const safeName = name.replace(/[\\/:*?"<>|]/g, "_");
@@ -161,10 +139,47 @@ class GoogleContactsSyncPlugin extends obsidian.Plugin {
         }
         new obsidian.Notice("Google Contacts synced!");
     }
-    async getAccessToken() {
-        return new Promise((resolve) => {
-            new TokenModal(this.app, (token) => resolve(token.trim())).open();
+    getAllMarkdownFilesInFolder(folder) {
+        let files = [];
+        for (const child of folder.children) {
+            if (child instanceof obsidian.TFolder) {
+                files = files.concat(this.getAllMarkdownFilesInFolder(child));
+            }
+            else if (child instanceof obsidian.TFile && child.extension === "md") {
+                files.push(child);
+            }
+        }
+        return files;
+    }
+    addContactFieldToFrontmatter(frontmatter, contact, keyName, propertyPrefix, valueExtractor) {
+        if (!contact || contact.length === 0)
+            return;
+        contact.forEach((item, index) => {
+            const rawValue = valueExtractor(item);
+            const value = typeof rawValue === "string" ? rawValue : "";
+            const safeValue = value.replace(/[\\/:*?"<>|]/g, "_");
+            const suffix = index === 0 ? "" : `_${index + 1}`;
+            frontmatter[`${propertyPrefix}${keyName}${suffix}`] = safeValue;
         });
+    }
+    updateFrontmatterWithContactData(content, newContactFields) {
+        const parts = content.split("---");
+        if (parts.length < 3) {
+            const yaml = obsidian.stringifyYaml(newContactFields);
+            return `---\n${yaml}---\n\n`;
+        }
+        const originalYaml = parts[1];
+        const body = parts.slice(2).join("---").trim();
+        const parsed = obsidian.parseYaml(originalYaml);
+        for (const key of Object.keys(parsed)) {
+            if (key in newContactFields) {
+                parsed[key] = newContactFields[key];
+                delete newContactFields[key];
+            }
+        }
+        const updated = Object.assign(Object.assign(Object.assign({}, parsed), newContactFields), { synced: new Date().toISOString() });
+        const updatedYaml = obsidian.stringifyYaml(updated);
+        return `---\n${updatedYaml}---\n\n${body}`;
     }
     async fetchGoogleContacts(token) {
         const res = await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata&pageSize=2000", {
@@ -242,34 +257,6 @@ class GoogleContactsSyncPlugin extends obsidian.Plugin {
     }
     async saveSettings() {
         await this.saveData(this.settings);
-    }
-}
-class TokenModal extends obsidian.Modal {
-    constructor(app, onSubmit) {
-        super(app);
-        this.token = "";
-        this.onSubmit = onSubmit;
-    }
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.createEl("h2", { text: "Enter Google Access Token" });
-        new obsidian.Setting(contentEl)
-            .setName("Access Token")
-            .addText((text) => text.onChange((value) => {
-            this.token = value;
-        }));
-        new obsidian.Setting(contentEl)
-            .addButton((btn) => btn
-            .setButtonText("Save")
-            .setCta()
-            .onClick(() => {
-            this.close();
-            this.onSubmit(this.token);
-        }));
-    }
-    onClose() {
-        const { contentEl } = this;
-        contentEl.empty();
     }
 }
 class ContactSyncSettingTab extends obsidian.PluginSettingTab {

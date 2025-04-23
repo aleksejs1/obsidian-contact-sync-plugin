@@ -1,4 +1,4 @@
-import { Plugin, TFile, normalizePath, Notice, Modal, Setting, App, PluginSettingTab } from "obsidian";
+import { Plugin, TFile, TFolder, normalizePath, Notice, Modal, Setting, App, PluginSettingTab, parseYaml, stringifyYaml } from "obsidian";
 
 interface GoogleContact {
   resourceName: string;
@@ -130,7 +130,6 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       return;
     }
 
-
     const syncLabel = this.settings.syncLabel;
     const labelMap = await this.fetchGoogleGroups(token);
     const contacts = await this.fetchGoogleContacts(token);
@@ -139,8 +138,6 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     await this.app.vault.createFolder(normalizePath(folderPath)).catch(() => {});
 
     for (const contact of contacts) {
-
-
       if (syncLabel !== '') {
         const hasObsidianLabel = (contact.memberships || []).some((m) =>
           m.contactGroupMembership?.contactGroupId === labelMap[syncLabel]
@@ -152,37 +149,14 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       const id = contact.resourceName?.split("/").pop();
       const syncedAt = new Date().toISOString();
 
-      let frontmatterLines = [`${propertyPrefix}id: ${id}`, `${propertyPrefix}synced: ${syncedAt}`];
+      let frontmatterLines: Record<string, string> = {
+        [`${propertyPrefix}id`]: String(id ?? ""),
+        [`${propertyPrefix}synced`]: String(syncedAt ?? "")
+      };
 
-      if (contact.names && contact.names.length > 0) {
-        contact.names.forEach((nameObj, index) => {
-          const rawName = nameObj.displayName;
-          const name = typeof rawName === "string" ? rawName : "";
-          const safeName = name.replace(/[\\/:*?"<>|]/g, "_");
-          const ending = index === 0 ? "" : `_${index + 1}`
-          frontmatterLines.push(`${propertyPrefix}name${ending}: ${safeName}`);
-        });
-      }
-
-      if (contact.emailAddresses && contact.emailAddresses.length > 0) {
-        contact.emailAddresses.forEach((emailObj, index) => {
-          const rawEmail = emailObj.value;
-          const email = typeof rawEmail === "string" ? rawEmail : "";
-          const safeEmail = email.replace(/[\\/:*?"<>|]/g, "_");
-          const ending = index === 0 ? "" : `_${index + 1}`
-          frontmatterLines.push(`${propertyPrefix}email${ending}: ${safeEmail}`);
-        });
-      }
-
-      if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-        contact.phoneNumbers.forEach((phoneObj, index) => {
-          const rawPhone = phoneObj.value;
-          const phone = typeof rawPhone === "string" ? rawPhone : "";
-          const safePhone = phone.replace(/[\\/:*?"<>|]/g, "_");
-          const ending = index === 0 ? "" : `_${index + 1}`
-          frontmatterLines.push(`${propertyPrefix}phone${ending}: ${safePhone}`);
-        });
-      }
+      this.addContactFieldToFrontmatter(frontmatterLines, contact.names, "name", propertyPrefix, item => item.displayName);
+      this.addContactFieldToFrontmatter(frontmatterLines, contact.emailAddresses, "email", propertyPrefix, item => item.value);
+      this.addContactFieldToFrontmatter(frontmatterLines, contact.phoneNumbers, "phone", propertyPrefix, item => item.value);
 
       if (contact.birthdays && contact.birthdays.length > 0) {
         contact.birthdays.forEach((bday, index) => {
@@ -190,18 +164,24 @@ export default class GoogleContactsSyncPlugin extends Plugin {
           const ending = index === 0 ? "" : `_${index + 1}`
           if (date) {
             const birthdayStr = `${date.year ?? "XXXX"}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
-            frontmatterLines.push(`${propertyPrefix}birthday${ending}: ${birthdayStr}`);
+            frontmatterLines[`${propertyPrefix}birthday${ending}`] = birthdayStr;
           }
         });
       }
 
-      const frontmatter = `---\n${frontmatterLines.join("\n")}\n---`;
+      const yaml = stringifyYaml(frontmatterLines);
+      const frontmatter = `---\n${yaml}---`;
 
       const name = contact.names?.[0]?.displayName || "Unnamed";
 
       let existingFile: TFile | null = null;
 
-      const files = this.app.vault.getMarkdownFiles();
+
+      const folder = this.app.vault.getAbstractFileByPath(folderPath);
+      if (!(folder instanceof TFolder)) return null;
+
+      const files = this.getAllMarkdownFilesInFolder(folder);
+      // const files = this.app.vault.getMarkdownFiles();
       for (const file of files) {
         const content = await this.app.vault.read(file);
         const match = content.match(/^---\n([\s\S]+?)\n---/);
@@ -213,13 +193,8 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
       if (existingFile) {
         const content = await this.app.vault.read(existingFile);
-        const split = content.split("---");
-        if (split.length >= 3) {
-          const freeText = split.slice(2).join("---").trim();
-          await this.app.vault.modify(existingFile, `${frontmatter}\n\n${freeText}`);
-        } else {
-          await this.app.vault.modify(existingFile, `${frontmatter}\n\n`);
-        }
+        const updatedContent = this.updateFrontmatterWithContactData(content, frontmatterLines);
+        await this.app.vault.modify(existingFile, updatedContent);
       } else {
         const safeName = name.replace(/[\\/:*?"<>|]/g, "_");
         const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
@@ -232,12 +207,67 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     new Notice("Google Contacts synced!");
   }
 
-  async getAccessToken(): Promise<string | null> {
-    return new Promise((resolve) => {
-      new TokenModal(this.app, (token) => resolve(token.trim())).open();
+  getAllMarkdownFilesInFolder(folder: TFolder): TFile[] {
+    let files: TFile[] = [];
+
+    for (const child of folder.children) {
+      if (child instanceof TFolder) {
+        files = files.concat(this.getAllMarkdownFilesInFolder(child));
+      } else if (child instanceof TFile && child.extension === "md") {
+        files.push(child);
+      }
+    }
+
+    return files;
+  }
+
+  addContactFieldToFrontmatter(
+    frontmatter: Record<string, string>,
+    contact: any[] | undefined,
+    keyName: string,
+    propertyPrefix: string,
+    valueExtractor: (item: any) => string | undefined
+  ) {
+    if (!contact || contact.length === 0) return;
+
+    contact.forEach((item, index) => {
+      const rawValue = valueExtractor(item);
+      const value = typeof rawValue === "string" ? rawValue : "";
+      const safeValue = value.replace(/[\\/:*?"<>|]/g, "_");
+      const suffix = index === 0 ? "" : `_${index + 1}`;
+      frontmatter[`${propertyPrefix}${keyName}${suffix}`] = safeValue;
     });
   }
 
+  updateFrontmatterWithContactData(content: string, newContactFields: Record<string, any>): string {
+    const parts = content.split("---");
+
+    if (parts.length < 3) {
+      const yaml = stringifyYaml(newContactFields);
+      return `---\n${yaml}---\n\n`;
+    }
+
+    const originalYaml = parts[1];
+    const body = parts.slice(2).join("---").trim();
+
+    const parsed = parseYaml(originalYaml) as Record<string, any>;
+
+    for (const key of Object.keys(parsed)) {
+      if (key in newContactFields) {
+        parsed[key] = newContactFields[key];
+        delete newContactFields[key];
+      }
+    }
+
+    const updated = {
+      ...parsed,
+      ...newContactFields,
+      synced: new Date().toISOString(),
+    };
+
+    const updatedYaml = stringifyYaml(updated);
+    return `---\n${updatedYaml}---\n\n${body}`;
+  }
 
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
     const res = await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata&pageSize=2000", {
@@ -326,45 +356,6 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
-  }
-}
-
-class TokenModal extends Modal {
-  token: string = "";
-  onSubmit: (token: string) => void;
-
-  constructor(app: App, onSubmit: (token: string) => void) {
-    super(app);
-    this.onSubmit = onSubmit;
-  }
-
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.createEl("h2", { text: "Enter Google Access Token" });
-
-    new Setting(contentEl)
-      .setName("Access Token")
-      .addText((text) =>
-        text.onChange((value) => {
-          this.token = value;
-        })
-      );
-
-    new Setting(contentEl)
-      .addButton((btn) =>
-        btn
-          .setButtonText("Save")
-          .setCta()
-          .onClick(() => {
-            this.close();
-            this.onSubmit(this.token);
-          })
-      );
-  }
-
-  onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
   }
 }
 
