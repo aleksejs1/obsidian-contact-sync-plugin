@@ -1,4 +1,4 @@
-import { Plugin, TFile, TFolder, normalizePath, Notice, Modal, Setting, App, PluginSettingTab, parseYaml, stringifyYaml } from "obsidian";
+import { Plugin, TFile, TFolder, normalizePath, Notice, Modal, Setting, App, PluginSettingTab, parseYaml, stringifyYaml, requestUrl } from "obsidian";
 
 interface GoogleContact {
   resourceName: string;
@@ -270,31 +270,28 @@ export default class GoogleContactsSyncPlugin extends Plugin {
   }
 
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
-    const res = await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata&pageSize=2000", {
+    const res = await requestUrl({
+      url: "https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata&pageSize=2000",
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
 
-    if (!res.ok) {
-      new Notice("Error during getting the contacts");
-      return [];
-    }
-
-    const data = await res.json();
+    const data = await res.json;
     return data.connections || [];
   }
 
 
   async fetchGoogleGroups(token: string): Promise<Record<string, string>> {
-    const groupResponse = await fetch('https://people.googleapis.com/v1/contactGroups', {
+    const groupResponse = await requestUrl({
+      url: 'https://people.googleapis.com/v1/contactGroups',
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
 
-    const data = await groupResponse.json();
+    const data = await groupResponse.json;
 
     const labelMap: Record<string, string> = {};
     (data.contactGroups || []).forEach((group: any) => {
@@ -312,7 +309,8 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     }
 
     try {
-      const response = await fetch("https://oauth2.googleapis.com/token", {
+      const response = await requestUrl({
+        url: "https://oauth2.googleapis.com/token",
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
@@ -323,7 +321,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
         }).toString()
       });
 
-      const data = await response.json();
+      const data = await response.json;
       if (data.access_token) {
         this.settings.accessToken = data.access_token;
 
@@ -438,23 +436,25 @@ class ContactSyncSettingTab extends PluginSettingTab {
             return;
           }
 
-          const body = new URLSearchParams();
-          body.append("code", code);
-          body.append("client_id", this.plugin.settings.clientId);
-          body.append("client_secret", this.plugin.settings.clientSecret);
-          body.append("redirect_uri", "urn:ietf:wg:oauth:2.0:oob");
-          body.append("grant_type", "authorization_code");
+          const body = {
+            "code": code,
+            "client_id": this.plugin.settings.clientId,
+            "client_secret": this.plugin.settings.clientSecret,
+            "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+            "grant_type": "authorization_code"
+          }
 
           try {
-            const response = await fetch("https://oauth2.googleapis.com/token", {
+            const response = await requestUrl({
+              url: "https://oauth2.googleapis.com/token",
               method: "POST",
               headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Type": "application/json",
               },
-              body,
+              body: JSON.stringify(body),
             });
 
-            const result = await response.json();
+            const result = await response.json;
             if (result.access_token) {
               this.plugin.settings.accessToken = result.access_token;
               await this.plugin.saveSettings();
