@@ -1,4 +1,28 @@
-import { Plugin, TFile, TFolder, normalizePath, Notice, Modal, Setting, App, PluginSettingTab, parseYaml, stringifyYaml, requestUrl } from "obsidian";
+import {
+  Plugin,
+  TFile,
+  TFolder,
+  normalizePath,
+  Notice,
+  Modal,
+  Setting,
+  App,
+  PluginSettingTab,
+  parseYaml,
+  stringifyYaml,
+  requestUrl
+} from "obsidian";
+
+import {
+  URL_PEOPLE_API,
+  URL_CONTACT_GROUPS,
+  URL_OAUTH_SCOPE,
+  URL_OAUTH_TOKEN,
+  URL_OAUTH_AUTH,
+  LINK_TO_MANUAL,
+  URI_OATUH_REDIRECT,
+  DEFAULT_SETTINGS
+} from "./config";
 
 interface GoogleContact {
   resourceName: string;
@@ -45,29 +69,6 @@ interface Membership {
   domainMembership?: any;
   metadata?: any;
 }
-
-const DEFAULT_SETTINGS: ContactSyncSettings = {
-  clientId: '',
-  clientSecret: '',
-  accessToken: '',
-  refreshToken: '',
-  tokenExpiresAt: 0,
-  contactsFolder: 'Contacts',
-  noteTemplate: '# Notes\n',
-  fileNamePrefix: '',
-  propertyNamePrefix: '',
-  syncLabel: '',
-  syncIntervalMinutes: 0,
-  syncOnStartup: false
-};
-
-const URL_PEOPLE_API = "https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata&pageSize=2000";
-const URL_CONTACT_GROUPS = "https://people.googleapis.com/v1/contactGroups";
-const URL_OAUTH_SCOPE = "https://www.googleapis.com/auth/contacts.readonly";
-const URL_OAUTH_TOKEN = "https://oauth2.googleapis.com/token";
-const URL_OAUTH_AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
-const LINK_TO_MANUAL = "https://github.com/YukiGasai/obsidian-google-calendar/blob/1.10.16/documentation/content/Install.pdf";
-const URI_OATUH_REDIRECT = "urn:ietf:wg:oauth:2.0:oob"
 
 function getAuthUrl(clientId: string): string {
   const params = new URLSearchParams({
