@@ -2,11 +2,15 @@ import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default {
-  input: 'main.ts',
+  input: 'src/main.ts',
   output: {
-    dir: '.',
-    format: 'cjs'
+    dir: 'dist',
+    format: 'cjs',
+    sourcemap: true
   },
   external: ['obsidian'],
-  plugins: [typescript(), nodeResolve()]
+  plugins: [
+    typescript({ tsconfig: "./tsconfig.json" }),
+    nodeResolve()
+  ]
 };
