@@ -1,3 +1,6 @@
+import type { ContactSyncSettings } from "./types/Settings";
+import type { GoogleContact, Birthday, ContactGroupMembership, Membership } from "./types/Contact";
+
 import {
   Plugin,
   TFile,
@@ -23,52 +26,6 @@ import {
   URI_OATUH_REDIRECT,
   DEFAULT_SETTINGS
 } from "./config";
-
-interface GoogleContact {
-  resourceName: string;
-  names?: { displayName: string }[];
-  emailAddresses?: { value: string }[];
-  phoneNumbers?: { value: string }[];
-  birthdays?: Birthday[];
-  memberships?: Membership[];
-}
-
-interface Birthday {
-  date?: {
-    year?: number;
-    month?: number;
-    day?: number;
-  };
-  text?: string;
-  metadata?: any;
-}
-
-interface ContactSyncSettings {
-  clientId: string;
-  clientSecret: string;
-  accessToken: string;
-  refreshToken: string;
-  tokenExpiresAt: number;
-  contactsFolder: string;
-  noteTemplate: string;
-  fileNamePrefix: string;
-  propertyNamePrefix: string;
-  syncLabel: string;
-  syncIntervalMinutes: number;
-  lastSyncTime?: string;
-  syncOnStartup: boolean;
-}
-
-interface ContactGroupMembership {
-  contactGroupId: string;
-  contactGroupResourceName?: string;
-}
-
-interface Membership {
-  contactGroupMembership?: ContactGroupMembership;
-  domainMembership?: any;
-  metadata?: any;
-}
 
 function getAuthUrl(clientId: string): string {
   const params = new URLSearchParams({
