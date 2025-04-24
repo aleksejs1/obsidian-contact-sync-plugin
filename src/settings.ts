@@ -1,5 +1,5 @@
-import { Notice, Setting, App, PluginSettingTab, requestUrl } from "obsidian";
-import { URL_OAUTH_TOKEN, LINK_TO_MANUAL, URI_OATUH_REDIRECT } from "./config";
+import { Notice, Setting, App, PluginSettingTab } from "obsidian";
+import { LINK_TO_MANUAL } from "./config";
 import { getAuthUrl } from "./helper";
 import GoogleContactsSyncPlugin from "./main"
 
@@ -72,59 +72,17 @@ export class ContactSyncSettingTab extends PluginSettingTab {
         text.setPlaceholder("Paste code here").onChange(async (code) => {
           if (
             !this.plugin.settings.clientId ||
-            !this.plugin.settings.clientSecret
+            !this.plugin.settings.clientSecret ||
+            !this.plugin.auth
           ) {
             new Notice("Client ID and Secret required.");
             return;
           }
 
-          const body = {
-            "code": code,
-            "client_id": this.plugin.settings.clientId,
-            "client_secret": this.plugin.settings.clientSecret,
-            "redirect_uri": URI_OATUH_REDIRECT,
-            "grant_type": "authorization_code"
-          }
-
-          try {
-            const response = await requestUrl({
-              url: URL_OAUTH_TOKEN,
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(body),
-            });
-
-            const result = await response.json;
-            if (result.access_token) {
-              this.plugin.settings.accessToken = result.access_token;
-              await this.plugin.saveSettings();
-              new Notice("Access token saved!");
-            } else {
-              console.error(result);
-              new Notice("Failed to retrieve access token.");
-            }
-            if (result.expires_in) {
-              this.plugin.settings.tokenExpiresAt = Date.now() + (result.expires_in * 1000);;
-              await this.plugin.saveSettings();
-              new Notice("Token expires at saved!");
-            } else {
-              console.error(result);
-              new Notice("Failed to retrieve Token expires at.");
-            }
-            if (result.refresh_token) {
-              this.plugin.settings.refreshToken = result.refresh_token;
-              await this.plugin.saveSettings();
-              new Notice("Refresh token saved!");
-            } else {
-              console.error(result);
-              new Notice("Failed to retrieve refresh token.");
-            }
-          } catch (err) {
-            console.error(err);
-            new Notice("Error during token exchange.");
-          }
+          this.plugin.auth.exchangeCode(code);
+          Object.assign(this.plugin.settings, this.plugin.auth.getSettingsUpdate());
+          await this.plugin.saveSettings();
+          new Notice("Tokens saved!");
         })
       );
 

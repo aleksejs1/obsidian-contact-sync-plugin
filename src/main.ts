@@ -1,12 +1,13 @@
 import type { ContactSyncSettings } from "./types/Settings";
-import type { GoogleContact, Birthday, ContactGroupMembership, Membership } from "./types/Contact";
+import type { GoogleContact } from "./types/Contact";
 import { ContactSyncSettingTab } from "./settings";
-import { getAuthUrl } from "./helper";
 import { URL_PEOPLE_API, URL_CONTACT_GROUPS, URL_OAUTH_TOKEN, DEFAULT_SETTINGS } from "./config";
-import { Plugin, TFile, TFolder, normalizePath, Notice, Modal, parseYaml, stringifyYaml, requestUrl } from "obsidian";
+import { Plugin, TFile, TFolder, normalizePath, Notice, parseYaml, stringifyYaml, requestUrl } from "obsidian";
+import { AuthManager } from "./AuthManager";
 
 export default class GoogleContactsSyncPlugin extends Plugin {
   settings: ContactSyncSettings = DEFAULT_SETTINGS;
+  auth: AuthManager | null = null;
 
   private syncIntervalId: number | null = null;
 
@@ -18,6 +19,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     });
 
     await this.loadSettings();
+    this.auth = new AuthManager(this.settings);
     this.addSettingTab(new ContactSyncSettingTab(this.app, this));
 
     if (this.settings.syncOnStartup || this.shouldSyncNow()) {
@@ -58,22 +60,14 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     this.settings.lastSyncTime = new Date().toISOString();
     await this.saveSettings();
 
-    if (!this.settings.accessToken || Date.now() > this.settings.tokenExpiresAt) {
-      const refreshed = await this.refreshAccessToken();
-      if (!refreshed) {
-        new Notice("Access token expired and could not be refreshed.");
-        return;
-      }
-    }
-    const token = this.settings.accessToken;
+    if (!this.auth) return;
+    const token = await this.auth.ensureValidToken();
+    Object.assign(this.settings, this.auth.getSettingsUpdate());
+    await this.saveSettings();
+
+    
     const prefix = this.settings.fileNamePrefix || '';
     const propertyPrefix = this.settings.propertyNamePrefix || '';
-
-    if (!token) {
-      new Notice("No token provided.");
-      return;
-    }
-
     const syncLabel = this.settings.syncLabel;
     const labelMap = await this.fetchGoogleGroups(token);
     const contacts = await this.fetchGoogleContacts(token);
