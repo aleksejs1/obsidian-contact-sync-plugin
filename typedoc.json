@@ -1,0 +1,10 @@
+{
+    "entryPoints": [
+        "src/main.ts",
+        "src/AuthManager.ts",
+        "src/types/Contact.ts",
+        "src/types/Settings.ts"
+    ],
+    "out": "docs",
+    "tsconfig": "tsconfig.json"
+}
