@@ -1,7 +1,7 @@
-import { Notice, Setting, App, PluginSettingTab } from "obsidian";
-import { LINK_TO_MANUAL } from "./config";
-import { getAuthUrl } from "./helper";
-import GoogleContactsSyncPlugin from "./main"
+import { Notice, Setting, App, PluginSettingTab } from 'obsidian';
+import { LINK_TO_MANUAL } from './config';
+import { getAuthUrl } from './helper';
+import GoogleContactsSyncPlugin from './main';
 
 export class ContactSyncSettingTab extends PluginSettingTab {
   plugin: GoogleContactsSyncPlugin;
@@ -15,23 +15,23 @@ export class ContactSyncSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Google Contacts Sync Settings" });
+    containerEl.createEl('h2', { text: 'Google Contacts Sync Settings' });
 
     const manual = document.createDocumentFragment();
     manual.append(
-      "Here is the manual about creating your own client: ",
-      manual.createEl("a", {
+      'Here is the manual about creating your own client: ',
+      manual.createEl('a', {
         href: LINK_TO_MANUAL,
-        text: "manual",
+        text: 'manual',
       })
     );
 
     new Setting(containerEl)
-      .setName("Google Client ID")
+      .setName('Google Client ID')
       .setDesc(manual)
       .addText((text) =>
         text
-          .setPlaceholder("Enter your client ID")
+          .setPlaceholder('Enter your client ID')
           .setValue(this.plugin.settings.clientId)
           .onChange(async (value) => {
             this.plugin.settings.clientId = value;
@@ -39,59 +39,59 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl)
-      .setName("Google Client Secret")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your client secret")
-          .setValue(this.plugin.settings.clientSecret)
-          .onChange(async (value) => {
-            this.plugin.settings.clientSecret = value;
-            await this.plugin.saveSettings();
-          })
-      );
+    new Setting(containerEl).setName('Google Client Secret').addText((text) =>
+      text
+        .setPlaceholder('Enter your client secret')
+        .setValue(this.plugin.settings.clientSecret)
+        .onChange(async (value) => {
+          this.plugin.settings.clientSecret = value;
+          await this.plugin.saveSettings();
+        })
+    );
 
     new Setting(containerEl)
-      .setName("Login with Google")
+      .setName('Login with Google')
       .setDesc("Open Google's OAuth page in your browser")
       .addButton((btn) =>
-        btn.setButtonText("Login")
-          .onClick(() => {
-            if (!this.plugin.settings.clientId) {
-              new Notice("Please enter your Client ID first.");
-              return;
-            }
-            window.open(getAuthUrl(this.plugin.settings.clientId), "_blank");
-          })
+        btn.setButtonText('Login').onClick(() => {
+          if (!this.plugin.settings.clientId) {
+            new Notice('Please enter your Client ID first.');
+            return;
+          }
+          window.open(getAuthUrl(this.plugin.settings.clientId), '_blank');
+        })
       );
 
     new Setting(containerEl)
-      .setName("Authorization Code")
-      .setDesc("Paste the code from Google after login")
+      .setName('Authorization Code')
+      .setDesc('Paste the code from Google after login')
       .addText((text) =>
-        text.setPlaceholder("Paste code here").onChange(async (code) => {
+        text.setPlaceholder('Paste code here').onChange(async (code) => {
           if (
             !this.plugin.settings.clientId ||
             !this.plugin.settings.clientSecret ||
             !this.plugin.auth
           ) {
-            new Notice("Client ID and Secret required.");
+            new Notice('Client ID and Secret required.');
             return;
           }
 
           this.plugin.auth.exchangeCode(code);
-          Object.assign(this.plugin.settings, this.plugin.auth.getSettingsUpdate());
+          Object.assign(
+            this.plugin.settings,
+            this.plugin.auth.getSettingsUpdate()
+          );
           await this.plugin.saveSettings();
-          new Notice("Tokens saved!");
+          new Notice('Tokens saved!');
         })
       );
 
     new Setting(containerEl)
-      .setName("Contacts Folder")
-      .setDesc("Vault folder where contact notes will be stored")
+      .setName('Contacts Folder')
+      .setDesc('Vault folder where contact notes will be stored')
       .addText((text) =>
         text
-          .setPlaceholder("e.g. Contacts")
+          .setPlaceholder('e.g. Contacts')
           .setValue(this.plugin.settings.contactsFolder)
           .onChange(async (value) => {
             this.plugin.settings.contactsFolder = value.trim() || 'Contacts';
@@ -100,11 +100,13 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Note Template")
-      .setDesc("Template to insert below the metadata block for new contact notes")
+      .setName('Note Template')
+      .setDesc(
+        'Template to insert below the metadata block for new contact notes'
+      )
       .addTextArea((text) =>
         text
-          .setPlaceholder("e.g. # Notes\n\nWrite something here...")
+          .setPlaceholder('e.g. # Notes\n\nWrite something here...')
           .setValue(this.plugin.settings.noteTemplate)
           .onChange(async (value) => {
             this.plugin.settings.noteTemplate = value;
@@ -113,11 +115,11 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("File Name Prefix")
-      .setDesc("Prefix to add to the beginning of each contact file name")
+      .setName('File Name Prefix')
+      .setDesc('Prefix to add to the beginning of each contact file name')
       .addText((text) =>
         text
-          .setPlaceholder("e.g. p ")
+          .setPlaceholder('e.g. p ')
           .setValue(this.plugin.settings.fileNamePrefix)
           .onChange(async (value) => {
             this.plugin.settings.fileNamePrefix = value;
@@ -126,11 +128,11 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Property Name Prefix")
-      .setDesc("Prefix to add to the beginning of each contact property name")
+      .setName('Property Name Prefix')
+      .setDesc('Prefix to add to the beginning of each contact property name')
       .addText((text) =>
         text
-          .setPlaceholder("e.g. s_")
+          .setPlaceholder('e.g. s_')
           .setValue(this.plugin.settings.propertyNamePrefix)
           .onChange(async (value) => {
             this.plugin.settings.propertyNamePrefix = value;
@@ -139,11 +141,11 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Label to sync")
-      .setDesc("If not empty, then only contacts with this label will synced")
+      .setName('Label to sync')
+      .setDesc('If not empty, then only contacts with this label will synced')
       .addText((text) =>
         text
-          .setPlaceholder("e.g. obsidian")
+          .setPlaceholder('e.g. obsidian')
           .setValue(this.plugin.settings.syncLabel)
           .onChange(async (value) => {
             this.plugin.settings.syncLabel = value;
@@ -152,11 +154,11 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Auto sync period")
-      .setDesc("Period in minutes. If 0, then never. 1 day = 1440")
+      .setName('Auto sync period')
+      .setDesc('Period in minutes. If 0, then never. 1 day = 1440')
       .addText((text) =>
         text
-          .setPlaceholder("e.g. 1440")
+          .setPlaceholder('e.g. 1440')
           .setValue(this.plugin.settings.syncIntervalMinutes.toString())
           .onChange(async (value) => {
             const parsed = parseInt(value);
@@ -172,8 +174,8 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Sync on startup")
-      .setDesc("Automatically sync contacts when the plugin is loaded.")
+      .setName('Sync on startup')
+      .setDesc('Automatically sync contacts when the plugin is loaded.')
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.syncOnStartup)

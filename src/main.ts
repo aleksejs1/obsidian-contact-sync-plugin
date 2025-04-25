@@ -1,9 +1,23 @@
-import type { ContactSyncSettings } from "./types/Settings";
-import type { GoogleContact, GoogleContactGroup } from "./types/Contact";
-import { ContactSyncSettingTab } from "./settings";
-import { URL_PEOPLE_API, URL_CONTACT_GROUPS, URL_OAUTH_TOKEN, DEFAULT_SETTINGS } from "./config";
-import { Plugin, TFile, TFolder, normalizePath, Notice, parseYaml, stringifyYaml, requestUrl } from "obsidian";
-import { AuthManager } from "./AuthManager";
+import type { ContactSyncSettings } from './types/Settings';
+import type { GoogleContact, GoogleContactGroup } from './types/Contact';
+import { ContactSyncSettingTab } from './settings';
+import {
+  URL_PEOPLE_API,
+  URL_CONTACT_GROUPS,
+  URL_OAUTH_TOKEN,
+  DEFAULT_SETTINGS,
+} from './config';
+import {
+  Plugin,
+  TFile,
+  TFolder,
+  normalizePath,
+  Notice,
+  parseYaml,
+  stringifyYaml,
+  requestUrl,
+} from 'obsidian';
+import { AuthManager } from './AuthManager';
 
 export default class GoogleContactsSyncPlugin extends Plugin {
   settings: ContactSyncSettings = DEFAULT_SETTINGS;
@@ -13,9 +27,9 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
   async onload() {
     this.addCommand({
-      id: "sync-google-contacts",
-      name: "Sync Google Contacts",
-      callback: () => this.syncContacts()
+      id: 'sync-google-contacts',
+      name: 'Sync Google Contacts',
+      callback: () => this.syncContacts(),
     });
 
     await this.loadSettings();
@@ -35,11 +49,14 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     const interval = this.settings.syncIntervalMinutes;
 
     if (interval > 0) {
-      this.syncIntervalId = window.setInterval(() => {
-        if (this.shouldSyncNow()){
-          this.syncContacts();
-        }
-      }, interval * 60 * 1000);
+      this.syncIntervalId = window.setInterval(
+        () => {
+          if (this.shouldSyncNow()) {
+            this.syncContacts();
+          }
+        },
+        interval * 60 * 1000
+      );
     }
   }
 
@@ -65,7 +82,6 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     Object.assign(this.settings, this.auth.getSettingsUpdate());
     await this.saveSettings();
 
-    
     const prefix = this.settings.fileNamePrefix || '';
     const propertyPrefix = this.settings.propertyNamePrefix || '';
     const syncLabel = this.settings.syncLabel;
@@ -73,36 +89,58 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     const contacts = await this.fetchGoogleContacts(token);
     const folderPath = this.settings.contactsFolder;
 
-    await this.app.vault.createFolder(normalizePath(folderPath)).catch(() => {});
+    await this.app.vault
+      .createFolder(normalizePath(folderPath))
+      .catch(() => {});
 
     for (const contact of contacts) {
       if (syncLabel !== '') {
-        const hasObsidianLabel = (contact.memberships || []).some((m) =>
-          m.contactGroupMembership?.contactGroupId === labelMap[syncLabel]
+        const hasObsidianLabel = (contact.memberships || []).some(
+          (m) =>
+            m.contactGroupMembership?.contactGroupId === labelMap[syncLabel]
         );
 
         if (!hasObsidianLabel) continue;
       }
 
-      const id = contact.resourceName?.split("/").pop();
+      const id = contact.resourceName?.split('/').pop();
       const syncedAt = new Date().toISOString();
 
       const frontmatterLines: Record<string, string> = {
-        [`${propertyPrefix}id`]: String(id ?? ""),
-        [`${propertyPrefix}synced`]: String(syncedAt ?? "")
+        [`${propertyPrefix}id`]: String(id ?? ''),
+        [`${propertyPrefix}synced`]: String(syncedAt ?? ''),
       };
 
-      this.addContactFieldToFrontmatter(frontmatterLines, contact.names, "name", propertyPrefix, item => item.displayName);
-      this.addContactFieldToFrontmatter(frontmatterLines, contact.emailAddresses, "email", propertyPrefix, item => item.value);
-      this.addContactFieldToFrontmatter(frontmatterLines, contact.phoneNumbers, "phone", propertyPrefix, item => item.value);
+      this.addContactFieldToFrontmatter(
+        frontmatterLines,
+        contact.names,
+        'name',
+        propertyPrefix,
+        (item) => item.displayName
+      );
+      this.addContactFieldToFrontmatter(
+        frontmatterLines,
+        contact.emailAddresses,
+        'email',
+        propertyPrefix,
+        (item) => item.value
+      );
+      this.addContactFieldToFrontmatter(
+        frontmatterLines,
+        contact.phoneNumbers,
+        'phone',
+        propertyPrefix,
+        (item) => item.value
+      );
 
       if (contact.birthdays && contact.birthdays.length > 0) {
         contact.birthdays.forEach((bday, index) => {
           const date = bday.date;
-          const ending = index === 0 ? "" : `_${index + 1}`
+          const ending = index === 0 ? '' : `_${index + 1}`;
           if (date) {
-            const birthdayStr = `${date.year ?? "XXXX"}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
-            frontmatterLines[`${propertyPrefix}birthday${ending}`] = birthdayStr;
+            const birthdayStr = `${date.year ?? 'XXXX'}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+            frontmatterLines[`${propertyPrefix}birthday${ending}`] =
+              birthdayStr;
           }
         });
       }
@@ -110,10 +148,9 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       const yaml = stringifyYaml(frontmatterLines);
       const frontmatter = `---\n${yaml}---`;
 
-      const name = contact.names?.[0]?.displayName || "Unnamed";
+      const name = contact.names?.[0]?.displayName || 'Unnamed';
 
       let existingFile: TFile | null = null;
-
 
       const folder = this.app.vault.getAbstractFileByPath(folderPath);
       if (!(folder instanceof TFolder)) return null;
@@ -131,10 +168,13 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
       if (existingFile) {
         const content = await this.app.vault.read(existingFile);
-        const updatedContent = this.updateFrontmatterWithContactData(content, frontmatterLines);
+        const updatedContent = this.updateFrontmatterWithContactData(
+          content,
+          frontmatterLines
+        );
         await this.app.vault.modify(existingFile, updatedContent);
       } else {
-        const safeName = name.replace(/[\\/:*?"<>|]/g, "_");
+        const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
         const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
         const noteBody = this.settings.noteTemplate?.trim() || '# Notes\n';
         const initialText = `${frontmatter}\n\n${noteBody}`;
@@ -142,7 +182,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       }
     }
 
-    new Notice("Google Contacts synced!");
+    new Notice('Google Contacts synced!');
   }
 
   getAllMarkdownFilesInFolder(folder: TFolder): TFile[] {
@@ -151,7 +191,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     for (const child of folder.children) {
       if (child instanceof TFolder) {
         files = files.concat(this.getAllMarkdownFilesInFolder(child));
-      } else if (child instanceof TFile && child.extension === "md") {
+      } else if (child instanceof TFile && child.extension === 'md') {
         files.push(child);
       }
     }
@@ -170,15 +210,18 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
     contact.forEach((item, index) => {
       const rawValue = valueExtractor(item);
-      const value = typeof rawValue === "string" ? rawValue : "";
-      const safeValue = value.replace(/[\\/:*?"<>|]/g, "_");
-      const suffix = index === 0 ? "" : `_${index + 1}`;
+      const value = typeof rawValue === 'string' ? rawValue : '';
+      const safeValue = value.replace(/[\\/:*?"<>|]/g, '_');
+      const suffix = index === 0 ? '' : `_${index + 1}`;
       frontmatter[`${propertyPrefix}${keyName}${suffix}`] = safeValue;
     });
   }
 
-  updateFrontmatterWithContactData(content: string, newContactFields: Record<string, string>): string {
-    const parts = content.split("---");
+  updateFrontmatterWithContactData(
+    content: string,
+    newContactFields: Record<string, string>
+  ): string {
+    const parts = content.split('---');
 
     if (parts.length < 3) {
       const yaml = stringifyYaml(newContactFields);
@@ -186,7 +229,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     }
 
     const originalYaml = parts[1];
-    const body = parts.slice(2).join("---").trim();
+    const body = parts.slice(2).join('---').trim();
 
     const parsed = parseYaml(originalYaml) as Record<string, string>;
 
@@ -211,22 +254,21 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     const res = await requestUrl({
       url: URL_PEOPLE_API,
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const data = await res.json;
     return data.connections || [];
   }
 
-
   async fetchGoogleGroups(token: string): Promise<Record<string, string>> {
     const groupResponse = await requestUrl({
       url: URL_CONTACT_GROUPS,
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const data = await groupResponse.json;
@@ -238,7 +280,10 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     const labelMap: Record<string, string> = {};
     (contactGroups || []).forEach((group) => {
       if (group.name && group.resourceName) {
-        labelMap[group.name.toLowerCase()] = group.resourceName.replace('contactGroups/', '');
+        labelMap[group.name.toLowerCase()] = group.resourceName.replace(
+          'contactGroups/',
+          ''
+        );
       }
     });
     return labelMap || [];
@@ -246,21 +291,21 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
   async refreshAccessToken(): Promise<boolean> {
     if (!this.settings.refreshToken) {
-      new Notice("No refresh token found.");
+      new Notice('No refresh token found.');
       return false;
     }
 
     try {
       const response = await requestUrl({
         url: URL_OAUTH_TOKEN,
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           client_id: this.settings.clientId,
           client_secret: this.settings.clientSecret,
           refresh_token: this.settings.refreshToken,
-          grant_type: "refresh_token"
-        }).toString()
+          grant_type: 'refresh_token',
+        }).toString(),
       });
 
       const data = await response.json;
@@ -268,7 +313,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
         this.settings.accessToken = data.access_token;
 
         if (data.expires_in) {
-          this.settings.tokenExpiresAt = Date.now() + (data.expires_in * 1000);;
+          this.settings.tokenExpiresAt = Date.now() + data.expires_in * 1000;
         }
 
         if (data.refresh_token) {
@@ -276,16 +321,16 @@ export default class GoogleContactsSyncPlugin extends Plugin {
         }
 
         await this.saveSettings();
-        new Notice("Access token refreshed.");
+        new Notice('Access token refreshed.');
         return true;
       } else {
-        console.error("Failed to refresh token:", data);
-        new Notice("Failed to refresh access token.");
+        console.error('Failed to refresh token:', data);
+        new Notice('Failed to refresh access token.');
         return false;
       }
     } catch (err) {
-      console.error("Error refreshing token:", err);
-      new Notice("Error refreshing access token.");
+      console.error('Error refreshing token:', err);
+      new Notice('Error refreshing access token.');
       return false;
     }
   }
