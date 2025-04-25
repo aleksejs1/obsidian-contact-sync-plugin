@@ -1,5 +1,5 @@
 import type { ContactSyncSettings } from "./types/Settings";
-import type { GoogleContact } from "./types/Contact";
+import type { GoogleContact, GoogleContactGroup } from "./types/Contact";
 import { ContactSyncSettingTab } from "./settings";
 import { URL_PEOPLE_API, URL_CONTACT_GROUPS, URL_OAUTH_TOKEN, DEFAULT_SETTINGS } from "./config";
 import { Plugin, TFile, TFolder, normalizePath, Notice, parseYaml, stringifyYaml, requestUrl } from "obsidian";
@@ -87,7 +87,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       const id = contact.resourceName?.split("/").pop();
       const syncedAt = new Date().toISOString();
 
-      let frontmatterLines: Record<string, string> = {
+      const frontmatterLines: Record<string, string> = {
         [`${propertyPrefix}id`]: String(id ?? ""),
         [`${propertyPrefix}synced`]: String(syncedAt ?? "")
       };
@@ -159,12 +159,12 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     return files;
   }
 
-  addContactFieldToFrontmatter(
+  addContactFieldToFrontmatter<T extends { [key: string]: unknown }>(
     frontmatter: Record<string, string>,
-    contact: any[] | undefined,
+    contact: T[] | undefined,
     keyName: string,
     propertyPrefix: string,
-    valueExtractor: (item: any) => string | undefined
+    valueExtractor: (item: T) => string | undefined
   ) {
     if (!contact || contact.length === 0) return;
 
@@ -177,7 +177,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     });
   }
 
-  updateFrontmatterWithContactData(content: string, newContactFields: Record<string, any>): string {
+  updateFrontmatterWithContactData(content: string, newContactFields: Record<string, string>): string {
     const parts = content.split("---");
 
     if (parts.length < 3) {
@@ -188,7 +188,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     const originalYaml = parts[1];
     const body = parts.slice(2).join("---").trim();
 
-    const parsed = parseYaml(originalYaml) as Record<string, any>;
+    const parsed = parseYaml(originalYaml) as Record<string, string>;
 
     for (const key of Object.keys(parsed)) {
       if (key in newContactFields) {
@@ -230,9 +230,13 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     });
 
     const data = await groupResponse.json;
+    if (!Array.isArray(data.contactGroups)) {
+      return {};
+    }
+    const contactGroups: GoogleContactGroup[] = data.contactGroups || [];
 
     const labelMap: Record<string, string> = {};
-    (data.contactGroups || []).forEach((group: any) => {
+    (contactGroups || []).forEach((group) => {
       if (group.name && group.resourceName) {
         labelMap[group.name.toLowerCase()] = group.resourceName.replace('contactGroups/', '');
       }

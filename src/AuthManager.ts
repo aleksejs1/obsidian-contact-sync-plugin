@@ -34,7 +34,7 @@ export class AuthManager {
       body: JSON.stringify(body),
     });
       
-    const data = await response.json();
+    const data = await response.json;
     this.accessToken = data.access_token;
     this.refreshToken = data.refresh_token || this.refreshToken;
     this.tokenExpiresAt = Date.now() + (data.expires_in * 1000);
@@ -63,7 +63,7 @@ export class AuthManager {
         grant_type: "refresh_token"
       }).toString()
     });
-    const data = await response.json();
+    const data = await response.json;
     if (!data.access_token) {
       throw new Error("Failed to refresh token");
     }

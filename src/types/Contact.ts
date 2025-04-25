@@ -14,7 +14,7 @@ export interface Birthday {
     day?: number;
   };
   text?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ContactGroupMembership {
@@ -24,6 +24,11 @@ export interface ContactGroupMembership {
 
 export interface Membership {
   contactGroupMembership?: ContactGroupMembership;
-  domainMembership?: any;
-  metadata?: any;
+  domainMembership?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface GoogleContactGroup {
+  name: string;
+  resourceName: string;
 }
