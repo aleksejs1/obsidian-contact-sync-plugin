@@ -2,6 +2,11 @@ import type { ContactSyncSettings } from './types/Settings';
 import { requestUrl } from 'obsidian';
 import { URL_OAUTH_TOKEN, URI_OATUH_REDIRECT } from './config';
 
+/**
+ * Manages OAuth2 authentication for accessing the Google Contacts API.
+ * Handles exchanging authorization codes, refreshing access tokens,
+ * and providing updated credentials.
+ */
 export class AuthManager {
   private clientId: string;
   private clientSecret: string;
@@ -9,6 +14,11 @@ export class AuthManager {
   private refreshToken: string;
   private tokenExpiresAt: number;
 
+  /**
+   * Creates a new AuthManager instance using saved authentication settings.
+   *
+   * @param settings - The authentication and client configuration.
+   */
   constructor(settings: ContactSyncSettings) {
     this.clientId = settings.clientId;
     this.clientSecret = settings.clientSecret;
@@ -17,6 +27,12 @@ export class AuthManager {
     this.tokenExpiresAt = settings.tokenExpiresAt;
   }
 
+  /**
+   * Exchanges an authorization code for access and refresh tokens.
+   *
+   * @param code - The authorization code received from the OAuth flow.
+   * @returns A promise that resolves when tokens have been successfully obtained.
+   */
   async exchangeCode(code: string): Promise<void> {
     const body = {
       code: code,
@@ -40,6 +56,11 @@ export class AuthManager {
     this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
   }
 
+  /**
+   * Ensures the access token is valid and refreshes it if expired.
+   *
+   * @returns A promise that resolves to a valid access token.
+   */
   async ensureValidToken(): Promise<string> {
     if (!this.accessToken || Date.now() > this.tokenExpiresAt) {
       await this.refreshTokenFlow();
@@ -47,6 +68,13 @@ export class AuthManager {
     return this.accessToken;
   }
 
+  /**
+   * Refreshes the access token using the refresh token.
+   * Throws an error if the refresh token is missing or the request fails.
+   *
+   * @private
+   * @returns A promise that resolves when the token has been refreshed.
+   */
   private async refreshTokenFlow(): Promise<void> {
     if (!this.refreshToken) {
       throw new Error('No refresh token available');
@@ -71,6 +99,11 @@ export class AuthManager {
     this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
   }
 
+  /**
+   * Returns updated authentication-related settings that can be saved.
+   *
+   * @returns A partial settings object containing updated tokens and expiry.
+   */
   getSettingsUpdate(): Partial<ContactSyncSettings> {
     return {
       accessToken: this.accessToken,
