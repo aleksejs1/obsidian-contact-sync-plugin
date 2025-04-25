@@ -3,14 +3,27 @@ import { LINK_TO_MANUAL } from './config';
 import { getAuthUrl } from './helper';
 import GoogleContactsSyncPlugin from './main';
 
+/**
+ * Settings tab for the Google Contacts Sync plugin.
+ * Allows the user to configure plugin options through the Obsidian settings UI.
+ */
 export class ContactSyncSettingTab extends PluginSettingTab {
+  /** Reference to the main plugin instance */
   plugin: GoogleContactsSyncPlugin;
 
+  /**
+   * Constructs the settings tab.
+   * @param app The current Obsidian app instance.
+   * @param plugin The instance of the GoogleContactsSyncPlugin.
+   */
   constructor(app: App, plugin: GoogleContactsSyncPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
 
+  /**
+   * Renders the plugin's settings UI in Obsidian's settings panel.
+   */
   display(): void {
     const { containerEl } = this;
     containerEl.empty();

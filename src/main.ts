@@ -1,12 +1,7 @@
 import type { ContactSyncSettings } from './types/Settings';
 import type { GoogleContact, GoogleContactGroup } from './types/Contact';
 import { ContactSyncSettingTab } from './settings';
-import {
-  URL_PEOPLE_API,
-  URL_CONTACT_GROUPS,
-  URL_OAUTH_TOKEN,
-  DEFAULT_SETTINGS,
-} from './config';
+import { URL_PEOPLE_API, URL_CONTACT_GROUPS, DEFAULT_SETTINGS } from './config';
 import {
   Plugin,
   TFile,
@@ -19,12 +14,22 @@ import {
 } from 'obsidian';
 import { AuthManager } from './AuthManager';
 
+/**
+ * Obsidian plugin for synchronizing contacts from Google Contacts into markdown notes.
+ */
 export default class GoogleContactsSyncPlugin extends Plugin {
+  /** Plugin settings loaded from user config */
   settings: ContactSyncSettings = DEFAULT_SETTINGS;
+
+  /** Manages OAuth token exchange and refresh */
   auth: AuthManager | null = null;
 
+  /** ID of the interval used for periodic sync */
   private syncIntervalId: number | null = null;
 
+  /**
+   * Called when the plugin is loaded by Obsidian.
+   */
   async onload() {
     this.addCommand({
       id: 'sync-google-contacts',
@@ -43,6 +48,9 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     this.setupAutoSync();
   }
 
+  /**
+   * Sets up automatic periodic syncing using setInterval based on plugin settings.
+   */
   setupAutoSync() {
     if (this.syncIntervalId) clearInterval(this.syncIntervalId);
 
@@ -60,6 +68,10 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     }
   }
 
+  /**
+   * Determines whether syncing should be triggered based on the last sync time and interval.
+   * @returns True if sync should be triggered now, false otherwise.
+   */
   shouldSyncNow(): boolean {
     const { lastSyncTime, syncIntervalMinutes } = this.settings;
 
@@ -73,6 +85,9 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     return diffMinutes >= syncIntervalMinutes;
   }
 
+  /**
+   * Performs the contact synchronization process: fetching, processing, and saving contact notes.
+   */
   async syncContacts() {
     this.settings.lastSyncTime = new Date().toISOString();
     await this.saveSettings();
@@ -185,6 +200,11 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     new Notice('Google Contacts synced!');
   }
 
+  /**
+   * Recursively retrieves all markdown files in the specified folder.
+   * @param folder The root folder to search within.
+   * @returns An array of markdown files.
+   */
   getAllMarkdownFilesInFolder(folder: TFolder): TFile[] {
     let files: TFile[] = [];
 
@@ -199,6 +219,14 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     return files;
   }
 
+  /**
+   * Adds extracted contact field values to frontmatter with proper formatting.
+   * @param frontmatter Frontmatter object to modify.
+   * @param contact Contact array from which to extract values.
+   * @param keyName Field key (e.g., "email", "phone").
+   * @param propertyPrefix Prefix to apply to each field name in frontmatter.
+   * @param valueExtractor Function to extract a string value from each item.
+   */
   addContactFieldToFrontmatter<T extends { [key: string]: unknown }>(
     frontmatter: Record<string, string>,
     contact: T[] | undefined,
@@ -217,6 +245,12 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     });
   }
 
+  /**
+   * Updates the YAML frontmatter of a note with new contact fields, merging with existing values.
+   * @param content Original markdown note content.
+   * @param newContactFields Contact data to inject into the frontmatter.
+   * @returns Updated markdown content.
+   */
   updateFrontmatterWithContactData(
     content: string,
     newContactFields: Record<string, string>
@@ -250,6 +284,11 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     return `---\n${updatedYaml}---\n\n${body}`;
   }
 
+  /**
+   * Fetches the list of Google contacts using the provided access token.
+   * @param token OAuth access token.
+   * @returns An array of Google contact objects.
+   */
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
     const res = await requestUrl({
       url: URL_PEOPLE_API,
@@ -262,6 +301,11 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     return data.connections || [];
   }
 
+  /**
+   * Fetches contact groups and returns a mapping of lowercase group name → group ID.
+   * @param token OAuth access token.
+   * @returns Record mapping lowercase group names to their resource IDs.
+   */
   async fetchGoogleGroups(token: string): Promise<Record<string, string>> {
     const groupResponse = await requestUrl({
       url: URL_CONTACT_GROUPS,
@@ -289,56 +333,16 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     return labelMap || [];
   }
 
-  async refreshAccessToken(): Promise<boolean> {
-    if (!this.settings.refreshToken) {
-      new Notice('No refresh token found.');
-      return false;
-    }
-
-    try {
-      const response = await requestUrl({
-        url: URL_OAUTH_TOKEN,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          client_id: this.settings.clientId,
-          client_secret: this.settings.clientSecret,
-          refresh_token: this.settings.refreshToken,
-          grant_type: 'refresh_token',
-        }).toString(),
-      });
-
-      const data = await response.json;
-      if (data.access_token) {
-        this.settings.accessToken = data.access_token;
-
-        if (data.expires_in) {
-          this.settings.tokenExpiresAt = Date.now() + data.expires_in * 1000;
-        }
-
-        if (data.refresh_token) {
-          this.settings.refreshToken = data.refresh_token;
-        }
-
-        await this.saveSettings();
-        new Notice('Access token refreshed.');
-        return true;
-      } else {
-        console.error('Failed to refresh token:', data);
-        new Notice('Failed to refresh access token.');
-        return false;
-      }
-    } catch (err) {
-      console.error('Error refreshing token:', err);
-      new Notice('Error refreshing access token.');
-      return false;
-    }
-  }
-
+  /**
+   * Loads plugin settings from disk, applying defaults as needed.
+   */
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
+  /**
+   * Saves current plugin settings to disk.
+   */
   async saveSettings() {
     await this.saveData(this.settings);
   }
