@@ -18,16 +18,16 @@ export class ContactNoteWriter {
   /**
    * The Vault instance where the notes are stored.
    *
-   * This private property is used to interact with the vault to read, write, and update files.
+   * This protected property is used to interact with the vault to read, write, and update files.
    */
-  private vault: Vault;
+  protected vault: Vault;
 
   /**
    * The Formatter instance used for formatting contact data into frontmatter.
    *
-   * This private property is used to format contact data into a suitable format for Obsidian frontmatter.
+   * This protected property is used to format contact data into a suitable format for Obsidian frontmatter.
    */
-  private formatter: Formatter = new Formatter();
+  protected formatter: Formatter = new Formatter();
 
   /**
    * Creates an instance of the ContactNoteWriter class.
@@ -112,7 +112,7 @@ export class ContactNoteWriter {
    * @param labelMap - A mapping of label names to their corresponding group IDs.
    * @returns True if the contact has the label, false otherwise.
    */
-  private hasSyncLabel(
+  protected hasSyncLabel(
     contact: GoogleContact,
     syncLabel: string,
     labelMap: Record<string, string>
@@ -141,7 +141,7 @@ export class ContactNoteWriter {
    * const idFileMapping = await this.scanFiles(files);
    * console.log(idFileMapping); // { "123": file1, "456": file2, ... }
    */
-  private async scanFiles(
+  protected async scanFiles(
     files: TFile[],
     propertyPrefix: string
   ): Promise<Record<string, TFile>> {
@@ -210,7 +210,7 @@ export class ContactNoteWriter {
    * @param fields - A record of key-value pairs to include in the frontmatter.
    * @returns A string representing the full frontmatter block with proper formatting.
    */
-  private generateFrontmatterBlock(fields: Record<string, string>): string {
+  protected generateFrontmatterBlock(fields: Record<string, string>): string {
     const yaml = stringifyYaml(fields);
     return `---\n${yaml}---\n\n`;
   }

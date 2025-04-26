@@ -47,10 +47,10 @@ export class GoogleContactsService {
     if (!Array.isArray(data.contactGroups)) {
       return {};
     }
-    const contactGroups: GoogleContactGroup[] = data.contactGroups || [];
+    const contactGroups: GoogleContactGroup[] = data.contactGroups;
 
     const labelMap: Record<string, string> = {};
-    (contactGroups || []).forEach((group) => {
+    (contactGroups).forEach((group) => {
       if (group.name && group.resourceName) {
         labelMap[group.name.toLowerCase()] = group.resourceName.replace(
           'contactGroups/',
@@ -58,6 +58,6 @@ export class GoogleContactsService {
         );
       }
     });
-    return labelMap || [];
+    return labelMap;
   }
 }

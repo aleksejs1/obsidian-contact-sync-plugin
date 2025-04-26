@@ -4,5 +4,11 @@
         "src/**/*.tsx"
     ],
     "out": "docs",
-    "tsconfig": "tsconfig.json"
+    "tsconfig": "tsconfig.json",
+    "exclude": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/__tests__/**",
+        "**/__mocks__/**"
+    ],
 }

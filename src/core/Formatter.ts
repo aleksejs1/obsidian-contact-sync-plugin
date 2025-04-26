@@ -100,7 +100,7 @@ export class Formatter {
    * @param propertyPrefix Prefix to apply to each field name in frontmatter.
    * @param valueExtractor Function to extract a string value from each item.
    */
-  private addContactFieldToFrontmatter<T extends { [key: string]: unknown }>(
+  protected addContactFieldToFrontmatter<T extends { [key: string]: unknown }>(
     frontmatter: Record<string, string>,
     contact: T[] | undefined,
     keyName: string,
@@ -111,7 +111,7 @@ export class Formatter {
 
     contact.forEach((item, index) => {
       const rawValue = valueExtractor(item);
-      const value = typeof rawValue === 'string' ? rawValue : '';
+      const value = String(rawValue || '');
       const safeValue = value.replace(/[\\/:*?"<>|]/g, '_');
       const suffix = index === 0 ? '' : `_${index + 1}`;
       frontmatter[`${propertyPrefix}${keyName}${suffix}`] = safeValue;
