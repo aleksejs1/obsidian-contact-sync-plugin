@@ -1,18 +1,10 @@
 import type { ContactSyncSettings } from './types/Settings';
-import type { GoogleContact, GoogleContactGroup } from './types/Contact';
-import { ContactSyncSettingTab } from './settings';
-import { URL_PEOPLE_API, URL_CONTACT_GROUPS, DEFAULT_SETTINGS } from './config';
-import {
-  Plugin,
-  TFile,
-  TFolder,
-  normalizePath,
-  Notice,
-  parseYaml,
-  stringifyYaml,
-  requestUrl,
-} from 'obsidian';
-import { AuthManager } from './AuthManager';
+import { ContactSyncSettingTab } from './plugin/settings';
+import { DEFAULT_SETTINGS } from './config';
+import { Plugin, Notice } from 'obsidian';
+import { AuthManager } from './auth/AuthManager';
+import { GoogleContactsService } from './core/GoogleContactsService';
+import { ContactNoteWriter } from './core/ContactNoteWriter';
 
 /**
  * Obsidian plugin for synchronizing contacts from Google Contacts into markdown notes.
@@ -23,6 +15,15 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
   /** Manages OAuth token exchange and refresh */
   auth: AuthManager | null = null;
+
+  /**
+   * Service layer handling communication with the Google Contacts API.
+   * Used to fetch contacts and groups, separate from Obsidian-specific logic.
+   */
+  googleService: GoogleContactsService | null = null;
+
+  /** Handles writing contact notes to the vault */
+  noteWriter: ContactNoteWriter | null = null;
 
   /** ID of the interval used for periodic sync */
   private syncIntervalId: number | null = null;
@@ -40,6 +41,8 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     await this.loadSettings();
     this.auth = new AuthManager(this.settings);
     this.addSettingTab(new ContactSyncSettingTab(this.app, this));
+    this.googleService = new GoogleContactsService();
+    this.noteWriter = new ContactNoteWriter(this.app.vault);
 
     if (this.settings.syncOnStartup || this.shouldSyncNow()) {
       this.syncContacts();
@@ -89,248 +92,48 @@ export default class GoogleContactsSyncPlugin extends Plugin {
    * Performs the contact synchronization process: fetching, processing, and saving contact notes.
    */
   async syncContacts() {
-    this.settings.lastSyncTime = new Date().toISOString();
-    await this.saveSettings();
+    this.updateLastSyncTime();
 
-    if (!this.auth) return;
-    const token = await this.auth.ensureValidToken();
-    Object.assign(this.settings, this.auth.getSettingsUpdate());
-    await this.saveSettings();
-
-    const prefix = this.settings.fileNamePrefix || '';
-    const propertyPrefix = this.settings.propertyNamePrefix || '';
-    const syncLabel = this.settings.syncLabel;
-    const labelMap = await this.fetchGoogleGroups(token);
-    const contacts = await this.fetchGoogleContacts(token);
-    const folderPath = this.settings.contactsFolder;
-
-    await this.app.vault
-      .createFolder(normalizePath(folderPath))
-      .catch(() => {});
-
-    for (const contact of contacts) {
-      if (syncLabel !== '') {
-        const hasObsidianLabel = (contact.memberships || []).some(
-          (m) =>
-            m.contactGroupMembership?.contactGroupId === labelMap[syncLabel]
-        );
-
-        if (!hasObsidianLabel) continue;
-      }
-
-      const id = contact.resourceName?.split('/').pop();
-      const syncedAt = new Date().toISOString();
-
-      const frontmatterLines: Record<string, string> = {
-        [`${propertyPrefix}id`]: String(id ?? ''),
-        [`${propertyPrefix}synced`]: String(syncedAt ?? ''),
-      };
-
-      this.addContactFieldToFrontmatter(
-        frontmatterLines,
-        contact.names,
-        'name',
-        propertyPrefix,
-        (item) => item.displayName
-      );
-      this.addContactFieldToFrontmatter(
-        frontmatterLines,
-        contact.emailAddresses,
-        'email',
-        propertyPrefix,
-        (item) => item.value
-      );
-      this.addContactFieldToFrontmatter(
-        frontmatterLines,
-        contact.phoneNumbers,
-        'phone',
-        propertyPrefix,
-        (item) => item.value
-      );
-
-      if (contact.birthdays && contact.birthdays.length > 0) {
-        contact.birthdays.forEach((bday, index) => {
-          const date = bday.date;
-          const ending = index === 0 ? '' : `_${index + 1}`;
-          if (date) {
-            const birthdayStr = `${date.year ?? 'XXXX'}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
-            frontmatterLines[`${propertyPrefix}birthday${ending}`] =
-              birthdayStr;
-          }
-        });
-      }
-
-      const yaml = stringifyYaml(frontmatterLines);
-      const frontmatter = `---\n${yaml}---`;
-
-      const name = contact.names?.[0]?.displayName || 'Unnamed';
-
-      let existingFile: TFile | null = null;
-
-      const folder = this.app.vault.getAbstractFileByPath(folderPath);
-      if (!(folder instanceof TFolder)) return null;
-
-      const files = this.getAllMarkdownFilesInFolder(folder);
-
-      for (const file of files) {
-        const content = await this.app.vault.read(file);
-        const match = content.match(/^---\n([\s\S]+?)\n---/);
-        if (match && match[1].includes(`id: ${id}`)) {
-          existingFile = file;
-          break;
-        }
-      }
-
-      if (existingFile) {
-        const content = await this.app.vault.read(existingFile);
-        const updatedContent = this.updateFrontmatterWithContactData(
-          content,
-          frontmatterLines
-        );
-        await this.app.vault.modify(existingFile, updatedContent);
-      } else {
-        const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
-        const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
-        const noteBody = this.settings.noteTemplate?.trim() || '# Notes\n';
-        const initialText = `${frontmatter}\n\n${noteBody}`;
-        await this.app.vault.create(filename, initialText);
-      }
+    const token = await this.auth?.ensureValidToken();
+    if (!token) {
+      new Notice('Failed to obtain access token. Please re-authenticate.');
+      return;
     }
+    this.updateAuthSettings();
+
+    const labelMap = (await this.googleService?.fetchGoogleGroups(token)) || {};
+    const contacts =
+      (await this.googleService?.fetchGoogleContacts(token)) || [];
+
+    this.noteWriter?.writeNotesForContacts(
+      this.settings.fileNamePrefix || '',
+      this.settings.propertyNamePrefix || '',
+      this.settings.syncLabel,
+      labelMap,
+      contacts,
+      this.settings.contactsFolder,
+      this.settings.noteTemplate || '# Notes\n'
+    );
 
     new Notice('Google Contacts synced!');
   }
 
   /**
-   * Recursively retrieves all markdown files in the specified folder.
-   * @param folder The root folder to search within.
-   * @returns An array of markdown files.
+   * Updates the last synchronization timestamp and saves the updated plugin settings.
+   * This should be called after a successful sync to persist the last sync time.
    */
-  getAllMarkdownFilesInFolder(folder: TFolder): TFile[] {
-    let files: TFile[] = [];
-
-    for (const child of folder.children) {
-      if (child instanceof TFolder) {
-        files = files.concat(this.getAllMarkdownFilesInFolder(child));
-      } else if (child instanceof TFile && child.extension === 'md') {
-        files.push(child);
-      }
-    }
-
-    return files;
+  async updateLastSyncTime(): Promise<void> {
+    this.settings.lastSyncTime = new Date().toISOString();
+    await this.saveSettings();
   }
 
   /**
-   * Adds extracted contact field values to frontmatter with proper formatting.
-   * @param frontmatter Frontmatter object to modify.
-   * @param contact Contact array from which to extract values.
-   * @param keyName Field key (e.g., "email", "phone").
-   * @param propertyPrefix Prefix to apply to each field name in frontmatter.
-   * @param valueExtractor Function to extract a string value from each item.
+   * Updates the plugin settings with the latest authentication tokens from the AuthManager
+   * and persists them to the plugin storage.
    */
-  addContactFieldToFrontmatter<T extends { [key: string]: unknown }>(
-    frontmatter: Record<string, string>,
-    contact: T[] | undefined,
-    keyName: string,
-    propertyPrefix: string,
-    valueExtractor: (item: T) => string | undefined
-  ) {
-    if (!contact || contact.length === 0) return;
-
-    contact.forEach((item, index) => {
-      const rawValue = valueExtractor(item);
-      const value = typeof rawValue === 'string' ? rawValue : '';
-      const safeValue = value.replace(/[\\/:*?"<>|]/g, '_');
-      const suffix = index === 0 ? '' : `_${index + 1}`;
-      frontmatter[`${propertyPrefix}${keyName}${suffix}`] = safeValue;
-    });
-  }
-
-  /**
-   * Updates the YAML frontmatter of a note with new contact fields, merging with existing values.
-   * @param content Original markdown note content.
-   * @param newContactFields Contact data to inject into the frontmatter.
-   * @returns Updated markdown content.
-   */
-  updateFrontmatterWithContactData(
-    content: string,
-    newContactFields: Record<string, string>
-  ): string {
-    const parts = content.split('---');
-
-    if (parts.length < 3) {
-      const yaml = stringifyYaml(newContactFields);
-      return `---\n${yaml}---\n\n`;
-    }
-
-    const originalYaml = parts[1];
-    const body = parts.slice(2).join('---').trim();
-
-    const parsed = parseYaml(originalYaml) as Record<string, string>;
-
-    for (const key of Object.keys(parsed)) {
-      if (key in newContactFields) {
-        parsed[key] = newContactFields[key];
-        delete newContactFields[key];
-      }
-    }
-
-    const updated = {
-      ...parsed,
-      ...newContactFields,
-      synced: new Date().toISOString(),
-    };
-
-    const updatedYaml = stringifyYaml(updated);
-    return `---\n${updatedYaml}---\n\n${body}`;
-  }
-
-  /**
-   * Fetches the list of Google contacts using the provided access token.
-   * @param token OAuth access token.
-   * @returns An array of Google contact objects.
-   */
-  async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
-    const res = await requestUrl({
-      url: URL_PEOPLE_API,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await res.json;
-    return data.connections || [];
-  }
-
-  /**
-   * Fetches contact groups and returns a mapping of lowercase group name → group ID.
-   * @param token OAuth access token.
-   * @returns Record mapping lowercase group names to their resource IDs.
-   */
-  async fetchGoogleGroups(token: string): Promise<Record<string, string>> {
-    const groupResponse = await requestUrl({
-      url: URL_CONTACT_GROUPS,
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await groupResponse.json;
-    if (!Array.isArray(data.contactGroups)) {
-      return {};
-    }
-    const contactGroups: GoogleContactGroup[] = data.contactGroups || [];
-
-    const labelMap: Record<string, string> = {};
-    (contactGroups || []).forEach((group) => {
-      if (group.name && group.resourceName) {
-        labelMap[group.name.toLowerCase()] = group.resourceName.replace(
-          'contactGroups/',
-          ''
-        );
-      }
-    });
-    return labelMap || [];
+  async updateAuthSettings(): Promise<void> {
+    Object.assign(this.settings, this.auth?.getSettingsUpdate());
+    await this.saveSettings();
   }
 
   /**

@@ -1,7 +1,7 @@
 import { Notice, Setting, App, PluginSettingTab } from 'obsidian';
-import { LINK_TO_MANUAL } from './config';
-import { getAuthUrl } from './helper';
-import GoogleContactsSyncPlugin from './main';
+import { LINK_TO_MANUAL } from '../config';
+import { getAuthUrl } from '../auth/getAuthUrl';
+import GoogleContactsSyncPlugin from '../main';
 
 /**
  * Settings tab for the Google Contacts Sync plugin.

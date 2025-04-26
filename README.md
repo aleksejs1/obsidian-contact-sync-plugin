@@ -7,7 +7,6 @@ Each contact becomes a separate note with YAML frontmatter for metadata and free
 
 ## ⚙️ Features
 
-
 - 🔄 Synchronize Google Contacts into your Obsidian vault
 
 - 🗂 Configurable folder for storing contact notes
@@ -21,6 +20,11 @@ Each contact becomes a separate note with YAML frontmatter for metadata and free
 - 🧩 Customizable prefix for metadata keys (e.g. `s_name_1`, `s_email_1`)
 
 - 📇 Supports multiple names, emails, phone numbers, birthdays
+
+## 📸 Screenshots
+
+![Note example](resources/obsidian_contact_sync_plugin_note.png "Note example")
+![Settings tab](resources/obsidian_contact_sync_plugin_settings.png "Settings tab")
 
 ---
 
@@ -39,16 +43,10 @@ To build the plugin:
 3. Build the plugin using Rollup:   
 
    ```bash
-   npx rollup -c
+   npm run build
    ```
 
-After this, two files will be generated:
-
-main.js
-
-manifest.json
-
-These are the only files needed to install the plugin into Obsidian.
+After this, dist/main.js will be generated:
 
 ## 📦 Installing into Obsidian
 
@@ -101,15 +99,35 @@ The plugin will automatically save the access and refresh tokens.
 
 ## 🔁 Sync Algorithm
 
-- Each contact is matched using its id stored in the YAML frontmatter
-
-- If a contact already exists (by id), the plugin updates only the frontmatter
-
-- Any free-text content below the frontmatter is preserved and never overwritten
-
-- If no matching file exists, a new note is created with:
-
+- Only notes within the specified folder are used for syncing contacts.
+    
+- Each contact is matched using its `id` stored in the YAML frontmatter.
+    
+- If a contact already exists (by `id`), the plugin updates only the frontmatter. Existing user-defined frontmatter properties and free-text content below the frontmatter are preserved and **never overwritten**.
+    
+- If there is more than one piece of information for a given property (e.g., multiple phone numbers or multiple birthdays), the plugin appends a number to the property name. For example:
+    
+```yaml
+phone: +123456789
+phone_2: +987654321
+birthday: 1990-05-10
+birthday_2: 1992-07-15
 ```
+
+- You can define a **prefix** for the property names in the frontmatter. This allows you to avoid conflicts with existing properties and to better organize your notes. For example, if the prefix is `sync_`, the properties will be stored as:
+
+```yaml
+sync_id: CONTACT_ID
+sync_name: Full Name
+sync_email: email@example.com
+sync_phone: +123456789
+sync_birthday: 1990-05-10
+sync_synced: 2025-04-19T12:34:56.789Z
+```
+
+- If no matching file exists, a new note is created with the following structure:
+    
+```yaml
 ---
 id: CONTACT_ID
 name: Full Name
@@ -118,10 +136,18 @@ phone: +123456789
 synced: 2025-04-19T12:34:56.789Z
 ---
 
-# Notes
+# Notes  
 
 You can write anything here — this section is safe.
 ```
+
+- The `synced` date uses **UTC (Coordinated Universal Time)** to ensure correct synchronization across time zones.
+    
+- The plugin only updates properties related to the contact (such as `name`, `email`, `phone`, etc.). Any custom properties created by the user will **remain untouched**.
+    
+- If auto-syncing fails (e.g., due to a lack of internet connection), the next attempt will only occur during the next scheduled auto-sync. **No retries will be attempted** in between.
+
+- If a sync label is configured, only contacts with that label will be synchronized. Contacts without the specified label will be ignored during the sync process.
 
 ## 🔐 How to Get a Google Client ID and Secret
 To sync your contacts, you’ll need a valid Google Access Token that grants access to the People API.

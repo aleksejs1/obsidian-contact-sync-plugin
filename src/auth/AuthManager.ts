@@ -1,6 +1,6 @@
-import type { ContactSyncSettings } from './types/Settings';
+import type { ContactSyncSettings } from '../types/Settings';
 import { requestUrl } from 'obsidian';
-import { URL_OAUTH_TOKEN, URI_OATUH_REDIRECT } from './config';
+import { URL_OAUTH_TOKEN, URI_OATUH_REDIRECT } from '../config';
 
 /**
  * Manages OAuth2 authentication for accessing the Google Contacts API.

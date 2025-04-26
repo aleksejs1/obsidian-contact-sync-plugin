@@ -8,7 +8,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "clean": "rm -rf dist",
+    "build": "npm run clean && npx rollup -c",
+    "doc": "npx typedoc"
   },
   "keywords": [],
   "author": "",
