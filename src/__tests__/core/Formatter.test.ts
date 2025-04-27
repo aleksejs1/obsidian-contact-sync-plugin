@@ -2,7 +2,8 @@ import { Formatter } from '../../core/Formatter';
 import { GoogleContact } from '../../types/Contact';
 
 class TestableFormatter extends Formatter {
-  public testAddContactFieldToFrontmatter = this.addContactFieldToFrontmatter.bind(this);
+  public testAddContactFieldToFrontmatter =
+    this.addContactFieldToFrontmatter.bind(this);
 }
 
 describe('Formatter', () => {
@@ -45,7 +46,6 @@ describe('Formatter', () => {
       },
     ],
   };
-
 
   const frontmatter: Record<string, string> = {};
   const prefix = 'gc_';
@@ -140,7 +140,7 @@ describe('Formatter', () => {
       undefined,
       'email',
       'gc_',
-      (item) => undefined
+      () => undefined
     );
 
     formatter.testAddContactFieldToFrontmatter(
@@ -148,7 +148,7 @@ describe('Formatter', () => {
       [],
       'email',
       'gc_',
-      (item) => undefined
+      () => undefined
     );
 
     expect(frontmatter1).toEqual({});

@@ -1,194 +1,211 @@
 import { ContactNoteWriter } from '../../core/ContactNoteWriter';
-import { Vault, TFile, TFolder } from 'obsidian';
-import { Formatter } from '../../core/Formatter';
-import { GoogleContact, Membership } from 'src/types/Contact';
+import { Vault, TFile, FileStats, TFolder } from 'obsidian';
+import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
-import { normalizePath } from 'obsidian';
 
 jest.mock('obsidian', () => {
-    const actual = jest.requireActual('obsidian');
-    return {
-      ...actual,
-      normalizePath: jest.fn((path) => path),
-      parseYaml: jest.fn((yamlString: string) => {
-        return { 'propertyPrefix-id': '123' };
-      }),
-      stringifyYaml: jest.fn((obj: Record<string, any>) => {
-        return Object.entries(obj)
+  const actual = jest.requireActual('obsidian');
+  return {
+    ...actual,
+    normalizePath: jest.fn((path) => path),
+    parseYaml: jest.fn(() => {
+      return { 'propertyPrefix-id': '123' };
+    }),
+    stringifyYaml: jest.fn((obj: Record<string, unknown>) => {
+      return (
+        Object.entries(obj)
           .map(([key, value]) => `${key}: ${value}`)
-          .join('\n') + '\n';
-      }),
-      Vault: jest.fn().mockImplementation(() => ({
-        create: jest.fn(),
-        modify: jest.fn(),
-        createFolder: jest.fn().mockResolvedValue(undefined),
-        getAbstractFileByPath: jest.fn(),
-        read: jest.fn(),
-        getFileByPath: jest.fn(),
-      })),
-      TFolder: class MockTFolder {
-        static [Symbol.hasInstance](instance: any) {
-          return instance?.__isMockTFolder;
-        }
-      },
-    };
+          .join('\n') + '\n'
+      );
+    }),
+    Vault: jest.fn().mockImplementation(() => ({
+      create: jest.fn(),
+      modify: jest.fn(),
+      createFolder: jest.fn().mockResolvedValue(undefined),
+      getAbstractFileByPath: jest.fn(),
+      read: jest.fn(),
+      getFileByPath: jest.fn(),
+    })),
+    TFolder: class MockTFolder {
+      static [Symbol.hasInstance](instance: unknown) {
+        return (
+          typeof instance === 'object' &&
+          instance !== null &&
+          '__isMockTFolder' in instance
+        );
+      }
+    },
+    TFile: class MockTFile {
+      static [Symbol.hasInstance](instance: unknown) {
+        return (
+          typeof instance === 'object' &&
+          instance !== null &&
+          '__isMockTFile' in instance
+        );
+      }
+    },
+  };
+});
+
+jest.mock('src/utils/getAllMarkdownFilesInFolder', () => ({
+  getAllMarkdownFilesInFolder: jest.fn(),
+}));
+
+describe('ContactNoteWriter', () => {
+  let contactNoteWriter: ContactNoteWriter;
+  let vault: Vault;
+
+  beforeEach(() => {
+    vault = new Vault() as unknown as Vault;
+    contactNoteWriter = new ContactNoteWriter(vault);
   });
-  
-  jest.mock('src/utils/getAllMarkdownFilesInFolder', () => ({
-    getAllMarkdownFilesInFolder: jest.fn(),
-  }));
-  
-  describe('ContactNoteWriter', () => {
-    let contactNoteWriter: ContactNoteWriter;
-    let vault: Vault;
-  
-    beforeEach(() => {
-      vault = new Vault() as unknown as Vault;
-      contactNoteWriter = new ContactNoteWriter(vault);
+
+  describe('writeNotesForContacts', () => {
+    it('should create a new note for a contact if it does not exist', async () => {
+      const mockContacts: GoogleContact[] = [
+        {
+          resourceName: 'people/123',
+          names: [{ displayName: 'Alice Smith' }],
+          emailAddresses: [{ value: 'alice@example.com' }],
+        },
+      ];
+      const mockLabelMap = { family: 'group1' };
+      const mockNoteBody = 'This is a note body';
+
+      const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
+
+      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
+      (vault.create as jest.Mock).mockResolvedValue(undefined);
+      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+
+      await contactNoteWriter.writeNotesForContacts(
+        'prefix-',
+        'propertyPrefix-',
+        '',
+        mockLabelMap,
+        mockContacts,
+        'path/to/folder',
+        mockNoteBody
+      );
+
+      expect(vault.create).toHaveBeenCalledWith(
+        'path/to/folder/prefix-Alice Smith.md',
+        expect.stringContaining('---')
+      );
     });
-  
-    describe('writeNotesForContacts', () => {
-      it('should create a new note for a contact if it does not exist', async () => {
-        const mockContacts: GoogleContact[] = [
-          {
-            resourceName: 'people/123',
-            names: [{ displayName: 'Alice Smith' }],
-            emailAddresses: [{ value: 'alice@example.com' }],
-          },
-        ];
-        const mockLabelMap = { family: 'group1' };
-        const mockNoteBody = 'This is a note body';
-  
-        const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
-        
-        (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
-        (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
-        (vault.create as jest.Mock).mockResolvedValue(undefined);
-        (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
-  
-        await contactNoteWriter.writeNotesForContacts(
-          'prefix-',
-          'propertyPrefix-',
-          '',
-          mockLabelMap,
-          mockContacts,
-          'path/to/folder',
-          mockNoteBody
-        );
-  
-        expect(vault.create).toHaveBeenCalledWith(
-          'path/to/folder/prefix-Alice Smith.md',
-          expect.stringContaining('---')
-        );
-      });
-  
-      it('should create a new note for a contact with label', async () => {
-        const mockContacts: GoogleContact[] = [
-          {
-            resourceName: 'people/123',
-            names: [{ displayName: 'Alice Smith' }],
-            emailAddresses: [{ value: 'alice@example.com' }],
-            memberships: [{
-                contactGroupMembership: {
-                    contactGroupId: '456',
-                    contactGroupResourceName: 'contactGroups/family',
-                },
-            }],
-          },
-        ];
-        const mockLabelMap = { family: '456' };
-        const mockNoteBody = 'This is a note body';
-        const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
-        
-        (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
-        (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
-        (vault.create as jest.Mock).mockResolvedValue(undefined);
-        (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
-    
-        await contactNoteWriter.writeNotesForContacts(
-          'prefix-',
-          'propertyPrefix-',
-          'family',
-          mockLabelMap,
-          mockContacts,
-          'path/to/folder',
-          mockNoteBody
-        );
-    
-        expect(vault.create).toHaveBeenCalledWith(
-          'path/to/folder/prefix-Alice Smith.md',
-          expect.stringContaining('---')
-        );
-      });
 
-      it('should create a new note for a contact without names', async () => {
-        const mockContacts: GoogleContact[] = [
-          {
-            resourceName: 'people/123',
-            emailAddresses: [{ value: 'alice@example.com' }],
-            memberships: [{
-                contactGroupMembership: {
-                    contactGroupId: '456',
-                    contactGroupResourceName: 'contactGroups/family',
-                },
-            }],
-          },
-        ];
-        const mockLabelMap = { family: '456' };
-        const mockNoteBody = 'This is a note body';
-        const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
-        
-        (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
-        (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
-        (vault.create as jest.Mock).mockResolvedValue(undefined);
-        (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
-    
-        await contactNoteWriter.writeNotesForContacts(
-          'prefix-',
-          'propertyPrefix-',
-          'family',
-          mockLabelMap,
-          mockContacts,
-          'path/to/folder',
-          mockNoteBody
-        );
-    
-        expect(vault.create).toHaveBeenCalledWith(
-          'path/to/folder/prefix-123.md',
-          expect.stringContaining('---')
-        );
-      });
+    it('should create a new note for a contact with label', async () => {
+      const mockContacts: GoogleContact[] = [
+        {
+          resourceName: 'people/123',
+          names: [{ displayName: 'Alice Smith' }],
+          emailAddresses: [{ value: 'alice@example.com' }],
+          memberships: [
+            {
+              contactGroupMembership: {
+                contactGroupId: '456',
+                contactGroupResourceName: 'contactGroups/family',
+              },
+            },
+          ],
+        },
+      ];
+      const mockLabelMap = { family: '456' };
+      const mockNoteBody = 'This is a note body';
+      const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
 
-      it('should not create or update notes in case no name and id', async () => {
-        const mockContacts: GoogleContact[] = [
-          {
-            resourceName: '',
-            names: [],
-            emailAddresses: [{ value: 'alice@example.com' }],
-          },
-        ];
-        const mockLabelMap = { family: 'group1' };
-        const mockNoteBody = 'This is a note body';
-        const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
-  
-        // Mock methods
-        (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
-        (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
-        (vault.create as jest.Mock).mockResolvedValue(undefined);
-        (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
-  
-        await contactNoteWriter.writeNotesForContacts(
-          'prefix-',
-          'propertyPrefix-',
-          '',
-          mockLabelMap,
-          mockContacts,
-          'path/to/folder',
-          mockNoteBody
-        );
-  
-        expect(vault.create).not.toHaveBeenCalled();
-      });
+      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
+      (vault.create as jest.Mock).mockResolvedValue(undefined);
+      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+
+      await contactNoteWriter.writeNotesForContacts(
+        'prefix-',
+        'propertyPrefix-',
+        'family',
+        mockLabelMap,
+        mockContacts,
+        'path/to/folder',
+        mockNoteBody
+      );
+
+      expect(vault.create).toHaveBeenCalledWith(
+        'path/to/folder/prefix-Alice Smith.md',
+        expect.stringContaining('---')
+      );
+    });
+
+    it('should create a new note for a contact without names', async () => {
+      const mockContacts: GoogleContact[] = [
+        {
+          resourceName: 'people/123',
+          emailAddresses: [{ value: 'alice@example.com' }],
+          memberships: [
+            {
+              contactGroupMembership: {
+                contactGroupId: '456',
+                contactGroupResourceName: 'contactGroups/family',
+              },
+            },
+          ],
+        },
+      ];
+      const mockLabelMap = { family: '456' };
+      const mockNoteBody = 'This is a note body';
+      const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
+
+      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
+      (vault.create as jest.Mock).mockResolvedValue(undefined);
+      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+
+      await contactNoteWriter.writeNotesForContacts(
+        'prefix-',
+        'propertyPrefix-',
+        'family',
+        mockLabelMap,
+        mockContacts,
+        'path/to/folder',
+        mockNoteBody
+      );
+
+      expect(vault.create).toHaveBeenCalledWith(
+        'path/to/folder/prefix-123.md',
+        expect.stringContaining('---')
+      );
+    });
+
+    it('should not create or update notes in case no name and id', async () => {
+      const mockContacts: GoogleContact[] = [
+        {
+          resourceName: '',
+          names: [],
+          emailAddresses: [{ value: 'alice@example.com' }],
+        },
+      ];
+      const mockLabelMap = { family: 'group1' };
+      const mockNoteBody = 'This is a note body';
+      const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
+
+      // Mock methods
+      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
+      (vault.create as jest.Mock).mockResolvedValue(undefined);
+      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+
+      await contactNoteWriter.writeNotesForContacts(
+        'prefix-',
+        'propertyPrefix-',
+        '',
+        mockLabelMap,
+        mockContacts,
+        'path/to/folder',
+        mockNoteBody
+      );
+
+      expect(vault.create).not.toHaveBeenCalled();
+    });
 
     it('should update an existing note for a contact if it already exists', async () => {
       const mockContacts: GoogleContact[] = [
@@ -196,19 +213,104 @@ jest.mock('obsidian', () => {
           resourceName: 'people/123',
           names: [{ displayName: 'Alice Smith' }],
           emailAddresses: [{ value: 'alice@example.com' }],
-        } as GoogleContact
+        } as GoogleContact,
       ];
       const mockLabelMap = { family: 'group1' };
       const mockNoteBody = 'This is a note body';
 
       const mockFile = {
         path: 'path/to/folder/prefix-Alice Smith.md',
-        __isMockTFolder: true
+        __isMockTFolder: true,
       }; // Existing file mock
-      const mockExistingContent = '---\npropertyPrefix-id: 123\n---\nBody content';
+      const mockExistingContent =
+        '---\npropertyPrefix-id: 123\n---\nBody content';
 
       // Mock methods
       (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFile);
+      (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([mockFile]);
+      (vault.read as jest.Mock).mockResolvedValue(mockExistingContent);
+      (vault.modify as jest.Mock).mockResolvedValue(undefined);
+
+      await contactNoteWriter.writeNotesForContacts(
+        'prefix-',
+        'propertyPrefix-',
+        '',
+        mockLabelMap,
+        mockContacts,
+        'path/to/folder',
+        mockNoteBody
+      );
+
+      expect(vault.modify).toHaveBeenCalledWith(
+        mockFile,
+        expect.stringContaining('propertyPrefix-synced')
+      );
+    });
+
+    it('should update an existing note without id', async () => {
+      const mockContacts: GoogleContact[] = [
+        {
+          resourceName: 'people/123',
+          names: [{ displayName: 'Alice Smith' }],
+          emailAddresses: [{ value: 'alice@example.com' }],
+        } as GoogleContact,
+      ];
+      const mockLabelMap = { family: 'group1' };
+      const mockNoteBody = 'This is a note body';
+
+      const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
+      const mockFile = {
+        path: 'path/to/folder/prefix-Alice Smith.md',
+        __isMockTFile: true,
+      }; // Existing file mock
+      const mockExistingContent = 'Body content';
+
+      // Mock methods
+      (vault.getAbstractFileByPath as jest.Mock)
+        .mockReturnValueOnce(mockFolder)
+        .mockReturnValueOnce(mockFile);
+      (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([mockFile]);
+      (vault.read as jest.Mock).mockResolvedValue(mockExistingContent);
+      (vault.modify as jest.Mock).mockResolvedValue(undefined);
+
+      await contactNoteWriter.writeNotesForContacts(
+        'prefix-',
+        'propertyPrefix-',
+        '',
+        mockLabelMap,
+        mockContacts,
+        'path/to/folder',
+        mockNoteBody
+      );
+
+      expect(vault.modify).toHaveBeenCalledWith(
+        mockFile,
+        expect.stringContaining('propertyPrefix-synced')
+      );
+    });
+
+    it('should update an existing note without id, begins with ---, but not yaml', async () => {
+      const mockContacts: GoogleContact[] = [
+        {
+          resourceName: 'people/123',
+          names: [{ displayName: 'Alice Smith' }],
+          emailAddresses: [{ value: 'alice@example.com' }],
+        } as GoogleContact,
+      ];
+      const mockLabelMap = { family: 'group1' };
+      const mockNoteBody = 'This is a note body';
+
+      const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
+      const mockFile = {
+        path: 'path/to/folder/prefix-Alice Smith.md',
+        __isMockTFile: true,
+      }; // Existing file mock
+      const mockExistingContent = '---\nBody content';
+
+      // Mock methods
+      (vault.getAbstractFileByPath as jest.Mock)
+        .mockReturnValueOnce(mockFolder)
+        .mockReturnValueOnce(mockFile);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([mockFile]);
       (vault.read as jest.Mock).mockResolvedValue(mockExistingContent);
       (vault.modify as jest.Mock).mockResolvedValue(undefined);
@@ -240,7 +342,7 @@ jest.mock('obsidian', () => {
       const mockLabelMap = { family: 'group1' };
       const mockNoteBody = 'This is a note body';
 
-      const mockFolder = { path: 'path/to/folder', __isMockTFolder: true  };
+      const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
 
       // Mock methods
       (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
@@ -262,42 +364,50 @@ jest.mock('obsidian', () => {
     });
 
     it('should not create or update notes in case of wrong folder', async () => {
-        const mockContacts: GoogleContact[] = [
-          {
-            resourceName: 'people/123',
-            names: [{ displayName: 'Alice Smith' }],
-            emailAddresses: [{ value: 'alice@example.com' }],
-          },
-        ];
-        const mockLabelMap = { family: 'group1' };
-        const mockNoteBody = 'This is a note body';
-  
-        const mockFolder = {};
-  
-        // Mock methods
-        (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
-        (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
-        (vault.create as jest.Mock).mockResolvedValue(undefined);
-        (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
-  
-        await contactNoteWriter.writeNotesForContacts(
-          'prefix-',
-          'propertyPrefix-',
-          '',
-          mockLabelMap,
-          mockContacts,
-          'path/to/folder',
-          mockNoteBody
-        );
-  
-        expect(vault.create).not.toHaveBeenCalled();
-      });
+      const mockContacts: GoogleContact[] = [
+        {
+          resourceName: 'people/123',
+          names: [{ displayName: 'Alice Smith' }],
+          emailAddresses: [{ value: 'alice@example.com' }],
+        },
+      ];
+      const mockLabelMap = { family: 'group1' };
+      const mockNoteBody = 'This is a note body';
+
+      const mockFolder = {};
+
+      // Mock methods
+      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
+      (vault.create as jest.Mock).mockResolvedValue(undefined);
+      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+
+      await contactNoteWriter.writeNotesForContacts(
+        'prefix-',
+        'propertyPrefix-',
+        '',
+        mockLabelMap,
+        mockContacts,
+        'path/to/folder',
+        mockNoteBody
+      );
+
+      expect(vault.create).not.toHaveBeenCalled();
+    });
   });
 
   describe('scanFiles', () => {
     it('should correctly scan files and return a mapping of ids to files', async () => {
       const mockFiles: TFile[] = [
-        { path: 'path/to/file1.md', stat: {} as any, basename: 'file1', extension: 'md', vault: {} as any, name: 'file1', parent: {} as any },
+        {
+          path: 'path/to/file1.md',
+          stat: {} as unknown as FileStats,
+          basename: 'file1',
+          extension: 'md',
+          vault: {} as unknown as Vault,
+          name: 'file1',
+          parent: {} as unknown as TFolder,
+        },
       ];
 
       const mockFrontmatter = `---\npropertyPrefix-id: 123\n---`;
@@ -305,7 +415,10 @@ jest.mock('obsidian', () => {
       // Mock methods
       (vault.read as jest.Mock).mockResolvedValue(mockFrontmatter);
 
-      const result = await contactNoteWriter['scanFiles'](mockFiles, 'propertyPrefix-');
+      const result = await contactNoteWriter['scanFiles'](
+        mockFiles,
+        'propertyPrefix-'
+      );
 
       expect(result).toEqual({
         '123': mockFiles[0], // Expect the file with id 123
@@ -318,16 +431,20 @@ jest.mock('obsidian', () => {
       const mockContact: GoogleContact = {
         resourceName: 'people/123',
         memberships: [
-            {
-              contactGroupMembership: {
-                contactGroupId: 'group1',
-              },
+          {
+            contactGroupMembership: {
+              contactGroupId: 'group1',
             },
+          },
         ],
       };
       const mockLabelMap = { family: 'group1' };
 
-      const result = contactNoteWriter['hasSyncLabel'](mockContact, 'family', mockLabelMap);
+      const result = contactNoteWriter['hasSyncLabel'](
+        mockContact,
+        'family',
+        mockLabelMap
+      );
 
       expect(result).toBe(true);
     });
@@ -345,7 +462,11 @@ jest.mock('obsidian', () => {
       };
       const mockLabelMap = { family: 'group1' };
 
-      const result = contactNoteWriter['hasSyncLabel'](mockContact, 'family', mockLabelMap);
+      const result = contactNoteWriter['hasSyncLabel'](
+        mockContact,
+        'family',
+        mockLabelMap
+      );
 
       expect(result).toBe(false);
     });
@@ -357,7 +478,11 @@ jest.mock('obsidian', () => {
       };
       const mockLabelMap = { family: 'group1' };
 
-      const result = contactNoteWriter['hasSyncLabel'](mockContact, 'family', mockLabelMap);
+      const result = contactNoteWriter['hasSyncLabel'](
+        mockContact,
+        'family',
+        mockLabelMap
+      );
 
       expect(result).toBe(false);
     });

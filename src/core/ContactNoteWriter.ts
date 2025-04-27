@@ -3,25 +3,18 @@ import {
   parseYaml,
   stringifyYaml,
   TFile,
-  TFolder,
   Vault,
 } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
 import { Formatter } from './Formatter';
+import { VaultService } from 'src/services/VaultService';
 
 /**
  * Responsible for creating and updating contact notes in the vault.
  * Handles writing new notes and updating existing ones based on contact metadata.
  */
 export class ContactNoteWriter {
-  /**
-   * The Vault instance where the notes are stored.
-   *
-   * This protected property is used to interact with the vault to read, write, and update files.
-   */
-  protected vault: Vault;
-
   /**
    * The Formatter instance used for formatting contact data into frontmatter.
    *
@@ -30,12 +23,19 @@ export class ContactNoteWriter {
   protected formatter: Formatter = new Formatter();
 
   /**
+   * The VaultService instance used for vault operations.
+   *
+   * This protected property is used to encapsulate file and folder operations to facilitate testing and decouple from direct API usage.
+   */
+  protected vaultService: VaultService;
+
+  /**
    * Creates an instance of the ContactNoteWriter class.
    *
    * @param vault - The Obsidian Vault instance where the contact notes are stored.
    */
   constructor(vault: Vault) {
-    this.vault = vault;
+    this.vaultService = new VaultService(vault);
   }
 
   /**
@@ -58,10 +58,10 @@ export class ContactNoteWriter {
     folderPath: string,
     noteBody: string
   ): Promise<void> {
-    await this.vault.createFolder(normalizePath(folderPath)).catch(() => {});
+    await this.vaultService.createFolderIfNotExists(folderPath);
 
-    const folder = this.vault.getAbstractFileByPath(folderPath);
-    if (!(folder instanceof TFolder)) return;
+    const folder = this.vaultService.getFolderByPath(folderPath);
+    if (!folder) return;
     const files = getAllMarkdownFilesInFolder(folder);
     const filesIdMapping = await this.scanFiles(files, propertyPrefix);
 
@@ -87,26 +87,31 @@ export class ContactNoteWriter {
       const existingFile: TFile | null = filesIdMapping[String(id)] || null;
 
       if (existingFile) {
-        const content = await this.vault.read(existingFile);
+        const content = await this.vaultService.readFile(existingFile);
         const updatedContent = this.updateFrontmatterWithContactData(
           content,
           frontmatterLines
         );
-        await this.vault.modify(existingFile, updatedContent);
+        await this.vaultService.modifyFile(existingFile, updatedContent);
       } else {
-        const name = contact.names?.[0]?.displayName || String(contact.resourceName.split('/').pop());
+        const name =
+          contact.names?.[0]?.displayName ||
+          String(contact.resourceName.split('/').pop());
         if (!name) continue;
         const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
         const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
-        const file = this.vault.getFileByPath(filename);
+        const file = this.vaultService.getFileByPath(filename);
         if (file instanceof TFile) {
-          const content = await this.vault.read(file);
-          const updatedContent = this.updateFrontmatterWithContactData(content, frontmatterLines);
-          await this.vault.modify(file, updatedContent);
+          const content = await this.vaultService.readFile(file);
+          const updatedContent = this.updateFrontmatterWithContactData(
+            content,
+            frontmatterLines
+          );
+          await this.vaultService.modifyFile(file, updatedContent);
         } else {
           const initialText =
             this.generateFrontmatterBlock(frontmatterLines) + noteBody;
-          await this.vault.create(filename, initialText);
+          await this.vaultService.createFile(filename, initialText);
         }
       }
     }
@@ -137,7 +142,7 @@ export class ContactNoteWriter {
    * Scans an array of files, reads their content, and checks if the file's frontmatter contains an `id` field.
    * If an `id` field is found, it adds the `id` as a key and the corresponding file (`TFile`) as the value to a mapping object.
    *
-   * This method uses Obsidian's `vault.read()` to read file content and `parseYaml()` to safely parse the YAML frontmatter.
+   * This method uses Obsidian's `vaultService.readFile()` to read file content and `parseYaml()` to safely parse the YAML frontmatter.
    * It ensures that only files with valid `id` fields in their frontmatter are added to the mapping.
    *
    * @param files An array of `TFile` objects representing the files to be scanned.
@@ -156,19 +161,15 @@ export class ContactNoteWriter {
     const idToFileMapping: Record<string, TFile> = {};
 
     for (const file of files) {
-      const content = await this.vault.read(file);
+      const content = await this.vaultService.readFile(file);
 
       const match = content.match(/^---\n([\s\S]+?)\n---/);
       if (match && match[1]) {
-        try {
-          const frontmatter = parseYaml(match[1]);
+        const frontmatter = parseYaml(match[1]);
 
-          const idFieldName = `${propertyPrefix}id`;
-          if (frontmatter && frontmatter[idFieldName]) {
-            idToFileMapping[frontmatter[idFieldName]] = file;
-          }
-        } catch (error) {
-          console.error(`Error parsing YAML in file: ${file.path}`, error);
+        const idFieldName = `${propertyPrefix}id`;
+        if (frontmatter && frontmatter[idFieldName]) {
+          idToFileMapping[frontmatter[idFieldName]] = file;
         }
       }
     }

@@ -1,6 +1,6 @@
 export const normalizePath = (path: string) => path;
-export const parseYaml = (yaml: string) => ({});
-export const stringifyYaml = (obj: object) => '';
+export const parseYaml = () => ({});
+export const stringifyYaml = () => '';
 export class Vault {
   async read() {
     return '';

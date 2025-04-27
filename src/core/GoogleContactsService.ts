@@ -50,7 +50,7 @@ export class GoogleContactsService {
     const contactGroups: GoogleContactGroup[] = data.contactGroups;
 
     const labelMap: Record<string, string> = {};
-    (contactGroups).forEach((group) => {
+    contactGroups.forEach((group) => {
       if (group.name && group.resourceName) {
         labelMap[group.name.toLowerCase()] = group.resourceName.replace(
           'contactGroups/',
