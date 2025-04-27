@@ -68,11 +68,11 @@ export class ContactNoteWriter {
     for (const contact of contacts) {
       if (!this.hasSyncLabel(contact, syncLabel, labelMap)) continue;
 
-      const id = contact.resourceName?.split('/').pop();
+      const id = contact.resourceName.split('/').pop();
       const syncedAt = new Date().toISOString();
       const frontmatterLines: Record<string, string> = {
-        [`${propertyPrefix}id`]: String(id ?? ''),
-        [`${propertyPrefix}synced`]: String(syncedAt ?? ''),
+        [`${propertyPrefix}id`]: String(id),
+        [`${propertyPrefix}synced`]: String(syncedAt),
       };
 
       this.formatter.addNameField(frontmatterLines, contact, propertyPrefix);
@@ -84,7 +84,7 @@ export class ContactNoteWriter {
         propertyPrefix
       );
 
-      const existingFile: TFile | null = filesIdMapping[id ?? ''] || null;
+      const existingFile: TFile | null = filesIdMapping[String(id)] || null;
 
       if (existingFile) {
         const content = await this.vault.read(existingFile);
@@ -94,12 +94,20 @@ export class ContactNoteWriter {
         );
         await this.vault.modify(existingFile, updatedContent);
       } else {
-        const name = contact.names?.[0]?.displayName || 'Unnamed';
+        const name = contact.names?.[0]?.displayName || String(contact.resourceName.split('/').pop());
+        if (!name) continue;
         const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
         const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
-        const initialText =
-          this.generateFrontmatterBlock(frontmatterLines) + noteBody;
-        await this.vault.create(filename, initialText);
+        const file = this.vault.getFileByPath(filename);
+        if (file instanceof TFile) {
+          const content = await this.vault.read(file);
+          const updatedContent = this.updateFrontmatterWithContactData(content, frontmatterLines);
+          await this.vault.modify(file, updatedContent);
+        } else {
+          const initialText =
+            this.generateFrontmatterBlock(frontmatterLines) + noteBody;
+          await this.vault.create(filename, initialText);
+        }
       }
     }
   }
@@ -178,8 +186,11 @@ export class ContactNoteWriter {
     content: string,
     newContactFields: Record<string, string>
   ): string {
-    const parts = content.split('---');
+    if (!content.startsWith('---')) {
+      return this.generateFrontmatterBlock(newContactFields) + content;
+    }
 
+    const parts = content.split('---');
     if (parts.length < 3) {
       return this.generateFrontmatterBlock(newContactFields) + content;
     }
