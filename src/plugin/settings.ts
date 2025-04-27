@@ -28,8 +28,6 @@ export class ContactSyncSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h2', { text: 'Google Contacts Sync Settings' });
-
     const manual = document.createDocumentFragment();
     manual.append(
       'Here is the manual about creating your own client: ',
@@ -40,7 +38,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
     );
 
     new Setting(containerEl)
-      .setName('Google Client ID')
+      .setName('Google client ID')
       .setDesc(manual)
       .addText((text) =>
         text
@@ -52,7 +50,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl).setName('Google Client Secret').addText((text) =>
+    new Setting(containerEl).setName('Google client secret').addText((text) =>
       text
         .setPlaceholder('Enter your client secret')
         .setValue(this.plugin.settings.clientSecret)
@@ -64,7 +62,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Login with Google')
-      .setDesc("Open Google's OAuth page in your browser")
+      .setDesc("Open google's OAuth page in your browser")
       .addButton((btn) =>
         btn.setButtonText('Login').onClick(() => {
           if (!this.plugin.settings.clientId) {
@@ -76,7 +74,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Authorization Code')
+      .setName('Authorization code')
       .setDesc('Paste the code from Google after login')
       .addText((text) =>
         text.setPlaceholder('Paste code here').onChange(async (code) => {
@@ -100,7 +98,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Contacts Folder')
+      .setName('Contacts folder')
       .setDesc('Vault folder where contact notes will be stored')
       .addText((text) =>
         text
@@ -113,7 +111,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Note Template')
+      .setName('Note template')
       .setDesc(
         'Template to insert below the metadata block for new contact notes'
       )
@@ -128,7 +126,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('File Name Prefix')
+      .setName('File name prefix')
       .setDesc('Prefix to add to the beginning of each contact file name')
       .addText((text) =>
         text
@@ -141,7 +139,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Property Name Prefix')
+      .setName('Property name prefix')
       .setDesc('Prefix to add to the beginning of each contact property name')
       .addText((text) =>
         text

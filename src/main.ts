@@ -51,6 +51,10 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     this.setupAutoSync();
   }
 
+  async onunload() {
+    if (this.syncIntervalId) clearInterval(this.syncIntervalId);
+  }
+
   /**
    * Sets up automatic periodic syncing using setInterval based on plugin settings.
    */
