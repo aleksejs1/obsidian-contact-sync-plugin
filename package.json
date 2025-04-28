@@ -1,5 +1,5 @@
 {
-  "name": "google-contacts-sync",
+  "name": "google-contacts",
   "version": "0.1.6",
   "description": "",
   "main": "rollup.config.js",

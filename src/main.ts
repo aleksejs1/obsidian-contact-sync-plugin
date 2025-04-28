@@ -33,8 +33,8 @@ export default class GoogleContactsSyncPlugin extends Plugin {
    */
   async onload() {
     this.addCommand({
-      id: 'sync-google-contacts',
-      name: 'Sync Google Contacts',
+      id: 'sync',
+      name: 'Sync',
       callback: () => this.syncContacts(),
     });
 
