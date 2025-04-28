@@ -87,12 +87,10 @@ export class ContactNoteWriter {
       const existingFile: TFile | null = filesIdMapping[String(id)] || null;
 
       if (existingFile) {
-        const content = await this.vaultService.readFile(existingFile);
-        const updatedContent = this.updateFrontmatterWithContactData(
-          content,
-          frontmatterLines
+        await this.vaultService.modifyFile(
+          existingFile,
+          this.modifyNote(frontmatterLines)
         );
-        await this.vaultService.modifyFile(existingFile, updatedContent);
       } else {
         const name =
           contact.names?.[0]?.displayName ||
@@ -102,12 +100,10 @@ export class ContactNoteWriter {
         const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
         const file = this.vaultService.getFileByPath(filename);
         if (file instanceof TFile) {
-          const content = await this.vaultService.readFile(file);
-          const updatedContent = this.updateFrontmatterWithContactData(
-            content,
-            frontmatterLines
+          await this.vaultService.modifyFile(
+            file,
+            this.modifyNote(frontmatterLines)
           );
-          await this.vaultService.modifyFile(file, updatedContent);
         } else {
           const initialText =
             this.generateFrontmatterBlock(frontmatterLines) + noteBody;
@@ -115,6 +111,20 @@ export class ContactNoteWriter {
         }
       }
     }
+  }
+
+  /**
+   * Returns a function that modifies the frontmatter of a note with new contact data.
+   *
+   * @param frontmatterLines - The new contact data to inject into the frontmatter.
+   * @returns A function that takes the note content and returns the modified content.
+   */
+  modifyNote(
+    frontmatterLines: Record<string, string>
+  ): (data: string) => string {
+    return (data: string): string => {
+      return this.updateFrontmatterWithContactData(data, frontmatterLines);
+    };
   }
 
   /**

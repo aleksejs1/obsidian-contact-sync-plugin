@@ -68,8 +68,11 @@ export class VaultService {
    * @param file - The file to modify.
    * @param content - The new content to write.
    */
-  async modifyFile(file: TFile, content: string): Promise<void> {
-    await this.vault.modify(file, content);
+  async modifyFile(
+    file: TFile,
+    modify: (data: string) => string
+  ): Promise<void> {
+    await this.vault.process(file, modify);
   }
 
   /**
