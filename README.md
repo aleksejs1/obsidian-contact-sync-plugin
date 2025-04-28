@@ -1,4 +1,4 @@
-# 🧩 Obsidian Google Contacts Sync Plugin
+# 🧩 Google Contacts Sync
 
 Synchronize your Google Contacts directly into Obsidian!  
 Each contact becomes a separate note with YAML frontmatter for metadata and free-form text for your notes.
