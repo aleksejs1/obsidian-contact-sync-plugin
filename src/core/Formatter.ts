@@ -68,6 +68,93 @@ export class Formatter {
   }
 
   /**
+   * Adds the biography field(s) from the contact to the frontmatter lines.
+   *
+   * @param frontmatterLines - The object representing the frontmatter fields to update.
+   * @param contact - The Google contact containing biography information.
+   * @param propertyPrefix - The prefix to prepend to the field name.
+   */
+  addBioField(
+    frontmatterLines: Record<string, string>,
+    contact: GoogleContact,
+    propertyPrefix: string
+  ) {
+    this.addContactFieldToFrontmatter(
+      frontmatterLines,
+      contact.biographies,
+      'biographies',
+      propertyPrefix,
+      (item) => item.value
+    );
+  }
+
+  /**
+   * Adds address field(s) from the contact to the frontmatter lines.
+   * Handles multiple addresses and appends a suffix to each additional field.
+   *
+   * @param frontmatterLines - The object representing the frontmatter fields to update.
+   * @param contact - The Google contact containing address information.
+   * @param propertyPrefix - The prefix to prepend to the field name.
+   */
+  addAddressFields(
+    frontmatterLines: Record<string, string>,
+    contact: GoogleContact,
+    propertyPrefix: string
+  ) {
+    this.addContactFieldToFrontmatter(
+      frontmatterLines,
+      contact.addresses,
+      'address',
+      propertyPrefix,
+      (item) => item.formattedValue
+    );
+  }
+
+  /**
+   * Adds organization field(s) from the contact to the frontmatter lines.
+   * Handles multiple organizations and appends a suffix to each additional field.
+   *
+   * @param frontmatterLines - The object representing the frontmatter fields to update.
+   * @param contact - The Google contact containing organization information.
+   * @param propertyPrefix - The prefix to prepend to the field name.
+   */
+  addOrganizationFields(
+    frontmatterLines: Record<string, string>,
+    contact: GoogleContact,
+    propertyPrefix: string
+  ) {
+    this.addContactFieldToFrontmatter(
+      frontmatterLines,
+      contact.organizations,
+      'organization',
+      propertyPrefix,
+      (item) => item.name
+    );
+  }
+
+  /**
+   * Adds job title field(s) from the contact to the frontmatter lines.
+   * Handles multiple job titles and appends a suffix to each additional field.
+   *
+   * @param frontmatterLines - The object representing the frontmatter fields to update.
+   * @param contact - The Google contact containing job title information.
+   * @param propertyPrefix - The prefix to prepend to the field name.
+   */
+  addJobTitleFields(
+    frontmatterLines: Record<string, string>,
+    contact: GoogleContact,
+    propertyPrefix: string
+  ) {
+    this.addContactFieldToFrontmatter(
+      frontmatterLines,
+      contact.organizations,
+      'jobtitle',
+      propertyPrefix,
+      (item) => item.title
+    );
+  }
+
+  /**
    * Adds birthday field(s) from the contact to the frontmatter lines.
    * Handles multiple birthdays and appends a suffix to each additional field.
    *
@@ -112,9 +199,8 @@ export class Formatter {
     contact.forEach((item, index) => {
       const rawValue = valueExtractor(item);
       const value = String(rawValue || '');
-      const safeValue = value.replace(/[\\/:*?"<>|]/g, '_');
       const suffix = index === 0 ? '' : `_${index + 1}`;
-      frontmatter[`${propertyPrefix}${keyName}${suffix}`] = safeValue;
+      frontmatter[`${propertyPrefix}${keyName}${suffix}`] = value;
     });
   }
 }

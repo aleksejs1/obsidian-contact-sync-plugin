@@ -78,6 +78,22 @@ export class ContactNoteWriter {
       this.formatter.addNameField(frontmatterLines, contact, propertyPrefix);
       this.formatter.addEmailField(frontmatterLines, contact, propertyPrefix);
       this.formatter.addPhoneField(frontmatterLines, contact, propertyPrefix);
+      this.formatter.addAddressFields(
+        frontmatterLines,
+        contact,
+        propertyPrefix
+      );
+      this.formatter.addBioField(frontmatterLines, contact, propertyPrefix);
+      this.formatter.addOrganizationFields(
+        frontmatterLines,
+        contact,
+        propertyPrefix
+      );
+      this.formatter.addJobTitleFields(
+        frontmatterLines,
+        contact,
+        propertyPrefix
+      );
       this.formatter.addBirthdayFields(
         frontmatterLines,
         contact,

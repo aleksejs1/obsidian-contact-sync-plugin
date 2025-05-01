@@ -114,23 +114,6 @@ describe('Formatter', () => {
     });
   });
 
-  it('replaces unsafe characters with underscores', () => {
-    const frontmatter: Record<string, string> = {};
-    const mockContact = [{ value: 'evil/email:address@example.com' }];
-
-    formatter.testAddContactFieldToFrontmatter(
-      frontmatter,
-      mockContact,
-      'email',
-      'gc_',
-      (item) => item.value
-    );
-
-    expect(frontmatter).toEqual({
-      gc_email: 'evil_email_address@example.com',
-    });
-  });
-
   it('does nothing if contact is undefined or empty', () => {
     const frontmatter1: Record<string, string> = {};
     const frontmatter2: Record<string, string> = {};

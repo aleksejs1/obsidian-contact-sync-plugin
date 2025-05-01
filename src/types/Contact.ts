@@ -19,6 +19,27 @@ export interface GoogleContact {
 
   /** Array of group/domain memberships associated with the contact */
   memberships?: Membership[];
+
+  /** Array of biographies objects associated with the contact */
+  biographies?: { value: string }[];
+
+  /** Array of address objects associated with the contact */
+  addresses?: {
+    city: string;
+    country: string;
+    countryCode: string;
+    extendedAddress: string;
+    formattedType: string;
+    formattedValue: string;
+    postalCode: string;
+    streetAddress: string;
+    type: string;
+  }[];
+
+  organizations?: {
+    name: string;
+    title: string;
+  }[];
 }
 
 /**
