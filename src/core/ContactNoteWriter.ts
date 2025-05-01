@@ -64,6 +64,9 @@ export class ContactNoteWriter {
     if (!folder) return;
     const files = getAllMarkdownFilesInFolder(folder);
     const filesIdMapping = await this.scanFiles(files, propertyPrefix);
+    const invertedLabelMap: Record<string, string> = Object.fromEntries(
+      Object.entries(labelMap).map((a) => a.reverse())
+    );
 
     for (const contact of contacts) {
       if (!this.hasSyncLabel(contact, syncLabel, labelMap)) continue;
@@ -98,6 +101,12 @@ export class ContactNoteWriter {
         frontmatterLines,
         contact,
         propertyPrefix
+      );
+      this.formatter.addLabels(
+        frontmatterLines,
+        contact,
+        propertyPrefix,
+        invertedLabelMap
       );
 
       const existingFile: TFile | null = filesIdMapping[String(id)] || null;
@@ -211,7 +220,7 @@ export class ContactNoteWriter {
    */
   updateFrontmatterWithContactData(
     content: string,
-    newContactFields: Record<string, string>
+    newContactFields: Record<string, string | string[]>
   ): string {
     if (!content.startsWith('---')) {
       return this.generateFrontmatterBlock(newContactFields) + content;
@@ -225,7 +234,7 @@ export class ContactNoteWriter {
     const originalYaml = parts[1];
     const body = parts.slice(2).join('---').trim();
 
-    const parsed = parseYaml(originalYaml) as Record<string, string>;
+    const parsed = parseYaml(originalYaml) as Record<string, string | string[]>;
 
     for (const key of Object.keys(parsed)) {
       if (key in newContactFields) {
@@ -248,7 +257,9 @@ export class ContactNoteWriter {
    * @param fields - A record of key-value pairs to include in the frontmatter.
    * @returns A string representing the full frontmatter block with proper formatting.
    */
-  protected generateFrontmatterBlock(fields: Record<string, string>): string {
+  protected generateFrontmatterBlock(
+    fields: Record<string, string | string[]>
+  ): string {
     const yaml = stringifyYaml(fields);
     return `---\n${yaml}---\n\n`;
   }

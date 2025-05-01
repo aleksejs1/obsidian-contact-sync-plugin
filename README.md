@@ -19,7 +19,7 @@ Each contact becomes a separate note with YAML frontmatter for metadata and free
 
 - 🧩 Customizable prefix for metadata keys (e.g. `s_name_1`, `s_email_1`)
 
-- 📇 Supports multiple names, emails, phone numbers, birthdays
+- 📇 Supports multiple names, emails, phone numbers, birthdays, addresses, organizations, job titles, labels
 
 ## 📸 Screenshots
 

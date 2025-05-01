@@ -180,6 +180,35 @@ export class Formatter {
   }
 
   /**
+   * Adds labels from the contact to the frontmatter lines.
+   * Handles multiple labels and appends a suffix to each additional field.
+   *
+   * @param frontmatterLines - The object representing the frontmatter fields to update.
+   * @param contact - The Google contact containing label information.
+   * @param propertyPrefix - The prefix to prepend to the field name.
+   * @param labelMap - A mapping of label IDs to their corresponding names.
+   */
+  addLabels(
+    frontmatterLines: Record<string, string | string[]>,
+    contact: GoogleContact,
+    propertyPrefix: string,
+    labelMap: Record<string, string>
+  ) {
+    if (contact.memberships && contact.memberships.length > 0) {
+      const labels: string[] = [];
+      contact.memberships.forEach((m) => {
+        const groupId = m.contactGroupMembership?.contactGroupId;
+        if (groupId) {
+          labels.push(labelMap[groupId]);
+        }
+      });
+      if (labels.length > 0) {
+        frontmatterLines[`${propertyPrefix}labels`] = labels;
+      }
+    }
+  }
+
+  /**
    * Adds extracted contact field values to frontmatter with proper formatting.
    * @param frontmatter Frontmatter object to modify.
    * @param contact Contact array from which to extract values.

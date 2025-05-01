@@ -1,9 +1,7 @@
 import { Translator, t } from '../../i18n/translator';
 
 jest.mock('obsidian', () => ({
-  moment: {
-    locale: jest.fn(() => 'ru'),
-  },
+  getLanguage: jest.fn(() => 'ru'),
 }));
 
 describe('Translator', () => {
