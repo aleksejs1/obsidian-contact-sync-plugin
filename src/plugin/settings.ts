@@ -31,7 +31,8 @@ export class ContactSyncSettingTab extends PluginSettingTab {
 
     const manual = document.createDocumentFragment();
     manual.append(
-      t('Here is the manual about creating your own client: '),
+      t('Here is the manual about creating your own client:'),
+      ' ',
       manual.createEl('a', {
         href: LINK_TO_MANUAL,
         text: t('manual'),

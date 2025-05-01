@@ -2,7 +2,7 @@
  * Language dictionaries for Russian translations.
  */
 export const ru = {
-  'Here is the manual about creating your own client: ':
+  'Here is the manual about creating your own client:':
     'Инструкция по созданию собственного клиента:',
   manual: 'инструкция',
   'Google client ID': 'ID клиента Google',
@@ -55,8 +55,8 @@ export const ru = {
  * Language dictionaries for Latvian translations.
  */
 export const lv = {
-  'Here is the manual about creating your own client: ':
-    'Šeit ir rokasgrāmata klienta izveidei: ',
+  'Here is the manual about creating your own client:':
+    'Šeit ir rokasgrāmata klienta izveidei:',
   manual: 'rokasgrāmata',
   'Google client ID': 'Google klienta ID',
   'Enter your client ID': 'Ievadiet savu klienta ID',
@@ -108,8 +108,8 @@ export const lv = {
  * Language dictionaries for English translations.
  */
 export const en = {
-  'Here is the manual about creating your own client: ':
-    'Here is the manual about creating your own client: ',
+  'Here is the manual about creating your own client:':
+    'Here is the manual about creating your own client:',
   manual: 'manual',
   'Google client ID': 'Google client ID',
   'Enter your client ID': 'Enter your client ID',
