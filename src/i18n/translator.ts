@@ -1,4 +1,4 @@
-import { moment } from 'obsidian';
+import { getLanguage } from 'obsidian';
 import { ru, en, lv } from './translations';
 
 /**
@@ -42,7 +42,7 @@ export class Translator {
 }
 
 // Singleton-like instance for general use
-export const translator = new Translator(moment.locale());
+export const translator = new Translator(getLanguage());
 
 /**
  * Global translation function.
