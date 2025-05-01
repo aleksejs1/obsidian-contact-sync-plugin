@@ -1,7 +1,7 @@
 {
   "id": "google-contacts",
   "name": "Google Contacts",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "minAppVersion": "0.12.0",
   "description": "Synchronize your Google Contacts with separate contact-notes",
   "author": "aleksejs1",
