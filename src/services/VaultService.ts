@@ -38,7 +38,8 @@ export class VaultService {
    * @returns The TFile if found, or null.
    */
   getFileByPath(filePath: string): TFile | null {
-    return this.vault.getAbstractFileByPath(filePath) as TFile | null;
+    const file = this.vault.getAbstractFileByPath(filePath);
+    return file instanceof TFile ? file : null;
   }
 
   /**

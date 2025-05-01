@@ -1,5 +1,5 @@
 import { ContactNoteWriter } from '../../core/ContactNoteWriter';
-import { Vault, TFile, FileStats, TFolder } from 'obsidian';
+import { Vault, TFile, FileStats } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
 
@@ -417,7 +417,7 @@ describe('ContactNoteWriter', () => {
           extension: 'md',
           vault: {} as unknown as Vault,
           name: 'file1',
-          parent: {} as unknown as TFolder,
+          parent: null,
         },
       ];
 

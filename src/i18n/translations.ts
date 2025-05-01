@@ -48,6 +48,7 @@ export const ru = {
   'Sync on startup': 'Синхронизация при запуске',
   'Automatically sync contacts when the plugin is loaded.':
     'Автоматически синхронизировать контакты при загрузке плагина.',
+  'e.g. s_': 'например, s_',
 };
 
 /**
@@ -100,6 +101,7 @@ export const lv = {
   'Sync on startup': 'Sinhronizēt startējot',
   'Automatically sync contacts when the plugin is loaded.':
     'Automātiski sinhronizēt kontaktus, kad spraudnis tiek ielādēts.',
+  'e.g. s_': 'piem., s_',
 };
 
 /**
@@ -152,4 +154,5 @@ export const en = {
   'Automatically sync contacts when the plugin is loaded.':
     'Automatically sync contacts when the plugin is loaded.',
   'Fallback to English': 'Fallback to English',
+  'e.g. s_': 'e.g. s_',
 };

@@ -148,7 +148,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       )
       .addText((text) =>
         text
-          .setPlaceholder('e.g. s_')
+          .setPlaceholder(t('e.g. s_'))
           .setValue(this.plugin.settings.propertyNamePrefix)
           .onChange(async (value) => {
             this.plugin.settings.propertyNamePrefix = value;

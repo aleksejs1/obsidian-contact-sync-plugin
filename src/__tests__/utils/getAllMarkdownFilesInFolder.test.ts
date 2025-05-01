@@ -32,39 +32,53 @@ describe('getAllMarkdownFilesInFolder', () => {
 
   it('should return empty array if folder has no children', () => {
     const folder = new MockTFolder();
+    if (!(folder instanceof TFolder)) {
+      throw new Error('folder is not an instance of TFolder');
+    }
 
-    const result = getAllMarkdownFilesInFolder(folder as unknown as TFolder);
+    const result = getAllMarkdownFilesInFolder(folder);
 
     expect(result).toEqual([]);
   });
 
   it('should return only markdown files in the folder', () => {
     const folder = new MockTFolder();
+    if (!(folder instanceof TFolder)) {
+      throw new Error('folder is not an instance of TFolder');
+    }
+
     const mdFile = new MockTFile('md');
     const txtFile = new MockTFile('txt');
 
     folder.children.push(mdFile, txtFile);
 
-    const result = getAllMarkdownFilesInFolder(folder as unknown as TFolder);
+    const result = getAllMarkdownFilesInFolder(folder);
 
     expect(result).toEqual([mdFile]);
   });
 
   it('should recursively find markdown files in nested folders', () => {
     const root = new MockTFolder();
+    if (!(root instanceof TFolder)) {
+      throw new Error('folder is not an instance of TFolder');
+    }
+
     const nested = new MockTFolder();
     const mdFile = new MockTFile('md');
 
     nested.children.push(mdFile);
     root.children.push(nested);
 
-    const result = getAllMarkdownFilesInFolder(root as unknown as TFolder);
-
+    const result = getAllMarkdownFilesInFolder(root);
     expect(result).toEqual([mdFile]);
   });
 
   it('should handle deeply nested folder structures', () => {
     const root = new MockTFolder();
+    if (!(root instanceof TFolder)) {
+      throw new Error('folder is not an instance of TFolder');
+    }
+
     const level1 = new MockTFolder();
     const level2 = new MockTFolder();
     const level3 = new MockTFolder();
@@ -75,7 +89,7 @@ describe('getAllMarkdownFilesInFolder', () => {
     level1.children.push(level2);
     root.children.push(level1);
 
-    const result = getAllMarkdownFilesInFolder(root as unknown as TFolder);
+    const result = getAllMarkdownFilesInFolder(root);
 
     expect(result).toEqual([mdFile]);
   });
