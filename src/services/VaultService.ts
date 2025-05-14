@@ -37,9 +37,8 @@ export class VaultService {
    * @param filePath - The path of the file to retrieve.
    * @returns The TFile if found, or null.
    */
-  getFileByPath(filePath: string): TFile | null {
-    const file = this.vault.getAbstractFileByPath(filePath);
-    return file instanceof TFile ? file : null;
+  async getFileByPath(filePath: string): Promise<TFile | null> {
+    return this.vault.getFileByPath(filePath);
   }
 
   /**
@@ -49,31 +48,7 @@ export class VaultService {
    * @returns The TFolder if found, or null.
    */
   getFolderByPath(folderPath: string): TFolder | null {
-    const folder = this.vault.getAbstractFileByPath(folderPath);
-    return folder instanceof TFolder ? folder : null;
-  }
-
-  /**
-   * Reads the content of a file.
-   *
-   * @param file - The file to read.
-   * @returns The file content as a string.
-   */
-  async readFile(file: TFile): Promise<string> {
-    return this.vault.read(file);
-  }
-
-  /**
-   * Modifies an existing file with new content.
-   *
-   * @param file - The file to modify.
-   * @param content - The new content to write.
-   */
-  async modifyFile(
-    file: TFile,
-    modify: (data: string) => string
-  ): Promise<void> {
-    await this.vault.process(file, modify);
+    return this.vault.getFolderByPath(folderPath);
   }
 
   /**
@@ -81,9 +56,10 @@ export class VaultService {
    *
    * @param filePath - The path for the new file.
    * @param content - The initial content of the file.
+   * @returns The created TFile.
    */
-  async createFile(filePath: string, content: string): Promise<void> {
+  async createFile(filePath: string, content: string): Promise<TFile> {
     const normalizedPath = normalizePath(filePath);
-    await this.vault.create(normalizedPath, content);
+    return await this.vault.create(normalizedPath, content);
   }
 }

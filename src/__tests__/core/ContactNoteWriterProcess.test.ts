@@ -1,6 +1,8 @@
+import { MockMetadataCache } from 'src/__mocks__/obsidian';
 import { ContactNoteWriter } from '../../core/ContactNoteWriter';
-import { Vault } from 'obsidian';
+import { FileManager, MetadataCache, Vault } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
+import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
 
 jest.mock('obsidian', () => {
@@ -25,6 +27,7 @@ jest.mock('obsidian', () => {
       read: jest.fn(),
       process: jest.fn(),
       getFileByPath: jest.fn(),
+      getFolderByPath: jest.fn(),
     })),
     TFolder: class MockTFolder {
       static [Symbol.hasInstance](instance: unknown) {
@@ -54,10 +57,26 @@ jest.mock('src/utils/getAllMarkdownFilesInFolder', () => ({
 describe('ContactNoteWriterUpdate', () => {
   let contactNoteWriter: ContactNoteWriter;
   let vault: Vault;
+  let metadataCache: MetadataCache;
+  let fileManager: FileManager;
 
   beforeEach(() => {
     vault = new Vault() as unknown as Vault;
-    contactNoteWriter = new ContactNoteWriter(vault);
+    // metadataCache = new MetadataCache();
+    metadataCache = new MockMetadataCache() as unknown as MetadataCache;
+    fileManager = {
+      create: jest.fn(),
+      createFolder: jest.fn(),
+      getAbstractFileByPath: jest.fn(),
+      getFileByPath: jest.fn(),
+      process: jest.fn(),
+      processFrontMatter: jest.fn(),
+    } as unknown as FileManager;
+    contactNoteWriter = new ContactNoteWriter(
+      vault,
+      metadataCache,
+      fileManager
+    );
   });
 
   describe('writeNotesForContacts', () => {
@@ -80,22 +99,26 @@ describe('ContactNoteWriterUpdate', () => {
         '---\npropertyPrefix-id: 123\n---\nBody content';
 
       // Mock methods
-      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFile);
+      (vault.getFileByPath as jest.Mock).mockReturnValue(mockFile);
+      (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFile);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([mockFile]);
       (vault.read as jest.Mock).mockResolvedValue(mockExistingContent);
-      (vault.process as jest.Mock).mockResolvedValue(undefined);
+
+      const config: ContactNoteConfig = {
+        folderPath: 'path/to/folder',
+        prefix: 'prefix-',
+        propertyPrefix: 'propertyPrefix-',
+        syncLabel: '',
+        noteBody: mockNoteBody,
+      };
 
       await contactNoteWriter.writeNotesForContacts(
-        'prefix-',
-        'propertyPrefix-',
-        '',
+        config,
         mockLabelMap,
-        mockContacts,
-        'path/to/folder',
-        mockNoteBody
+        mockContacts
       );
 
-      expect(vault.process).toHaveBeenCalledTimes(1);
+      expect(fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
     });
 
     it('should update an existing note without id, begins with ---, but not yaml', async () => {
@@ -117,56 +140,26 @@ describe('ContactNoteWriterUpdate', () => {
       const mockExistingContent = '---\nBody content';
 
       // Mock methods
-      (vault.getAbstractFileByPath as jest.Mock)
-        .mockReturnValueOnce(mockFolder)
-        .mockReturnValueOnce(mockFile);
+      (vault.getFileByPath as jest.Mock).mockReturnValue(mockFile);
+      (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([mockFile]);
       (vault.read as jest.Mock).mockResolvedValue(mockExistingContent);
-      (vault.process as jest.Mock).mockResolvedValue(undefined);
+
+      const config: ContactNoteConfig = {
+        folderPath: 'path/to/folder',
+        prefix: 'prefix-',
+        propertyPrefix: 'propertyPrefix-',
+        syncLabel: '',
+        noteBody: mockNoteBody,
+      };
 
       await contactNoteWriter.writeNotesForContacts(
-        'prefix-',
-        'propertyPrefix-',
-        '',
+        config,
         mockLabelMap,
-        mockContacts,
-        'path/to/folder',
-        mockNoteBody
+        mockContacts
       );
 
-      expect(vault.process).toHaveBeenCalledTimes(1);
-    });
-
-    it('should add block with yaml', async () => {
-      expect(
-        contactNoteWriter.updateFrontmatterWithContactData('test', { aa: 'bb' })
-      ).toBe('---\naa: bb\n---\n\ntest');
-    });
-
-    it('should update block with yaml', async () => {
-      expect(
-        contactNoteWriter.updateFrontmatterWithContactData(
-          '---\naa: bb\n---\n\ntest',
-          { cc: 'dd' }
-        )
-      ).toBe('---\npropertyPrefix-id: 123\ncc: dd\n---\n\ntest');
-    });
-
-    it('should update block with separator', async () => {
-      expect(
-        contactNoteWriter.updateFrontmatterWithContactData('---\ntest', {
-          aa: 'bb',
-        })
-      ).toBe('---\naa: bb\n---\n\n---\ntest');
-    });
-
-    it('should update existed yaml', async () => {
-      expect(
-        contactNoteWriter.updateFrontmatterWithContactData(
-          '---\npropertyPrefix-id: 1\n---\n\ntest',
-          { 'propertyPrefix-id': '123' }
-        )
-      ).toBe('---\npropertyPrefix-id: 123\n---\n\ntest');
+      expect(fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
     });
   });
 });

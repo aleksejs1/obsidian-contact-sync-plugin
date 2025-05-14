@@ -1,19 +1,19 @@
 # 🧩 Google Contacts Sync
 
-Synchronize your Google Contacts directly into Obsidian!  
+Synchronize your Google contacts directly into Obsidian!  
 Each contact becomes a separate note with YAML frontmatter for metadata and free-form text for your notes.
 
 ---
 
 ## ⚙️ Features
 
-- 🔄 Synchronize Google Contacts into your Obsidian vault
+- 🔄 Synchronize Google contacts into your Obsidian vault
 
 - 🗂 Configurable folder for storing contact notes
 
 - ✏️ Customizable note template (under the metadata block)
 
-- 🏷 Filter by Google Contact label (e.g. only sync contacts tagged with `obsidian`)
+- 🏷 Filter by Google contact label (e.g. only sync contacts tagged with `obsidian`)
 
 - 📛 Filename prefix support (e.g. `p Ivan Ivanov.md`)
 
@@ -94,7 +94,7 @@ The plugin will automatically save the access and refresh tokens.
 
 1. Open the command palette (Ctrl+P or Cmd+P)
 
-2. Run the command: Sync Google Contacts
+2. Run the command: Sync Google contacts
 
 
 ## 🔁 Sync Algorithm

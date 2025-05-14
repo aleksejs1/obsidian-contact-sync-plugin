@@ -1,5 +1,5 @@
 /**
- * Represents a single contact retrieved from Google Contacts API.
+ * Represents a single contact retrieved from Google contacts API.
  */
 export interface GoogleContact {
   /** Unique resource identifier for the contact (e.g., "people/c123...") */
@@ -61,7 +61,7 @@ export interface Birthday {
 }
 
 /**
- * Represents a membership in a Google Contact Group.
+ * Represents a membership in a Google contact Group.
  */
 export interface ContactGroupMembership {
   /** Identifier of the contact group (e.g., "abc123") */
@@ -86,7 +86,7 @@ export interface Membership {
 }
 
 /**
- * Represents a contact group fetched from Google Contacts API.
+ * Represents a contact group fetched from Google contacts API.
  */
 export interface GoogleContactGroup {
   /** Human-readable name of the group (e.g., "Friends") */

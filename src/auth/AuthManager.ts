@@ -3,7 +3,7 @@ import { requestUrl } from 'obsidian';
 import { URL_OAUTH_TOKEN, URI_OATUH_REDIRECT } from '../config';
 
 /**
- * Manages OAuth2 authentication for accessing the Google Contacts API.
+ * Manages OAuth2 authentication for accessing the Google contacts API.
  * Handles exchanging authorization codes, refreshing access tokens,
  * and providing updated credentials.
  */

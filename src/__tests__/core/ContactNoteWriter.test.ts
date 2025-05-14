@@ -1,6 +1,8 @@
+import { MockMetadataCache } from 'src/__mocks__/obsidian';
 import { ContactNoteWriter } from '../../core/ContactNoteWriter';
-import { Vault, TFile, FileStats } from 'obsidian';
+import { Vault, TFile, FileStats, MetadataCache, FileManager } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
+import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
 
 jest.mock('obsidian', () => {
@@ -25,6 +27,7 @@ jest.mock('obsidian', () => {
       read: jest.fn(),
       process: jest.fn(),
       getFileByPath: jest.fn(),
+      getFolderByPath: jest.fn(),
     })),
     TFolder: class MockTFolder {
       static [Symbol.hasInstance](instance: unknown) {
@@ -54,10 +57,25 @@ jest.mock('src/utils/getAllMarkdownFilesInFolder', () => ({
 describe('ContactNoteWriter', () => {
   let contactNoteWriter: ContactNoteWriter;
   let vault: Vault;
+  let metadataCache: MetadataCache;
+  let fileManager: FileManager;
 
   beforeEach(() => {
     vault = new Vault() as unknown as Vault;
-    contactNoteWriter = new ContactNoteWriter(vault);
+    metadataCache = new MockMetadataCache() as unknown as MetadataCache;
+    metadataCache.getFileCache = jest.fn();
+    fileManager = {
+      create: jest.fn(),
+      createFolder: jest.fn().mockResolvedValue(undefined),
+      getAbstractFileByPath: jest.fn(),
+      getFileByPath: jest.fn(),
+      processFrontMatter: jest.fn(),
+    } as unknown as FileManager;
+    contactNoteWriter = new ContactNoteWriter(
+      vault,
+      metadataCache,
+      fileManager
+    );
   });
 
   describe('writeNotesForContacts', () => {
@@ -74,24 +92,28 @@ describe('ContactNoteWriter', () => {
 
       const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
 
-      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
       (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
 
+      const config: ContactNoteConfig = {
+        prefix: 'prefix-',
+        propertyPrefix: 'propertyPrefix-',
+        syncLabel: '',
+        folderPath: 'path/to/folder',
+        noteBody: mockNoteBody,
+      };
+
       await contactNoteWriter.writeNotesForContacts(
-        'prefix-',
-        'propertyPrefix-',
-        '',
+        config,
         mockLabelMap,
-        mockContacts,
-        'path/to/folder',
-        mockNoteBody
+        mockContacts
       );
 
       expect(vault.create).toHaveBeenCalledWith(
         'path/to/folder/prefix-Alice Smith.md',
-        expect.stringContaining('---')
+        expect.stringContaining(mockNoteBody)
       );
     });
 
@@ -115,24 +137,28 @@ describe('ContactNoteWriter', () => {
       const mockNoteBody = 'This is a note body';
       const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
 
-      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
       (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
 
+      const config: ContactNoteConfig = {
+        prefix: 'prefix-',
+        propertyPrefix: 'propertyPrefix-',
+        syncLabel: 'family',
+        folderPath: 'path/to/folder',
+        noteBody: mockNoteBody,
+      };
+
       await contactNoteWriter.writeNotesForContacts(
-        'prefix-',
-        'propertyPrefix-',
-        'family',
+        config,
         mockLabelMap,
-        mockContacts,
-        'path/to/folder',
-        mockNoteBody
+        mockContacts
       );
 
       expect(vault.create).toHaveBeenCalledWith(
         'path/to/folder/prefix-Alice Smith.md',
-        expect.stringContaining('---')
+        expect.stringContaining(mockNoteBody)
       );
     });
 
@@ -155,24 +181,28 @@ describe('ContactNoteWriter', () => {
       const mockNoteBody = 'This is a note body';
       const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
 
-      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
       (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
 
+      const config: ContactNoteConfig = {
+        prefix: 'prefix-',
+        propertyPrefix: 'propertyPrefix-',
+        syncLabel: 'family',
+        folderPath: 'path/to/folder',
+        noteBody: mockNoteBody,
+      };
+
       await contactNoteWriter.writeNotesForContacts(
-        'prefix-',
-        'propertyPrefix-',
-        'family',
+        config,
         mockLabelMap,
-        mockContacts,
-        'path/to/folder',
-        mockNoteBody
+        mockContacts
       );
 
       expect(vault.create).toHaveBeenCalledWith(
         'path/to/folder/prefix-123.md',
-        expect.stringContaining('---')
+        expect.stringContaining(mockNoteBody)
       );
     });
 
@@ -189,19 +219,23 @@ describe('ContactNoteWriter', () => {
       const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
 
       // Mock methods
-      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
       (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
 
+      const config: ContactNoteConfig = {
+        prefix: 'prefix-',
+        propertyPrefix: 'propertyPrefix-',
+        syncLabel: '',
+        folderPath: 'path/to/folder',
+        noteBody: mockNoteBody,
+      };
+
       await contactNoteWriter.writeNotesForContacts(
-        'prefix-',
-        'propertyPrefix-',
-        '',
+        config,
         mockLabelMap,
-        mockContacts,
-        'path/to/folder',
-        mockNoteBody
+        mockContacts
       );
 
       expect(vault.create).not.toHaveBeenCalled();
@@ -221,51 +255,23 @@ describe('ContactNoteWriter', () => {
       const mockFolder = { path: 'path/to/folder', __isMockTFolder: true };
 
       // Mock methods
-      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
+      (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
       (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
 
-      await contactNoteWriter.writeNotesForContacts(
-        'prefix-',
-        'propertyPrefix-',
-        'work', // Not matching syncLabel
-        mockLabelMap,
-        mockContacts,
-        'path/to/folder',
-        mockNoteBody
-      );
-
-      expect(vault.create).not.toHaveBeenCalled();
-    });
-
-    it('should not create or update notes in case of wrong folder', async () => {
-      const mockContacts: GoogleContact[] = [
-        {
-          resourceName: 'people/123',
-          names: [{ displayName: 'Alice Smith' }],
-          emailAddresses: [{ value: 'alice@example.com' }],
-        },
-      ];
-      const mockLabelMap = { family: 'group1' };
-      const mockNoteBody = 'This is a note body';
-
-      const mockFolder = {};
-
-      // Mock methods
-      (vault.getAbstractFileByPath as jest.Mock).mockReturnValue(mockFolder);
-      (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
-      (vault.create as jest.Mock).mockResolvedValue(undefined);
-      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+      const config: ContactNoteConfig = {
+        prefix: 'prefix-',
+        propertyPrefix: 'propertyPrefix-',
+        syncLabel: 'work', // Not matching syncLabel
+        folderPath: 'path/to/folder',
+        noteBody: mockNoteBody,
+      };
 
       await contactNoteWriter.writeNotesForContacts(
-        'prefix-',
-        'propertyPrefix-',
-        '',
+        config,
         mockLabelMap,
-        mockContacts,
-        'path/to/folder',
-        mockNoteBody
+        mockContacts
       );
 
       expect(vault.create).not.toHaveBeenCalled();
@@ -290,6 +296,11 @@ describe('ContactNoteWriter', () => {
 
       // Mock methods
       (vault.read as jest.Mock).mockResolvedValue(mockFrontmatter);
+      (metadataCache.getFileCache as jest.Mock).mockReturnValue({
+        frontmatter: {
+          'propertyPrefix-id': '123',
+        },
+      });
 
       const result = await contactNoteWriter['scanFiles'](
         mockFiles,

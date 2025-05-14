@@ -1,5 +1,5 @@
 /**
- * Configuration options for Google Contacts synchronization.
+ * Configuration options for Google contacts synchronization.
  */
 export interface ContactSyncSettings {
   /** OAuth client ID from Google Developer Console */
@@ -29,7 +29,7 @@ export interface ContactSyncSettings {
   /** Prefix used for frontmatter keys in contact notes */
   propertyNamePrefix: string;
 
-  /** Name of the contact group to sync from Google Contacts */
+  /** Name of the contact group to sync from Google contacts */
   syncLabel: string;
 
   /** Interval (in minutes) for auto-sync */

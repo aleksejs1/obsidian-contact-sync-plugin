@@ -1,7 +1,7 @@
 import {
+  FileManager,
+  MetadataCache,
   normalizePath,
-  parseYaml,
-  stringifyYaml,
   TFile,
   Vault,
 } from 'obsidian';
@@ -9,6 +9,7 @@ import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
 import { Formatter } from './Formatter';
 import { VaultService } from 'src/services/VaultService';
+import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 
 /**
  * Responsible for creating and updating contact notes in the vault.
@@ -30,126 +31,174 @@ export class ContactNoteWriter {
   protected vaultService: VaultService;
 
   /**
-   * Creates an instance of the ContactNoteWriter class.
+   * The MetadataCache instance used for managing file metadata.
    *
-   * @param vault - The Obsidian Vault instance where the contact notes are stored.
+   * This protected property is used to manage file metadata in the Obsidian vault.
    */
-  constructor(vault: Vault) {
+  protected metadataCache: MetadataCache;
+
+  /**
+   * The FileManager instance used for file operations.
+   *
+   * This protected property is used to manage file operations in the Obsidian vault.
+   */
+  protected fileManager: FileManager;
+
+  /**
+   * Creates an instance of ContactNoteWriter.
+   *
+   * @param vault - The Obsidian Vault instance to operate on.
+   * @param metadataCache - The Obsidian MetadataCache instance to operate on.
+   * @param fileManager - The Obsidian FileManager instance to operate on.
+   */
+  constructor(
+    vault: Vault,
+    metadataCache: MetadataCache,
+    fileManager: FileManager
+  ) {
     this.vaultService = new VaultService(vault);
+    this.metadataCache = metadataCache;
+    this.fileManager = fileManager;
   }
 
   /**
-   * Creates or updates markdown notes for each contact based on the provided contact data.
+   * Writes notes for the provided contacts based on the specified configuration.
    *
-   * @param prefix - Prefix to use for note filenames.
-   * @param propertyPrefix - Prefix to use for frontmatter properties.
-   * @param syncLabel - Label used to determine which contacts to sync.
-   * @param labelMap - Mapping of label names to Google Contact group resource names.
-   * @param contacts - List of Google contacts to sync into notes.
-   * @param folderPath - Target folder path where notes should be stored.
-   * @param noteBody - The body template to insert below the frontmatter in each note.
+   * @param config - The configuration for writing contact notes.
+   * @param labelMap - A mapping of label names to their corresponding group IDs.
+   * @param contacts - The list of Google contacts to write notes for.
    */
   async writeNotesForContacts(
-    prefix: string,
-    propertyPrefix: string,
-    syncLabel: string,
+    config: ContactNoteConfig,
     labelMap: Record<string, string>,
-    contacts: GoogleContact[],
-    folderPath: string,
-    noteBody: string
+    contacts: GoogleContact[]
   ): Promise<void> {
-    await this.vaultService.createFolderIfNotExists(folderPath);
+    await this.vaultService.createFolderIfNotExists(config.folderPath);
 
-    const folder = this.vaultService.getFolderByPath(folderPath);
+    const folder = this.vaultService.getFolderByPath(config.folderPath);
     if (!folder) return;
     const files = getAllMarkdownFilesInFolder(folder);
-    const filesIdMapping = await this.scanFiles(files, propertyPrefix);
+    const filesIdMapping = await this.scanFiles(files, config.propertyPrefix);
     const invertedLabelMap: Record<string, string> = Object.fromEntries(
       Object.entries(labelMap).map((a) => a.reverse())
     );
 
     for (const contact of contacts) {
-      if (!this.hasSyncLabel(contact, syncLabel, labelMap)) continue;
+      if (!this.hasSyncLabel(contact, config.syncLabel, labelMap)) continue;
 
-      const id = contact.resourceName.split('/').pop();
-      const syncedAt = new Date().toISOString();
-      const frontmatterLines: Record<string, string> = {
-        [`${propertyPrefix}id`]: String(id),
-        [`${propertyPrefix}synced`]: String(syncedAt),
-      };
+      const id = this.getContactId(contact);
+      if (!id) continue;
 
-      this.formatter.addNameField(frontmatterLines, contact, propertyPrefix);
-      this.formatter.addEmailField(frontmatterLines, contact, propertyPrefix);
-      this.formatter.addPhoneField(frontmatterLines, contact, propertyPrefix);
-      this.formatter.addAddressFields(
-        frontmatterLines,
+      const filename = this.getFilename(
         contact,
-        propertyPrefix
+        id,
+        config.folderPath,
+        config.prefix
       );
-      this.formatter.addBioField(frontmatterLines, contact, propertyPrefix);
-      this.formatter.addOrganizationFields(
-        frontmatterLines,
-        contact,
-        propertyPrefix
-      );
-      this.formatter.addJobTitleFields(
-        frontmatterLines,
-        contact,
-        propertyPrefix
-      );
-      this.formatter.addBirthdayFields(
-        frontmatterLines,
-        contact,
-        propertyPrefix
-      );
-      this.formatter.addLabels(
-        frontmatterLines,
-        contact,
-        propertyPrefix,
-        invertedLabelMap
-      );
+      if (!filename) continue;
 
-      const existingFile: TFile | null = filesIdMapping[String(id)] || null;
-
-      if (existingFile) {
-        await this.vaultService.modifyFile(
-          existingFile,
-          this.modifyNote(frontmatterLines)
-        );
-      } else {
-        const name =
-          contact.names?.[0]?.displayName ||
-          String(contact.resourceName.split('/').pop());
-        if (!name) continue;
-        const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
-        const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
-        const file = this.vaultService.getFileByPath(filename);
-        if (file instanceof TFile) {
-          await this.vaultService.modifyFile(
-            file,
-            this.modifyNote(frontmatterLines)
-          );
-        } else {
-          const initialText =
-            this.generateFrontmatterBlock(frontmatterLines) + noteBody;
-          await this.vaultService.createFile(filename, initialText);
-        }
-      }
+      await this.fileManager.processFrontMatter(
+        filesIdMapping[id] ||
+          (await this.vaultService.getFileByPath(filename)) ||
+          (await this.vaultService.createFile(filename, config.noteBody)),
+        this.processFrontMatter(
+          this.generateFrontmatterLines(
+            config.propertyPrefix,
+            contact,
+            invertedLabelMap
+          )
+        )
+      );
     }
   }
 
   /**
-   * Returns a function that modifies the frontmatter of a note with new contact data.
+   * Generates a filename for the contact note based on the contact's display name and ID.
    *
-   * @param frontmatterLines - The new contact data to inject into the frontmatter.
-   * @returns A function that takes the note content and returns the modified content.
+   * @param contact - The Google contact to generate a filename for.
+   * @param id - The contact ID.
+   * @param folderPath - The folder path where the note will be stored.
+   * @param prefix - The prefix to use for the filename.
+   * @returns The generated filename, or null if the name is not available.
    */
-  modifyNote(
+  private getFilename(
+    contact: GoogleContact,
+    id: string,
+    folderPath: string,
+    prefix: string
+  ): string | null {
+    const name = contact.names?.[0]?.displayName || id;
+    if (!name) return null;
+    const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
+    const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
+    return filename;
+  }
+
+  /**
+   * Processes the frontmatter lines and updates the frontmatter of the given file.
+   *
+   * @param frontmatterLines - The frontmatter lines to process.
+   * @returns A function that takes a frontmatter object and updates it with the provided lines.
+   */
+  private processFrontMatter(
     frontmatterLines: Record<string, string>
-  ): (data: string) => string {
-    return (data: string): string => {
-      return this.updateFrontmatterWithContactData(data, frontmatterLines);
+  ): (frontmatter: Record<string, string>) => void {
+    return (frontmatter: Record<string, string>) => {
+      for (const key in frontmatterLines) {
+        frontmatter[key] = frontmatterLines[key];
+      }
     };
+  }
+
+  /**
+   * Extracts the contact ID from a Google contact object.
+   *
+   * @param contact - The Google contact to extract the ID from.
+   * @returns The extracted contact ID, or null if not found.
+   */
+  private getContactId(contact: GoogleContact): string | null {
+    if (!contact.resourceName) return null;
+    return contact.resourceName.split('/').pop() || null;
+  }
+
+  /**
+   * Generates frontmatter lines for a contact based on the provided property prefix and contact data.
+   *
+   * @param propertyPrefix - The prefix to use for frontmatter properties.
+   * @param contact - The Google contact to generate frontmatter for.
+   * @param invertedLabelMap - A mapping of label names to their corresponding group IDs.
+   * @returns A record of frontmatter properties and their values.
+   */
+  private generateFrontmatterLines(
+    propertyPrefix: string,
+    contact: GoogleContact,
+    invertedLabelMap: Record<string, string>
+  ): Record<string, string> {
+    const frontmatterLines: Record<string, string> = {
+      [`${propertyPrefix}id`]: String(this.getContactId(contact)),
+      [`${propertyPrefix}synced`]: String(new Date().toISOString()),
+    };
+
+    this.formatter.addNameField(frontmatterLines, contact, propertyPrefix);
+    this.formatter.addEmailField(frontmatterLines, contact, propertyPrefix);
+    this.formatter.addPhoneField(frontmatterLines, contact, propertyPrefix);
+    this.formatter.addAddressFields(frontmatterLines, contact, propertyPrefix);
+    this.formatter.addBioField(frontmatterLines, contact, propertyPrefix);
+    this.formatter.addOrganizationFields(
+      frontmatterLines,
+      contact,
+      propertyPrefix
+    );
+    this.formatter.addJobTitleFields(frontmatterLines, contact, propertyPrefix);
+    this.formatter.addBirthdayFields(frontmatterLines, contact, propertyPrefix);
+    this.formatter.addLabels(
+      frontmatterLines,
+      contact,
+      propertyPrefix,
+      invertedLabelMap
+    );
+
+    return frontmatterLines;
   }
 
   /**
@@ -174,20 +223,11 @@ export class ContactNoteWriter {
   }
 
   /**
-   * Scans an array of files, reads their content, and checks if the file's frontmatter contains an `id` field.
-   * If an `id` field is found, it adds the `id` as a key and the corresponding file (`TFile`) as the value to a mapping object.
+   * Scans the provided files for frontmatter properties matching the specified prefix.
    *
-   * This method uses Obsidian's `vaultService.readFile()` to read file content and `parseYaml()` to safely parse the YAML frontmatter.
-   * It ensures that only files with valid `id` fields in their frontmatter are added to the mapping.
-   *
-   * @param files An array of `TFile` objects representing the files to be scanned.
-   * @param propertyPrefix A string that may be used as a prefix for the `id` field in frontmatter.
-   * @returns A promise that resolves to a record object where keys are the `id` values found in the frontmatter,
-   *          and values are the corresponding `TFile` objects.
-   *
-   * @example
-   * const idFileMapping = await this.scanFiles(files);
-   * console.log(idFileMapping); // { "123": file1, "456": file2, ... }
+   * @param files - The list of TFile objects to scan.
+   * @param propertyPrefix - The prefix to use for identifying frontmatter properties.
+   * @returns A mapping of property values to TFile objects.
    */
   protected async scanFiles(
     files: TFile[],
@@ -196,71 +236,13 @@ export class ContactNoteWriter {
     const idToFileMapping: Record<string, TFile> = {};
 
     for (const file of files) {
-      const content = await this.vaultService.readFile(file);
-
-      const match = content.match(/^---\n([\s\S]+?)\n---/);
-      if (match && match[1]) {
-        const frontmatter = parseYaml(match[1]);
-
-        const idFieldName = `${propertyPrefix}id`;
-        if (frontmatter && frontmatter[idFieldName]) {
-          idToFileMapping[frontmatter[idFieldName]] = file;
-        }
+      const frontmatter = this.metadataCache.getFileCache(file)?.frontmatter;
+      const idFieldName = `${propertyPrefix}id`;
+      if (frontmatter && frontmatter[idFieldName]) {
+        idToFileMapping[frontmatter[idFieldName]] = file;
       }
     }
 
     return idToFileMapping;
-  }
-
-  /**
-   * Updates the YAML frontmatter of a note with new contact fields, merging with existing values.
-   * @param content Original markdown note content.
-   * @param newContactFields Contact data to inject into the frontmatter.
-   * @returns Updated markdown content.
-   */
-  updateFrontmatterWithContactData(
-    content: string,
-    newContactFields: Record<string, string | string[]>
-  ): string {
-    if (!content.startsWith('---')) {
-      return this.generateFrontmatterBlock(newContactFields) + content;
-    }
-
-    const parts = content.split('---');
-    if (parts.length < 3) {
-      return this.generateFrontmatterBlock(newContactFields) + content;
-    }
-
-    const originalYaml = parts[1];
-    const body = parts.slice(2).join('---').trim();
-
-    const parsed = parseYaml(originalYaml) as Record<string, string | string[]>;
-
-    for (const key of Object.keys(parsed)) {
-      if (key in newContactFields) {
-        parsed[key] = newContactFields[key];
-        delete newContactFields[key];
-      }
-    }
-
-    const updated = {
-      ...parsed,
-      ...newContactFields,
-    };
-
-    return this.generateFrontmatterBlock(updated) + body;
-  }
-
-  /**
-   * Generates a YAML frontmatter block string from the provided fields.
-   *
-   * @param fields - A record of key-value pairs to include in the frontmatter.
-   * @returns A string representing the full frontmatter block with proper formatting.
-   */
-  protected generateFrontmatterBlock(
-    fields: Record<string, string | string[]>
-  ): string {
-    const yaml = stringifyYaml(fields);
-    return `---\n${yaml}---\n\n`;
   }
 }

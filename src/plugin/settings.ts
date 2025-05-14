@@ -3,9 +3,10 @@ import { LINK_TO_MANUAL } from '../config';
 import { getAuthUrl } from '../auth/getAuthUrl';
 import GoogleContactsSyncPlugin from '../main';
 import { t } from '../i18n/translator';
+import { FolderSuggest } from 'src/core/FolderSuggest';
 
 /**
- * Settings tab for the Google Contacts Sync plugin.
+ * Settings tab for the Google contacts sync plugin.
  * Allows the user to configure plugin options through the Obsidian settings UI.
  */
 export class ContactSyncSettingTab extends PluginSettingTab {
@@ -40,79 +41,21 @@ export class ContactSyncSettingTab extends PluginSettingTab {
     );
 
     new Setting(containerEl)
-      .setName(t('Google client ID'))
-      .setDesc(manual)
-      .addText((text) =>
-        text
-          .setPlaceholder(t('Enter your client ID'))
-          .setValue(this.plugin.settings.clientId)
-          .onChange(async (value) => {
-            this.plugin.settings.clientId = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName(t('Google client secret'))
-      .addText((text) =>
-        text
-          .setPlaceholder(t('Enter your client secret'))
-          .setValue(this.plugin.settings.clientSecret)
-          .onChange(async (value) => {
-            this.plugin.settings.clientSecret = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName(t('Login with Google'))
-      .setDesc(t("Open google's OAuth page in your browser"))
-      .addButton((btn) =>
-        btn.setButtonText(t('Login')).onClick(() => {
-          if (!this.plugin.settings.clientId) {
-            new Notice(t('Please enter your Client ID first.'));
-            return;
-          }
-          window.open(getAuthUrl(this.plugin.settings.clientId), '_blank');
-        })
-      );
-
-    new Setting(containerEl)
-      .setName(t('Authorization code'))
-      .setDesc(t('Paste the code from Google after login'))
-      .addText((text) =>
-        text.setPlaceholder(t('Paste code here')).onChange(async (code) => {
-          if (
-            !this.plugin.settings.clientId ||
-            !this.plugin.settings.clientSecret ||
-            !this.plugin.auth
-          ) {
-            new Notice(t('Client ID and Secret required.'));
-            return;
-          }
-
-          this.plugin.auth.exchangeCode(code);
-          Object.assign(
-            this.plugin.settings,
-            this.plugin.auth.getSettingsUpdate()
-          );
-          await this.plugin.saveSettings();
-          new Notice(t('Tokens saved!'));
-        })
-      );
-
-    new Setting(containerEl)
       .setName(t('Contacts folder'))
       .setDesc(t('Vault folder where contact notes will be stored'))
-      .addText((text) =>
+      .addText((text) => {
         text
           .setPlaceholder(t('e.g. Contacts'))
           .setValue(this.plugin.settings.contactsFolder)
           .onChange(async (value) => {
             this.plugin.settings.contactsFolder = value.trim() || 'Contacts';
             await this.plugin.saveSettings();
-          })
-      );
+          });
+
+        new FolderSuggest(this.app, text.inputEl);
+
+        return text;
+      });
 
     new Setting(containerEl)
       .setName(t('Note template'))
@@ -202,6 +145,70 @@ export class ContactSyncSettingTab extends PluginSettingTab {
             this.plugin.settings.syncOnStartup = value;
             await this.plugin.saveSettings();
           })
+      );
+
+    new Setting(containerEl).setName(t('Google auth')).setHeading();
+
+    new Setting(containerEl)
+      .setName(t('Google client ID'))
+      .setDesc(manual)
+      .addText((text) =>
+        text
+          .setPlaceholder(t('Enter your client ID'))
+          .setValue(this.plugin.settings.clientId)
+          .onChange(async (value) => {
+            this.plugin.settings.clientId = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(t('Google client secret'))
+      .addText((text) =>
+        text
+          .setPlaceholder(t('Enter your client secret'))
+          .setValue(this.plugin.settings.clientSecret)
+          .onChange(async (value) => {
+            this.plugin.settings.clientSecret = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(t('Login with Google'))
+      .setDesc(t("Open Google's auth page in your browser"))
+      .addButton((btn) =>
+        btn.setButtonText(t('Login')).onClick(() => {
+          if (!this.plugin.settings.clientId) {
+            new Notice(t('Please enter your client ID first.'));
+            return;
+          }
+          window.open(getAuthUrl(this.plugin.settings.clientId), '_blank');
+        })
+      );
+
+    new Setting(containerEl)
+      .setName(t('Authorization code'))
+      .setDesc(t('Paste the code from Google after login'))
+      .addText((text) =>
+        text.setPlaceholder(t('Paste code here')).onChange(async (code) => {
+          if (
+            !this.plugin.settings.clientId ||
+            !this.plugin.settings.clientSecret ||
+            !this.plugin.auth
+          ) {
+            new Notice(t('Client ID and secret required.'));
+            return;
+          }
+
+          this.plugin.auth.exchangeCode(code);
+          Object.assign(
+            this.plugin.settings,
+            this.plugin.auth.getSettingsUpdate()
+          );
+          await this.plugin.saveSettings();
+          new Notice(t('Tokens saved!'));
+        })
       );
   }
 }

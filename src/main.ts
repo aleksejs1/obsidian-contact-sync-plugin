@@ -5,9 +5,11 @@ import { Plugin, Notice } from 'obsidian';
 import { AuthManager } from './auth/AuthManager';
 import { GoogleContactsService } from './core/GoogleContactsService';
 import { ContactNoteWriter } from './core/ContactNoteWriter';
+import { ContactNoteConfig } from './types/ContactNoteConfig';
+import { t } from './i18n/translator';
 
 /**
- * Obsidian plugin for synchronizing contacts from Google Contacts into markdown notes.
+ * Obsidian plugin for synchronizing contacts from Google contacts into markdown notes.
  */
 export default class GoogleContactsSyncPlugin extends Plugin {
   /** Plugin settings loaded from user config */
@@ -17,7 +19,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
   auth: AuthManager | null = null;
 
   /**
-   * Service layer handling communication with the Google Contacts API.
+   * Service layer handling communication with the Google contacts API.
    * Used to fetch contacts and groups, separate from Obsidian-specific logic.
    */
   googleService: GoogleContactsService | null = null;
@@ -42,7 +44,11 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     this.auth = new AuthManager(this.settings);
     this.addSettingTab(new ContactSyncSettingTab(this.app, this));
     this.googleService = new GoogleContactsService();
-    this.noteWriter = new ContactNoteWriter(this.app.vault);
+    this.noteWriter = new ContactNoteWriter(
+      this.app.vault,
+      this.app.metadataCache,
+      this.app.fileManager
+    );
 
     if (this.settings.syncOnStartup || this.shouldSyncNow()) {
       this.syncContacts();
@@ -64,13 +70,15 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     const interval = this.settings.syncIntervalMinutes;
 
     if (interval > 0) {
-      this.syncIntervalId = window.setInterval(
-        () => {
-          if (this.shouldSyncNow()) {
-            this.syncContacts();
-          }
-        },
-        interval * 60 * 1000
+      this.registerInterval(
+        window.setInterval(
+          () => {
+            if (this.shouldSyncNow()) {
+              this.syncContacts();
+            }
+          },
+          interval * 60 * 1000
+        )
       );
     }
   }
@@ -100,7 +108,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
     const token = await this.auth?.ensureValidToken();
     if (!token) {
-      new Notice('Failed to obtain access token. Please re-authenticate.');
+      new Notice(t('Failed to obtain access token. Please re-authenticate.'));
       return;
     }
     this.updateAuthSettings();
@@ -109,17 +117,17 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     const contacts =
       (await this.googleService?.fetchGoogleContacts(token)) || [];
 
-    this.noteWriter?.writeNotesForContacts(
-      this.settings.fileNamePrefix || '',
-      this.settings.propertyNamePrefix || '',
-      this.settings.syncLabel,
-      labelMap,
-      contacts,
-      this.settings.contactsFolder,
-      this.settings.noteTemplate || '# Notes\n'
-    );
+    const config: ContactNoteConfig = {
+      folderPath: this.settings.contactsFolder,
+      prefix: this.settings.fileNamePrefix || '',
+      propertyPrefix: this.settings.propertyNamePrefix || '',
+      syncLabel: this.settings.syncLabel,
+      noteBody: this.settings.noteTemplate || '# Notes\n',
+    };
 
-    new Notice('Google Contacts synced!');
+    this.noteWriter?.writeNotesForContacts(config, labelMap, contacts);
+
+    new Notice(t('Google contacts synced!'));
   }
 
   /**

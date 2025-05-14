@@ -3,7 +3,7 @@ import { URL_CONTACT_GROUPS, URL_PEOPLE_API } from '../config';
 import type { GoogleContact, GoogleContactGroup } from '../types/Contact';
 
 /**
- * Core service responsible for interacting with Google Contacts and Contact Groups APIs.
+ * Core service responsible for interacting with Google contacts and Contact Groups APIs.
  *
  * Encapsulates logic for fetching, processing, and transforming Google contact data.
  * Designed to be used by higher-level plugin components to separate external API concerns
