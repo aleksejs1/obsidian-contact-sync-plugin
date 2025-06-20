@@ -28,49 +28,17 @@ Each contact becomes a separate note with YAML frontmatter for metadata and free
 
 ---
 
-## 🔧 Build Instructions
-
-To build the plugin:
-
-1. Clone or download the repository
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-3. Build the plugin using Rollup:   
-
-   ```bash
-   npm run build
-   ```
-
-After this, dist/main.js will be generated:
-
 ## 📦 Installing into Obsidian
 
 1. Open your Obsidian vault
 
-2. Go to .obsidian/plugins/ and create a folder, e.g. google-contacts-sync
+2. Go to Settings → Community plugins
 
-3. Copy the following files into that folder:
+3. Turn Safe mode → OFF
 
-```
-google-contacts-sync/
-├── main.js
-└── manifest.json
-```
+4. Click Browse and search for `Google Contacts`
 
-4. In Obsidian:
-
-- Go to Settings → Community Plugins
-
-- Enable Safe Mode → OFF
-
-- Click "Load community plugins"
-
-- Enable google-contacts-sync
+5. Click Install, then Enable the plugin
 
 ## 🔐 Google Authorization
 
@@ -174,3 +142,45 @@ If prompted, configure the OAuth consent screen (you can use testing mode)
 For application type, select: Desktop App
 
 Copy your Client ID and Client Secret
+
+## 🔧 Build Instructions
+
+To build the plugin:
+
+1. Clone or download the repository
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Build the plugin using Rollup:   
+
+   ```bash
+   npm run build
+   ```
+
+### 📦 Installing your build into Obsidian
+
+1. Open your Obsidian vault
+
+2. Go to .obsidian/plugins/ and create a folder, e.g. google-contacts-sync
+
+3. Copy the following files into that folder:
+
+```
+google-contacts-sync/
+├── main.js
+└── manifest.json
+```
+
+4. In Obsidian:
+
+- Go to Settings → Community Plugins
+
+- Enable Safe Mode → OFF
+
+- Click "Load community plugins"
+
+- Enable google-contacts-sync
