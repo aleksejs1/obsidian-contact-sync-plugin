@@ -62,7 +62,7 @@ The plugin will automatically save the access and refresh tokens.
 
 1. Open the command palette (Ctrl+P or Cmd+P)
 
-2. Run the command: Sync Google contacts
+2. Run the command: Google Contacts: Sync
 
 
 ## 🔁 Sync Algorithm
