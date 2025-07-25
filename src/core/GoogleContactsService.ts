@@ -1,5 +1,9 @@
 import { requestUrl } from 'obsidian';
-import { URL_CONTACT_GROUPS, URL_PEOPLE_API } from '../config';
+import {
+  URL_CONTACT_GROUPS,
+  URL_PEOPLE_CONNECTIONS,
+  PERSONAL_FIELDS,
+} from '../config';
 import type { GoogleContact, GoogleContactGroup } from '../types/Contact';
 
 /**
@@ -18,15 +22,25 @@ export class GoogleContactsService {
    * @returns An array of Google contact objects.
    */
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
-    const res = await requestUrl({
-      url: URL_PEOPLE_API,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    let allContacts: GoogleContact[] = [];
+    let nextPageToken: string | undefined = undefined;
 
-    const data = await res.json;
-    return data.connections || [];
+    do {
+      const url = `${URL_PEOPLE_CONNECTIONS}?personFields=${PERSONAL_FIELDS}&pageSize=1000${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
+
+      const res = await requestUrl({
+        url,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json;
+      allContacts = allContacts.concat(data.connections || []);
+      nextPageToken = data.nextPageToken;
+    } while (nextPageToken);
+
+    return allContacts;
   }
 
   /**

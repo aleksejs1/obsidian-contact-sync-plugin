@@ -5,7 +5,8 @@ export const URL_OAUTH_TOKEN = 'https://oauth2.googleapis.com/token';
 /** Google People API endpoints */
 export const URL_PEOPLE_BASE = 'https://people.googleapis.com/v1';
 export const URL_PEOPLE_CONNECTIONS = `${URL_PEOPLE_BASE}/people/me/connections`;
-export const URL_PEOPLE_API = `${URL_PEOPLE_CONNECTIONS}?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations&pageSize=2000`;
+export const PERSONAL_FIELDS = `names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations`;
+export const URL_PEOPLE_API = `${URL_PEOPLE_CONNECTIONS}?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations&pageSize=1000`;
 export const URL_CONTACT_GROUPS = `${URL_PEOPLE_BASE}/contactGroups`;
 
 /** OAuth2 defaults */

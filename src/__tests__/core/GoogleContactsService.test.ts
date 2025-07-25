@@ -1,6 +1,10 @@
 import { GoogleContactsService } from '../../core/GoogleContactsService';
 import { requestUrl } from 'obsidian';
-import { URL_PEOPLE_API, URL_CONTACT_GROUPS } from '../../config';
+import {
+  URL_PEOPLE_CONNECTIONS,
+  PERSONAL_FIELDS,
+  URL_CONTACT_GROUPS,
+} from '../../config';
 import type { GoogleContact, GoogleContactGroup } from '../../types/Contact';
 
 jest.mock('obsidian', () => ({
@@ -43,7 +47,7 @@ describe('GoogleContactsService', () => {
       const result = await googleContactsService.fetchGoogleContacts(mockToken);
 
       expect(requestUrl).toHaveBeenCalledWith({
-        url: URL_PEOPLE_API,
+        url: `${URL_PEOPLE_CONNECTIONS}?personFields=${PERSONAL_FIELDS}&pageSize=1000`,
         headers: {
           Authorization: `Bearer ${mockToken}`,
         },
