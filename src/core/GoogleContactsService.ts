@@ -24,18 +24,33 @@ export class GoogleContactsService {
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
     let allContacts: GoogleContact[] = [];
     let nextPageToken: string | undefined = undefined;
+    let data: { connections: GoogleContact[]; nextPageToken?: string } = {
+      connections: [],
+      nextPageToken: undefined,
+    };
 
     do {
       const url = `${URL_PEOPLE_CONNECTIONS}?personFields=${PERSONAL_FIELDS}&pageSize=1000${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
 
-      const res = await requestUrl({
-        url,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      try {
+        const res = await requestUrl({
+          url,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const data = await res.json;
+        data = await res.json;
+      } catch (error) {
+        console.error(
+          'Failed to fetch Google contacts',
+          JSON.stringify(error, null, 2)
+        );
+        data = {
+          connections: [],
+          nextPageToken: undefined,
+        };
+      }
       allContacts = allContacts.concat(data.connections || []);
       nextPageToken = data.nextPageToken;
     } while (nextPageToken);

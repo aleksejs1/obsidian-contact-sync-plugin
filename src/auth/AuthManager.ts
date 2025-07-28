@@ -51,9 +51,9 @@ export class AuthManager {
     });
 
     const data = await response.json;
-    this.accessToken = data.access_token;
-    this.refreshToken = data.refresh_token || this.refreshToken;
-    this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
+    this.accessToken = await data.access_token;
+    this.refreshToken = (await data.refresh_token) || this.refreshToken;
+    this.tokenExpiresAt = Date.now() + (await data.expires_in) * 1000;
   }
 
   /**
@@ -80,23 +80,32 @@ export class AuthManager {
       throw new Error('No refresh token available');
     }
 
-    const response = await requestUrl({
-      url: URL_OAUTH_TOKEN,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
-        refresh_token: this.refreshToken,
-        grant_type: 'refresh_token',
-      }).toString(),
-    });
-    const data = await response.json;
-    if (!data.access_token) {
+    try {
+      const response = await requestUrl({
+        url: URL_OAUTH_TOKEN,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          refresh_token: this.refreshToken,
+          grant_type: 'refresh_token',
+        }).toString(),
+      });
+
+      const data = await response.json;
+      if (!data.access_token) {
+        throw new Error('Failed to refresh token');
+      }
+      this.accessToken = data.access_token;
+      this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
+    } catch (error) {
+      console.error(
+        'Failed to refresh access token',
+        JSON.stringify(error, null, 2)
+      );
       throw new Error('Failed to refresh token');
     }
-    this.accessToken = data.access_token;
-    this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
   }
 
   /**
@@ -110,5 +119,13 @@ export class AuthManager {
       refreshToken: this.refreshToken,
       tokenExpiresAt: this.tokenExpiresAt,
     };
+  }
+
+  updateSettings(settings: ContactSyncSettings): void {
+    this.clientId = settings.clientId;
+    this.clientSecret = settings.clientSecret;
+    this.accessToken = settings.accessToken;
+    this.refreshToken = settings.refreshToken;
+    this.tokenExpiresAt = settings.tokenExpiresAt;
   }
 }

@@ -16,7 +16,7 @@ export const URL_OAUTH_SCOPE =
 
 /** External links */
 export const LINK_TO_MANUAL =
-  'https://github.com/YukiGasai/obsidian-google-calendar/blob/1.10.16/documentation/content/Install.pdf';
+  'https://scribehow.com/shared/Create_a_own_client_for_the_Obsidian_Google_Contacts_Plugin__s3EkgN37QZet_KSTej53Wg';
 
 /** Plugin default settings */
 export const DEFAULT_SETTINGS = {

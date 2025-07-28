@@ -159,6 +159,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.clientId = value;
             await this.plugin.saveSettings();
+            this.plugin.auth?.updateSettings(this.plugin.settings);
           })
       );
 
@@ -171,6 +172,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.clientSecret = value;
             await this.plugin.saveSettings();
+            this.plugin.auth?.updateSettings(this.plugin.settings);
           })
       );
 
@@ -201,7 +203,19 @@ export class ContactSyncSettingTab extends PluginSettingTab {
             return;
           }
 
-          this.plugin.auth.exchangeCode(code);
+          try {
+            await this.plugin.auth.exchangeCode(code);
+          } catch (error) {
+            console.error(
+              'Failed to exchange code:',
+              JSON.stringify(error, null, 2)
+            );
+            new Notice(
+              t('Failed to exchange code. Check console for details.')
+            );
+            return;
+          }
+
           Object.assign(
             this.plugin.settings,
             this.plugin.auth.getSettingsUpdate()

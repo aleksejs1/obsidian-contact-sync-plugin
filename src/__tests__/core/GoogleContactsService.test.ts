@@ -70,9 +70,9 @@ describe('GoogleContactsService', () => {
         new Error('API request failed')
       );
 
-      await expect(
-        googleContactsService.fetchGoogleContacts(mockToken)
-      ).rejects.toThrow('API request failed');
+      expect(
+        await googleContactsService.fetchGoogleContacts(mockToken)
+      ).toEqual([]);
     });
   });
 

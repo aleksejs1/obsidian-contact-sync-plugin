@@ -7,6 +7,7 @@ import { GoogleContactsService } from './core/GoogleContactsService';
 import { ContactNoteWriter } from './core/ContactNoteWriter';
 import { ContactNoteConfig } from './types/ContactNoteConfig';
 import { t } from './i18n/translator';
+import type { GoogleContact } from './types/Contact';
 
 /**
  * Obsidian plugin for synchronizing contacts from Google contacts into markdown notes.
@@ -113,9 +114,33 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     }
     this.updateAuthSettings();
 
-    const labelMap = (await this.googleService?.fetchGoogleGroups(token)) || {};
-    const contacts =
-      (await this.googleService?.fetchGoogleContacts(token)) || [];
+    let labelMap: Record<string, string> = {};
+    try {
+      labelMap = (await this.googleService?.fetchGoogleGroups(token)) || {};
+    } catch (error) {
+      console.error(
+        'Failed to fetch Google groups',
+        JSON.stringify(error, null, 2)
+      );
+      new Notice(
+        t('Failed to fetch Google groups. Check console for details.')
+      );
+      return;
+    }
+
+    let contacts: GoogleContact[] = [];
+    try {
+      contacts = (await this.googleService?.fetchGoogleContacts(token)) || [];
+    } catch (error) {
+      console.error(
+        'Failed to fetch Google contacts',
+        JSON.stringify(error, null, 2)
+      );
+      new Notice(
+        t('Failed to fetch Google contacts. Check console for details.')
+      );
+      return;
+    }
 
     const config: ContactNoteConfig = {
       folderPath: this.settings.contactsFolder,
@@ -125,7 +150,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       noteBody: this.settings.noteTemplate || '# Notes\n',
     };
 
-    this.noteWriter?.writeNotesForContacts(config, labelMap, contacts);
+    await this.noteWriter?.writeNotesForContacts(config, labelMap, contacts);
 
     new Notice(t('Google contacts synced!'));
   }
