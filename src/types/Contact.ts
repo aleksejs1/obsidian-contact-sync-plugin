@@ -39,6 +39,7 @@ export interface GoogleContact {
   organizations?: {
     name: string;
     title: string;
+    department: string;
   }[];
 }
 

@@ -190,6 +190,11 @@ export class ContactNoteWriter {
       propertyPrefix
     );
     this.formatter.addJobTitleFields(frontmatterLines, contact, propertyPrefix);
+    this.formatter.addDepartmentFields(
+      frontmatterLines,
+      contact,
+      propertyPrefix
+    );
     this.formatter.addBirthdayFields(frontmatterLines, contact, propertyPrefix);
     this.formatter.addLabels(
       frontmatterLines,

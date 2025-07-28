@@ -155,6 +155,28 @@ export class Formatter {
   }
 
   /**
+   * Adds department field(s) from the contact to the frontmatter lines.
+   * Handles multiple departments and appends a suffix to each additional field.
+   *
+   * @param frontmatterLines - The object representing the frontmatter fields to update.
+   * @param contact - The Google contact containing department information.
+   * @param propertyPrefix - The prefix to prepend to the field name.
+   */
+  addDepartmentFields(
+    frontmatterLines: Record<string, string>,
+    contact: GoogleContact,
+    propertyPrefix: string
+  ) {
+    this.addContactFieldToFrontmatter(
+      frontmatterLines,
+      contact.organizations,
+      'department',
+      propertyPrefix,
+      (item) => item.department
+    );
+  }
+
+  /**
    * Adds birthday field(s) from the contact to the frontmatter lines.
    * Handles multiple birthdays and appends a suffix to each additional field.
    *
@@ -228,6 +250,7 @@ export class Formatter {
     contact.forEach((item, index) => {
       const rawValue = valueExtractor(item);
       const value = String(rawValue || '');
+      if (value === '') return;
       const suffix = index === 0 ? '' : `_${index + 1}`;
       frontmatter[`${propertyPrefix}${keyName}${suffix}`] = value;
     });
