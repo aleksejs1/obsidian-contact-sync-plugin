@@ -40,4 +40,7 @@ export interface ContactSyncSettings {
 
   /** Whether to trigger sync automatically when Obsidian starts */
   syncOnStartup: boolean;
+
+  /** Save organization as obsidian link */
+  organizationAsLink: boolean;
 }

@@ -101,6 +101,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(t('Organization as link'))
+      .setDesc(
+        t(
+          'Organization name will be stored as a obsidian link [[...]] instead of plain text'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.organizationAsLink)
+          .onChange(async (value) => {
+            this.plugin.settings.organizationAsLink = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName(t('Label to sync'))
       .setDesc(
         t('If not empty, then only contacts with this label will synced')

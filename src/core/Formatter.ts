@@ -117,18 +117,27 @@ export class Formatter {
    * @param frontmatterLines - The object representing the frontmatter fields to update.
    * @param contact - The Google contact containing organization information.
    * @param propertyPrefix - The prefix to prepend to the field name.
+   * @param organizationAsLink - Whether to format organization names as Obsidian links.
+   * @returns void
    */
   addOrganizationFields(
     frontmatterLines: Record<string, string>,
     contact: GoogleContact,
-    propertyPrefix: string
+    propertyPrefix: string,
+    organizationAsLink: boolean = false
   ) {
     this.addContactFieldToFrontmatter(
       frontmatterLines,
       contact.organizations,
       'organization',
       propertyPrefix,
-      (item) => item.name
+      (item) => item.name,
+      (value: string) => {
+        if (organizationAsLink) {
+          return `[[${value}]]`;
+        }
+        return value;
+      }
     );
   }
 
@@ -243,7 +252,8 @@ export class Formatter {
     contact: T[] | undefined,
     keyName: string,
     propertyPrefix: string,
-    valueExtractor: (item: T) => string | undefined
+    valueExtractor: (item: T) => string | undefined,
+    valueTransformet: (value: string) => string = (value) => value
   ) {
     if (!contact || contact.length === 0) return;
 
@@ -252,7 +262,8 @@ export class Formatter {
       const value = String(rawValue || '');
       if (value === '') return;
       const suffix = index === 0 ? '' : `_${index + 1}`;
-      frontmatter[`${propertyPrefix}${keyName}${suffix}`] = value;
+      frontmatter[`${propertyPrefix}${keyName}${suffix}`] =
+        valueTransformet(value);
     });
   }
 }
