@@ -6,8 +6,7 @@ export const URL_OAUTH_TOKEN = 'https://oauth2.googleapis.com/token';
 export const URL_PEOPLE_BASE = 'https://people.googleapis.com/v1';
 export const URL_PEOPLE_CONNECTIONS = `${URL_PEOPLE_BASE}/people/me/connections`;
 export const PERSONAL_FIELDS = `names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations`;
-export const URL_PEOPLE_API = `${URL_PEOPLE_CONNECTIONS}?personFields=names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations&pageSize=1000`;
-export const URL_CONTACT_GROUPS = `${URL_PEOPLE_BASE}/contactGroups`;
+export const URL_CONTACT_GROUPS = `${URL_PEOPLE_BASE}/contactGroups?pageSize=1000`;
 
 /** OAuth2 defaults */
 export const URI_OATUH_REDIRECT = 'urn:ietf:wg:oauth:2.0:oob';

@@ -1,6 +1,6 @@
 {
   "name": "google-contacts",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "rollup.config.js",
   "type": "module",
