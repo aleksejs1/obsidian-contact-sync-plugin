@@ -148,6 +148,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       propertyPrefix: this.settings.propertyNamePrefix || '',
       syncLabel: this.settings.syncLabel,
       noteBody: this.settings.noteTemplate || '# Notes\n',
+      organizationAsLink: this.settings.organizationAsLink,
     };
 
     await this.noteWriter?.writeNotesForContacts(config, labelMap, contacts);

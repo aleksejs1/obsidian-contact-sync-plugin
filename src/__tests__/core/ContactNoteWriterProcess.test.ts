@@ -110,6 +110,7 @@ describe('ContactNoteWriterUpdate', () => {
         propertyPrefix: 'propertyPrefix-',
         syncLabel: '',
         noteBody: mockNoteBody,
+        organizationAsLink: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -151,6 +152,7 @@ describe('ContactNoteWriterUpdate', () => {
         propertyPrefix: 'propertyPrefix-',
         syncLabel: '',
         noteBody: mockNoteBody,
+        organizationAsLink: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(

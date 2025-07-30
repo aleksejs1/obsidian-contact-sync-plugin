@@ -103,6 +103,7 @@ describe('ContactNoteWriter', () => {
         syncLabel: '',
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
+        organizationAsLink: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -148,6 +149,7 @@ describe('ContactNoteWriter', () => {
         syncLabel: 'family',
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
+        organizationAsLink: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -192,6 +194,7 @@ describe('ContactNoteWriter', () => {
         syncLabel: 'family',
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
+        organizationAsLink: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -230,6 +233,7 @@ describe('ContactNoteWriter', () => {
         syncLabel: '',
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
+        organizationAsLink: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -266,6 +270,7 @@ describe('ContactNoteWriter', () => {
         syncLabel: 'work', // Not matching syncLabel
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
+        organizationAsLink: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(

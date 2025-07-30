@@ -4,4 +4,5 @@ export interface ContactNoteConfig {
   syncLabel: string;
   folderPath: string;
   noteBody: string;
+  organizationAsLink: boolean;
 }

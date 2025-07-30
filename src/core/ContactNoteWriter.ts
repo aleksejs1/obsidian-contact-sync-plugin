@@ -105,7 +105,8 @@ export class ContactNoteWriter {
           this.generateFrontmatterLines(
             config.propertyPrefix,
             contact,
-            invertedLabelMap
+            invertedLabelMap,
+            config.organizationAsLink
           )
         )
       );
@@ -167,12 +168,14 @@ export class ContactNoteWriter {
    * @param propertyPrefix - The prefix to use for frontmatter properties.
    * @param contact - The Google contact to generate frontmatter for.
    * @param invertedLabelMap - A mapping of label names to their corresponding group IDs.
+   * @param organizationAsLink - Whether to format organization names as Obsidian links.
    * @returns A record of frontmatter properties and their values.
    */
   private generateFrontmatterLines(
     propertyPrefix: string,
     contact: GoogleContact,
-    invertedLabelMap: Record<string, string>
+    invertedLabelMap: Record<string, string>,
+    organizationAsLink: boolean = false
   ): Record<string, string> {
     const frontmatterLines: Record<string, string> = {
       [`${propertyPrefix}id`]: String(this.getContactId(contact)),
@@ -187,7 +190,8 @@ export class ContactNoteWriter {
     this.formatter.addOrganizationFields(
       frontmatterLines,
       contact,
-      propertyPrefix
+      propertyPrefix,
+      organizationAsLink
     );
     this.formatter.addJobTitleFields(frontmatterLines, contact, propertyPrefix);
     this.formatter.addDepartmentFields(

@@ -31,4 +31,5 @@ export const DEFAULT_SETTINGS = {
   syncLabel: '',
   syncIntervalMinutes: 0,
   syncOnStartup: false,
+  organizationAsLink: false,
 };
