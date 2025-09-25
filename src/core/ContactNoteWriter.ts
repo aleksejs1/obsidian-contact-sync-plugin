@@ -97,19 +97,24 @@ export class ContactNoteWriter {
       );
       if (!filename) continue;
 
-      await this.fileManager.processFrontMatter(
-        filesIdMapping[id] ||
-          (await this.vaultService.getFileByPath(filename)) ||
-          (await this.vaultService.createFile(filename, config.noteBody)),
-        this.processFrontMatter(
-          this.generateFrontmatterLines(
-            config.propertyPrefix,
-            contact,
-            invertedLabelMap,
-            config.organizationAsLink
-          )
-        )
+      const file = filesIdMapping[id] ||
+        (await this.vaultService.getFileByPath(filename)) ||
+        (await this.vaultService.createFile(filename, config.noteBody));
+      
+      const newFrontmatterLines = this.generateFrontmatterLines(
+        config.propertyPrefix,
+        contact,
+        invertedLabelMap,
+        config.organizationAsLink
       );
+
+      // Check if frontmatter has changed (excluding synced tag)
+      if (await this.shouldUpdateFile(file, newFrontmatterLines, config.propertyPrefix)) {
+        await this.fileManager.processFrontMatter(
+          file,
+          this.processFrontMatter(newFrontmatterLines)
+        );
+      }
     }
   }
 
@@ -253,5 +258,58 @@ export class ContactNoteWriter {
     }
 
     return idToFileMapping;
+  }
+
+  /**
+   * Determines if a file should be updated by comparing existing frontmatter with new frontmatter,
+   * excluding the synced timestamp field.
+   *
+   * @param file - The file to check for updates.
+   * @param newFrontmatterLines - The new frontmatter data to compare against.
+   * @param propertyPrefix - The prefix used for contact properties.
+   * @returns True if the file should be updated, false otherwise.
+   */
+  private async shouldUpdateFile(
+    file: TFile,
+    newFrontmatterLines: Record<string, string>,
+    propertyPrefix: string
+  ): Promise<boolean> {
+    const existingFrontmatter = this.metadataCache.getFileCache(file)?.frontmatter;
+    
+    if (!existingFrontmatter) {
+      return true; // File has no frontmatter, so it should be updated
+    }
+
+    // Create copies without the synced field for comparison
+    const existingWithoutSynced = { ...existingFrontmatter };
+    const newWithoutSynced = { ...newFrontmatterLines };
+    
+    delete existingWithoutSynced[`${propertyPrefix}synced`];
+    delete newWithoutSynced[`${propertyPrefix}synced`];
+
+    // Compare each property individually to handle missing properties correctly
+    const allKeys = new Set([
+      ...Object.keys(existingWithoutSynced),
+      ...Object.keys(newWithoutSynced)
+    ]);
+
+    for (const key of allKeys) {
+      const existingValue = existingWithoutSynced[key];
+      const newValue = newWithoutSynced[key];
+      
+      // Treat undefined and empty string as equivalent since the formatter skips empty values
+      const normalizeValue = (value: unknown): string => {
+        if (value === undefined || value === null || value === '') {
+          return '';
+        }
+        return String(value);
+      };
+      
+      if (normalizeValue(existingValue) !== normalizeValue(newValue)) {
+        return true;
+      }
+    }
+    
+    return false; // No meaningful changes detected
   }
 }

@@ -379,4 +379,177 @@ describe('ContactNoteWriter', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('shouldUpdateFile', () => {
+    it('should return true if file has no frontmatter', async () => {
+      const mockFile: TFile = {
+        path: 'test.md',
+        stat: {} as unknown as FileStats,
+        basename: 'test',
+        extension: 'md',
+        vault: {} as unknown as Vault,
+        name: 'test.md',
+        parent: null,
+      };
+
+      (metadataCache.getFileCache as jest.Mock).mockReturnValue(null);
+
+      const newFrontmatter = { 'contact-id': '123' };
+      const result = await contactNoteWriter['shouldUpdateFile'](
+        mockFile,
+        newFrontmatter,
+        'contact-'
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if frontmatter is identical (ignoring synced field)', async () => {
+      const existingFrontmatter = {
+        'contact-id': '123',
+        'contact-name': 'John Doe',
+        'contact-synced': '2023-01-01T00:00:00.000Z',
+      };
+
+      const mockFile: TFile = {
+        path: 'test.md',
+        stat: {} as unknown as FileStats,
+        basename: 'test',
+        extension: 'md',
+        vault: {} as unknown as Vault,
+        name: 'test.md',
+        parent: null,
+      };
+
+      (metadataCache.getFileCache as jest.Mock).mockReturnValue({
+        frontmatter: existingFrontmatter,
+      });
+
+      const newFrontmatter = {
+        'contact-id': '123',
+        'contact-name': 'John Doe',
+        'contact-synced': '2023-12-01T00:00:00.000Z', // Different synced time
+      };
+
+      const result = await contactNoteWriter['shouldUpdateFile'](
+        mockFile,
+        newFrontmatter,
+        'contact-'
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true if frontmatter has changes (excluding synced field)', async () => {
+      const existingFrontmatter = {
+        'contact-id': '123',
+        'contact-name': 'John Doe',
+        'contact-synced': '2023-01-01T00:00:00.000Z',
+      };
+
+      const mockFile: TFile = {
+        path: 'test.md',
+        stat: {} as unknown as FileStats,
+        basename: 'test',
+        extension: 'md',
+        vault: {} as unknown as Vault,
+        name: 'test.md',
+        parent: null,
+      };
+
+      (metadataCache.getFileCache as jest.Mock).mockReturnValue({
+        frontmatter: existingFrontmatter,
+      });
+
+      const newFrontmatter = {
+        'contact-id': '123',
+        'contact-name': 'Jane Doe', // Changed name
+        'contact-synced': '2023-12-01T00:00:00.000Z',
+      };
+
+      const result = await contactNoteWriter['shouldUpdateFile'](
+        mockFile,
+        newFrontmatter,
+        'contact-'
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when comparing existing frontmatter with missing properties vs new frontmatter without those properties', async () => {
+      const existingFrontmatter = {
+        'contact-id': '123',
+        'contact-name': 'John Doe',
+        'contact-synced': '2023-01-01T00:00:00.000Z',
+        // Note: contact-email is missing (formatter skipped it because it was empty)
+      };
+
+      const mockFile: TFile = {
+        path: 'test.md',
+        stat: {} as unknown as FileStats,
+        basename: 'test',
+        extension: 'md',
+        vault: {} as unknown as Vault,
+        name: 'test.md',
+        parent: null,
+      };
+
+      (metadataCache.getFileCache as jest.Mock).mockReturnValue({
+        frontmatter: existingFrontmatter,
+      });
+
+      const newFrontmatter = {
+        'contact-id': '123',
+        'contact-name': 'John Doe',
+        'contact-synced': '2023-12-01T00:00:00.000Z',
+        // Note: contact-email is also missing (formatter skipped it because it's still empty)
+      };
+
+      const result = await contactNoteWriter['shouldUpdateFile'](
+        mockFile,
+        newFrontmatter,
+        'contact-'
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true when a previously missing property now has a value', async () => {
+      const existingFrontmatter = {
+        'contact-id': '123',
+        'contact-name': 'John Doe',
+        'contact-synced': '2023-01-01T00:00:00.000Z',
+        // Note: contact-email is missing
+      };
+
+      const mockFile: TFile = {
+        path: 'test.md',
+        stat: {} as unknown as FileStats,
+        basename: 'test',
+        extension: 'md',
+        vault: {} as unknown as Vault,
+        name: 'test.md',
+        parent: null,
+      };
+
+      (metadataCache.getFileCache as jest.Mock).mockReturnValue({
+        frontmatter: existingFrontmatter,
+      });
+
+      const newFrontmatter = {
+        'contact-id': '123',
+        'contact-name': 'John Doe',
+        'contact-email': 'john@example.com', // Now has a value
+        'contact-synced': '2023-12-01T00:00:00.000Z',
+      };
+
+      const result = await contactNoteWriter['shouldUpdateFile'](
+        mockFile,
+        newFrontmatter,
+        'contact-'
+      );
+
+      expect(result).toBe(true);
+    });
+  });
 });
