@@ -53,6 +53,10 @@ export const ru = {
   'Google contacts synced!': 'Google контакты синхронизированы!',
   'Failed to obtain access token. Please re-authenticate.':
     'Не удалось получить токен доступа. Пожалуйста, повторите аутентификацию.',
+  'Track last sync time in notes':
+    'Отслеживать время последней синхронизации в заметках',
+  'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
+    'Если включено, плагин будет обновлять свойство синхронизации в каждой заметке с временем последней синхронизации. Это может вызвать проблемы с производительностью при очень больших списках контактов.',
 };
 
 /**
@@ -110,6 +114,10 @@ export const lv = {
   'Google contacts synced!': 'Google kontakti sinhronizēti!',
   'Failed to obtain access token. Please re-authenticate.':
     'Neizdevās iegūt piekļuves tokenu. Lūdzu, atkārtoti autentificējieties.',
+  'Track last sync time in notes':
+    'Sekot pēdējās sinhronizācijas laikam piezīmēs',
+  'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
+    'Ja iespējots, spraudnis atjauninās synced rekvizītu katrā piezīmē ar pēdējās sinhronizācijas laiku. Tas var radīt veiktspējas problēmas, ja kontaktu skaits ir ļoti liels.',
 };
 
 /**
@@ -167,4 +175,7 @@ export const en = {
   'Google contacts synced!': 'Google contacts synced!',
   'Failed to obtain access token. Please re-authenticate.':
     'Failed to obtain access token. Please re-authenticate.',
+  'Track last sync time in notes': 'Track last sync time in notes',
+  'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
+    'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.',
 };
