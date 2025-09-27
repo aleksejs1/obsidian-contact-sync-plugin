@@ -163,6 +163,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           })
       );
 
+    new Setting(containerEl)
+      .setName(t('Track last sync time in notes'))
+      .setDesc(
+        t(
+          'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.trackSyncTime)
+          .onChange(async (value) => {
+            this.plugin.settings.trackSyncTime = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
     new Setting(containerEl).setName(t('Google auth')).setHeading();
 
     new Setting(containerEl)

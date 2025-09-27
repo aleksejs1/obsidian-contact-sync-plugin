@@ -41,6 +41,9 @@ export interface ContactSyncSettings {
   /** Whether to trigger sync automatically when Obsidian starts */
   syncOnStartup: boolean;
 
+  /** Whether to update the last sync time in each contact note */
+  trackSyncTime: boolean;
+
   /** Save organization as obsidian link */
   organizationAsLink: boolean;
 }

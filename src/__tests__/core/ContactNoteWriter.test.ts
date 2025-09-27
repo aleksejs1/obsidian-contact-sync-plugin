@@ -104,6 +104,7 @@ describe('ContactNoteWriter', () => {
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
         organizationAsLink: false,
+        trackSyncTime: true,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -150,6 +151,7 @@ describe('ContactNoteWriter', () => {
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
         organizationAsLink: false,
+        trackSyncTime: true,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -195,6 +197,7 @@ describe('ContactNoteWriter', () => {
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
         organizationAsLink: false,
+        trackSyncTime: true,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -234,6 +237,7 @@ describe('ContactNoteWriter', () => {
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
         organizationAsLink: false,
+        trackSyncTime: true,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -271,6 +275,7 @@ describe('ContactNoteWriter', () => {
         folderPath: 'path/to/folder',
         noteBody: mockNoteBody,
         organizationAsLink: false,
+        trackSyncTime: true,
       };
 
       await contactNoteWriter.writeNotesForContacts(

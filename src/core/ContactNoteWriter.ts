@@ -106,7 +106,8 @@ export class ContactNoteWriter {
             config.propertyPrefix,
             contact,
             invertedLabelMap,
-            config.organizationAsLink
+            config.organizationAsLink,
+            config.trackSyncTime
           )
         )
       );
@@ -175,12 +176,18 @@ export class ContactNoteWriter {
     propertyPrefix: string,
     contact: GoogleContact,
     invertedLabelMap: Record<string, string>,
-    organizationAsLink: boolean = false
+    organizationAsLink: boolean = false,
+    trackSyncTime: boolean = false
   ): Record<string, string> {
     const frontmatterLines: Record<string, string> = {
       [`${propertyPrefix}id`]: String(this.getContactId(contact)),
-      [`${propertyPrefix}synced`]: String(new Date().toISOString()),
     };
+
+    if (trackSyncTime) {
+      frontmatterLines[`${propertyPrefix}synced`] = String(
+        new Date().toISOString()
+      );
+    }
 
     this.formatter.addNameField(frontmatterLines, contact, propertyPrefix);
     this.formatter.addEmailField(frontmatterLines, contact, propertyPrefix);
