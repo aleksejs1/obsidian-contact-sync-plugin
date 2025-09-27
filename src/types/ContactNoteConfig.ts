@@ -5,4 +5,5 @@ export interface ContactNoteConfig {
   folderPath: string;
   noteBody: string;
   organizationAsLink: boolean;
+  trackSyncTime: boolean;
 }

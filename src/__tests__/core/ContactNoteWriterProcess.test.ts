@@ -111,6 +111,7 @@ describe('ContactNoteWriterUpdate', () => {
         syncLabel: '',
         noteBody: mockNoteBody,
         organizationAsLink: false,
+        trackSyncTime: true,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -153,6 +154,7 @@ describe('ContactNoteWriterUpdate', () => {
         syncLabel: '',
         noteBody: mockNoteBody,
         organizationAsLink: false,
+        trackSyncTime: true,
       };
 
       await contactNoteWriter.writeNotesForContacts(
