@@ -164,6 +164,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(t('Rename files if name changed'))
+      .setDesc(
+        t(
+          'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.renameFiles)
+          .onChange(async (value) => {
+            this.plugin.settings.renameFiles = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName(t('Track last sync time in notes'))
       .setDesc(
         t(

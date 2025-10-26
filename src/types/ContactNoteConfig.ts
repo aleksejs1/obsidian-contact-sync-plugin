@@ -6,4 +6,5 @@ export interface ContactNoteConfig {
   noteBody: string;
   organizationAsLink: boolean;
   trackSyncTime: boolean;
+  renameFiles: boolean;
 }
