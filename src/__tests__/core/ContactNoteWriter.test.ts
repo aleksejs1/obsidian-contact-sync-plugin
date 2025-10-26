@@ -105,6 +105,7 @@ describe('ContactNoteWriter', () => {
         noteBody: mockNoteBody,
         organizationAsLink: false,
         trackSyncTime: true,
+        renameFiles: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -152,6 +153,7 @@ describe('ContactNoteWriter', () => {
         noteBody: mockNoteBody,
         organizationAsLink: false,
         trackSyncTime: true,
+        renameFiles: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -198,6 +200,7 @@ describe('ContactNoteWriter', () => {
         noteBody: mockNoteBody,
         organizationAsLink: false,
         trackSyncTime: true,
+        renameFiles: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -238,6 +241,7 @@ describe('ContactNoteWriter', () => {
         noteBody: mockNoteBody,
         organizationAsLink: false,
         trackSyncTime: true,
+        renameFiles: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -276,6 +280,7 @@ describe('ContactNoteWriter', () => {
         noteBody: mockNoteBody,
         organizationAsLink: false,
         trackSyncTime: true,
+        renameFiles: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(

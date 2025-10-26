@@ -57,6 +57,9 @@ export const ru = {
     'Отслеживать время последней синхронизации в заметках',
   'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
     'Если включено, плагин будет обновлять свойство синхронизации в каждой заметке с временем последней синхронизации. Это может вызвать проблемы с производительностью при очень больших списках контактов.',
+  'Rename files if name changed': 'Переименовывать файлы, если имя изменилось',
+  'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
+    'Если включено, существующие файлы контактов будут переименованы, если изменится имя контакта. Все ссылки в хранилище будут обновлены соответственно.',
 };
 
 /**
@@ -118,6 +121,9 @@ export const lv = {
     'Sekot pēdējās sinhronizācijas laikam piezīmēs',
   'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
     'Ja iespējots, spraudnis atjauninās synced rekvizītu katrā piezīmē ar pēdējās sinhronizācijas laiku. Tas var radīt veiktspējas problēmas, ja kontaktu skaits ir ļoti liels.',
+  'Rename files if name changed': 'Pārdēvēt failus, ja nosaukums ir mainīts',
+  'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
+    'Ja iespējots, esošie kontaktu faili tiks pārdēvēti, ja mainīsies kontakta nosaukums. Visi saites glabātavā tiks atjauninātas atbilstoši.',
 };
 
 /**
@@ -178,4 +184,7 @@ export const en = {
   'Track last sync time in notes': 'Track last sync time in notes',
   'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
     'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.',
+  'Rename files if name changed': 'Rename files if name changed',
+  'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
+    'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.',
 };

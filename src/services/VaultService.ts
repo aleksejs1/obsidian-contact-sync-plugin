@@ -1,6 +1,6 @@
 // src/services/VaultService.ts
 
-import { TFile, TFolder, Vault, normalizePath } from 'obsidian';
+import { FileManager, TFile, TFolder, Vault, normalizePath } from 'obsidian';
 
 /**
  * Service class for interacting with the Obsidian Vault.
@@ -13,12 +13,18 @@ export class VaultService {
   private vault: Vault;
 
   /**
+   * The FileManager instance used for file operations.
+   */
+  private fileManager: FileManager;
+
+  /**
    * Creates an instance of VaultService.
    *
    * @param vault - The Obsidian Vault instance to operate on.
    */
-  constructor(vault: Vault) {
+  constructor(vault: Vault, fileManager: FileManager) {
     this.vault = vault;
+    this.fileManager = fileManager;
   }
 
   /**
@@ -61,5 +67,10 @@ export class VaultService {
   async createFile(filePath: string, content: string): Promise<TFile> {
     const normalizedPath = normalizePath(filePath);
     return await this.vault.create(normalizedPath, content);
+  }
+
+  async renameFile(file: TFile, newPath: string): Promise<void> {
+    const normalizedPath = normalizePath(newPath);
+    return await this.fileManager.renameFile(file, normalizedPath);
   }
 }

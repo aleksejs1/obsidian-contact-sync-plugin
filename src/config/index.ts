@@ -33,4 +33,5 @@ export const DEFAULT_SETTINGS = {
   syncOnStartup: false,
   trackSyncTime: false,
   organizationAsLink: false,
+  renameFiles: false,
 };

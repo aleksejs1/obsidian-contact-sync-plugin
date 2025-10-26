@@ -56,7 +56,7 @@ export class ContactNoteWriter {
     metadataCache: MetadataCache,
     fileManager: FileManager
   ) {
-    this.vaultService = new VaultService(vault);
+    this.vaultService = new VaultService(vault, fileManager);
     this.metadataCache = metadataCache;
     this.fileManager = fileManager;
   }
@@ -96,6 +96,17 @@ export class ContactNoteWriter {
         config.prefix
       );
       if (!filename) continue;
+
+      if (config.renameFiles && filesIdMapping[id]) {
+        const existingFile = filesIdMapping[id];
+        if (existingFile.path !== filename) {
+          await this.vaultService.renameFile(existingFile, filename);
+          delete filesIdMapping[id];
+          filesIdMapping[id] = (await this.vaultService.getFileByPath(
+            filename
+          )) as TFile;
+        }
+      }
 
       await this.fileManager.processFrontMatter(
         filesIdMapping[id] ||
