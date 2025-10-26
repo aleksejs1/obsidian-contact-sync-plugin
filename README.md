@@ -72,6 +72,8 @@ The plugin will automatically save the access and refresh tokens.
 - Each contact is matched using its `id` stored in the YAML frontmatter.
     
 - If a contact already exists (by `id`), the plugin updates only the frontmatter. Existing user-defined frontmatter properties and free-text content below the frontmatter are preserved and **never overwritten**.
+
+- There's an option to change the note title if a contact's name changes. Links in notes will automatically update if this option is enabled in the settings.
     
 - If there is more than one piece of information for a given property (e.g., multiple phone numbers or multiple birthdays), the plugin appends a number to the property name. For example:
     
@@ -109,7 +111,7 @@ synced: 2025-04-19T12:34:56.789Z
 You can write anything here — this section is safe.
 ```
 
-- The `synced` date uses **UTC (Coordinated Universal Time)** to ensure correct synchronization across time zones.
+- The `synced` date uses **UTC (Coordinated Universal Time)** to ensure correct synchronization across time zones. This option is disabled by default to improve performance and avoid touching hundreds of contact notes with each synchronization.
     
 - The plugin only updates properties related to the contact (such as `name`, `email`, `phone`, etc.). Any custom properties created by the user will **remain untouched**.
     
