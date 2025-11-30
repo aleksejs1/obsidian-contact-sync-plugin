@@ -120,30 +120,59 @@ You can write anything here — this section is safe.
 - If a sync label is configured, only contacts with that label will be synchronized. Contacts without the specified label will be ignored during the sync process.
 
 ## 🔐 How to Get a Google Client ID and Secret
-To sync your contacts, you’ll need a valid Google Access Token that grants access to the People API.
+To sync your contacts, you’ll need a valid Google Access Token that grants access to the People API. Follow the steps below to obtain the **Client ID** and **Client Secret**, and to configure your account so you can retrieve the necessary **Authorization Code** for the Obsidian plugin.
 
 ### 1. Set up Google Cloud
-Go to https://console.cloud.google.com
+
+Go to [Google Cloud Platform](https://console.cloud.google.com) 
 
 Create a new project (or select an existing one)
 
 ### 2. Enable People API
-Navigate to: API & Services → Library
 
-Search for People API
+Navigate to: **API & Services → Library**
 
-Click Enable
+Search for **Google People API**
 
-### 3. Create OAuth 2.0 Credentials
-Go to: API & Services → Credentials
+Click **Enable**
 
-Click "Create Credentials → OAuth client ID"
+### 3. Configure the OAuth Consent Screen
 
-If prompted, configure the OAuth consent screen (you can use testing mode)
+Navigate to: **API & Services → OAuth consent screen**
 
-For application type, select: Desktop App
+Navigate to: **Audience** tab
 
-Copy your Client ID and Client Secret
+If prompted, click **Get started**
+
+Fill in the required App information (App name, User support email)
+
+Set the User Type to **External** (you do not need to publish the app)
+
+Complete the contact information and click **Finish**
+
+### 4. Add Your Account as a Test User
+
+Navigate to: **Audience** tab again
+ 
+Go to the **Test users** section (under the "OAuth user cap")
+
+Click **"+ Add users"** and enter the **exact Google email address** you will use to log in from within Obsidian
+
+### 5. Create OAuth 2.0 Credentials
+
+Go to: **API & Services → Credentials**
+
+Click **"+ Create Credentials"** and select **"OAuth client ID"** from the list
+
+For Application type, select: **Desktop App**, and give it a name
+
+Copy your **Client ID** and **Client Secret** and insert them into the plugin's options
+
+### 6. Get the Authorization Code
+
+In the Obsidian plugin, **log in** with the registered Test User email via the **"Login"** button
+
+After confirming the dialog to grant the plugin permissions, a final screen will display the **Authorization Code** you need to copy and paste back into the plugin
 
 ## 🔧 Build Instructions
 
