@@ -6,6 +6,7 @@ import { GoogleContact } from 'src/types/Contact';
 export class Formatter {
   /**
    * Adds the name field from the contact to the frontmatter lines.
+   * Falls back to organization name if no displayName is available.
    *
    * @param frontmatterLines - The object representing the frontmatter fields to update.
    * @param contact - The Google contact containing name information.
@@ -16,13 +17,21 @@ export class Formatter {
     contact: GoogleContact,
     propertyPrefix: string
   ) {
-    this.addContactFieldToFrontmatter(
-      frontmatterLines,
-      contact.names,
-      'name',
-      propertyPrefix,
-      (item) => item.displayName
-    );
+    // Try to get name from contact.names first
+    const displayName = contact.names?.[0]?.displayName;
+    
+    if (displayName) {
+      this.addContactFieldToFrontmatter(
+        frontmatterLines,
+        contact.names,
+        'name',
+        propertyPrefix,
+        (item) => item.displayName
+      );
+    } else if (contact.organizations?.[0]?.name) {
+      // Fall back to organization name if no displayName
+      frontmatterLines[`${propertyPrefix}name`] = contact.organizations[0].name;
+    }
   }
 
   /**

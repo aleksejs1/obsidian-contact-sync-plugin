@@ -127,6 +127,7 @@ export class ContactNoteWriter {
 
   /**
    * Generates a filename for the contact note based on the contact's display name and ID.
+   * Falls back to organization name if no display name is available.
    *
    * @param contact - The Google contact to generate a filename for.
    * @param id - The contact ID.
@@ -140,7 +141,10 @@ export class ContactNoteWriter {
     folderPath: string,
     prefix: string
   ): string | null {
-    const name = contact.names?.[0]?.displayName || id;
+    // Try displayName first, then organization name, then fall back to ID
+    const name = contact.names?.[0]?.displayName || 
+                 contact.organizations?.[0]?.name || 
+                 id;
     if (!name) return null;
     const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
     const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
