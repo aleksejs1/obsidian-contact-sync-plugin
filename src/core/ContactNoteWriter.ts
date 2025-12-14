@@ -142,9 +142,8 @@ export class ContactNoteWriter {
     prefix: string
   ): string | null {
     // Try displayName first, then organization name, then fall back to ID
-    const name = contact.names?.[0]?.displayName || 
-                 contact.organizations?.[0]?.name || 
-                 id;
+    const name =
+      contact.names?.[0]?.displayName || contact.organizations?.[0]?.name || id;
     if (!name) return null;
     const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
     const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);

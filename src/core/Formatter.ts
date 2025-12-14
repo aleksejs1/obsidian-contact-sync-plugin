@@ -19,7 +19,7 @@ export class Formatter {
   ) {
     // Try to get name from contact.names first
     const displayName = contact.names?.[0]?.displayName;
-    
+
     if (displayName) {
       this.addContactFieldToFrontmatter(
         frontmatterLines,
