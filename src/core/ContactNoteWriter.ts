@@ -7,7 +7,7 @@ import {
 } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
-import { Formatter } from './Formatter';
+import { Formatter, createDefaultFormatter } from './Formatter';
 import { VaultService } from 'src/services/VaultService';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 
@@ -21,7 +21,7 @@ export class ContactNoteWriter {
    *
    * This protected property is used to format contact data into a suitable format for Obsidian frontmatter.
    */
-  protected formatter: Formatter = new Formatter();
+  protected formatter: Formatter = createDefaultFormatter();
 
   /**
    * The VaultService instance used for vault operations.
@@ -157,9 +157,9 @@ export class ContactNoteWriter {
    * @returns A function that takes a frontmatter object and updates it with the provided lines.
    */
   private processFrontMatter(
-    frontmatterLines: Record<string, string>
-  ): (frontmatter: Record<string, string>) => void {
-    return (frontmatter: Record<string, string>) => {
+    frontmatterLines: Record<string, string | string[]>
+  ): (frontmatter: Record<string, unknown>) => void {
+    return (frontmatter: Record<string, unknown>) => {
       for (const key in frontmatterLines) {
         frontmatter[key] = frontmatterLines[key];
       }
@@ -192,41 +192,32 @@ export class ContactNoteWriter {
     invertedLabelMap: Record<string, string>,
     organizationAsLink: boolean = false,
     trackSyncTime: boolean = false
-  ): Record<string, string> {
-    const frontmatterLines: Record<string, string> = {
+  ): Record<string, string | string[]> {
+    const formattedFields = this.formatter.generateFrontmatter(
+      contact,
+      propertyPrefix,
+      {
+        labelMap: invertedLabelMap,
+        organizationAsLink: organizationAsLink,
+      }
+    );
+
+    const frontmatterLines: Record<string, string | string[]> = {
       [`${propertyPrefix}id`]: String(this.getContactId(contact)),
+      ...formattedFields,
     };
+
+    // Note: The original generic implementation returned Record<string, string> but addLabels actually set string[].
+    // Obsidian's processFrontMatter can handle arrays.
+    // However, the type signature of generateFrontmatterLines is Record<string, string>.
+    // I should probably update the signature to Record<string, any> or Record<string, string | string[]>
+    // to be correct.
 
     if (trackSyncTime) {
       frontmatterLines[`${propertyPrefix}synced`] = String(
         new Date().toISOString()
       );
     }
-
-    this.formatter.addNameField(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addEmailField(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addPhoneField(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addAddressFields(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addBioField(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addOrganizationFields(
-      frontmatterLines,
-      contact,
-      propertyPrefix,
-      organizationAsLink
-    );
-    this.formatter.addJobTitleFields(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addDepartmentFields(
-      frontmatterLines,
-      contact,
-      propertyPrefix
-    );
-    this.formatter.addBirthdayFields(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addLabels(
-      frontmatterLines,
-      contact,
-      propertyPrefix,
-      invertedLabelMap
-    );
 
     return frontmatterLines;
   }

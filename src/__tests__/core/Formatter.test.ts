@@ -1,13 +1,9 @@
-import { Formatter } from '../../core/Formatter';
+import { createDefaultFormatter } from '../../core/Formatter';
 import { GoogleContact } from '../../types/Contact';
 
-class TestableFormatter extends Formatter {
-  public testAddContactFieldToFrontmatter =
-    this.addContactFieldToFrontmatter.bind(this);
-}
-
 describe('Formatter', () => {
-  const formatter = new TestableFormatter();
+  const formatter = createDefaultFormatter();
+  const prefix = 'gc_';
 
   const mockContact: GoogleContact = {
     resourceName: 'people/123',
@@ -23,13 +19,35 @@ describe('Formatter', () => {
         },
       },
     ],
+    organizations: [
+      {
+        name: 'Tech Corp',
+        title: 'Developer',
+        department: 'Engineering',
+      },
+    ],
+    addresses: [
+      {
+        formattedValue: '123 Main St',
+        city: 'City',
+        country: 'Country',
+        countryCode: 'CC',
+        extendedAddress: '',
+        formattedType: '',
+        postalCode: '12345',
+        streetAddress: '123 Main St',
+        type: 'home',
+      },
+    ],
   };
 
-  const mockContactTwoDates: GoogleContact = {
+  const mockContactMultiple: GoogleContact = {
     resourceName: 'people/123',
     names: [{ displayName: 'Alice Smith' }],
-    emailAddresses: [{ value: 'alice@example.com' }],
-    phoneNumbers: [{ value: '+1234567890' }],
+    emailAddresses: [
+      { value: 'primary@example.com' },
+      { value: 'secondary@example.com' },
+    ],
     birthdays: [
       {
         date: {
@@ -47,94 +65,78 @@ describe('Formatter', () => {
     ],
   };
 
-  const frontmatter: Record<string, string> = {};
-  const prefix = 'gc_';
+  it('generates frontmatter correctly for single values', () => {
+    const result = formatter.generateFrontmatter(mockContact, prefix);
 
-  it('adds name field', () => {
-    formatter['addNameField'](frontmatter, mockContact, prefix);
-    expect(frontmatter).toHaveProperty('gc_name', 'Alice Smith');
-  });
-
-  it('adds email field', () => {
-    formatter['addEmailField'](frontmatter, mockContact, prefix);
-    expect(frontmatter).toHaveProperty('gc_email', 'alice@example.com');
-  });
-
-  it('adds phone field', () => {
-    formatter['addPhoneField'](frontmatter, mockContact, prefix);
-    expect(frontmatter).toHaveProperty('gc_phone', '+1234567890');
-  });
-
-  it('adds birthday field', () => {
-    formatter['addBirthdayFields'](frontmatter, mockContact, prefix);
-    expect(frontmatter).toHaveProperty('gc_birthday', '1990-05-15');
-  });
-
-  it('adds birthday field', () => {
-    formatter['addBirthdayFields'](frontmatter, mockContactTwoDates, prefix);
-    expect(frontmatter).toHaveProperty('gc_birthday', '1990-05-15');
-    expect(frontmatter).toHaveProperty('gc_birthday_2', 'XXXX-06-16');
-  });
-
-  it('adds single field to frontmatter correctly', () => {
-    const frontmatter: Record<string, string> = {};
-    const mockContact = [{ value: 'alice@example.com' }];
-
-    formatter.testAddContactFieldToFrontmatter(
-      frontmatter,
-      mockContact,
-      'email',
-      'gc_',
-      (item) => item.value
-    );
-
-    expect(frontmatter).toEqual({
-      gc_email: 'alice@example.com',
+    expect(result).toMatchObject({
+      [`${prefix}name`]: 'Alice Smith',
+      [`${prefix}email`]: 'alice@example.com',
+      [`${prefix}phone`]: '+1234567890',
+      [`${prefix}birthday`]: '1990-05-15',
+      [`${prefix}organization`]: 'Tech Corp',
+      [`${prefix}jobtitle`]: 'Developer',
+      [`${prefix}department`]: 'Engineering',
+      [`${prefix}address`]: '123 Main St',
     });
   });
 
-  it('adds multiple fields with suffixes when needed', () => {
-    const frontmatter: Record<string, string> = {};
-    const mockContact = [
-      { value: 'primary@example.com' },
-      { value: 'secondary@example.com' },
-    ];
+  it('generates frontmatter correctly for multiple values with suffixes', () => {
+    const result = formatter.generateFrontmatter(mockContactMultiple, prefix);
 
-    formatter.testAddContactFieldToFrontmatter(
-      frontmatter,
-      mockContact,
-      'email',
-      'gc_',
-      (item) => item.value
-    );
-
-    expect(frontmatter).toEqual({
-      gc_email: 'primary@example.com',
-      gc_email_2: 'secondary@example.com',
+    expect(result).toMatchObject({
+      [`${prefix}email`]: 'primary@example.com',
+      [`${prefix}email_2`]: 'secondary@example.com',
+      [`${prefix}birthday`]: '1990-05-15',
+      [`${prefix}birthday_2`]: 'XXXX-06-16',
     });
   });
 
-  it('does nothing if contact is undefined or empty', () => {
-    const frontmatter1: Record<string, string> = {};
-    const frontmatter2: Record<string, string> = {};
+  it('handles empty contact fields gracefully', () => {
+    const emptyContact: GoogleContact = { resourceName: 'people/empty' };
+    const result = formatter.generateFrontmatter(emptyContact, prefix);
+    expect(result).toEqual({});
+  });
 
-    formatter.testAddContactFieldToFrontmatter(
-      frontmatter1,
-      undefined,
-      'email',
-      'gc_',
-      () => undefined
-    );
+  it('handles organization as link', () => {
+    const result = formatter.generateFrontmatter(mockContact, prefix, {
+      organizationAsLink: true,
+    });
+    expect(result).toMatchObject({
+      [`${prefix}organization`]: '[[Tech Corp]]',
+    });
+  });
 
-    formatter.testAddContactFieldToFrontmatter(
-      frontmatter2,
-      [],
-      'email',
-      'gc_',
-      () => undefined
-    );
+  it('handles labels correctly', () => {
+    const contactWithLabels: GoogleContact = {
+      resourceName: 'people/lbl',
+      memberships: [
+        { contactGroupMembership: { contactGroupId: 'group1' } },
+        { contactGroupMembership: { contactGroupId: 'group2' } },
+      ],
+    };
+    const labelMap = { group1: 'Friends', group2: 'Family' };
 
-    expect(frontmatter1).toEqual({});
-    expect(frontmatter2).toEqual({});
+    const result = formatter.generateFrontmatter(contactWithLabels, prefix, {
+      labelMap,
+    });
+
+    expect(result).toMatchObject({
+      [`${prefix}labels`]: ['Friends', 'Family'],
+    });
+  });
+
+  it('falls back to organization name if display name is missing', () => {
+    const contactNoName: GoogleContact = {
+      resourceName: 'people/noname',
+      organizations: [
+        { name: 'Acme Corp', title: 'CEO', department: 'Management' },
+      ],
+    };
+
+    const result = formatter.generateFrontmatter(contactNoName, prefix);
+
+    expect(result).toMatchObject({
+      [`${prefix}name`]: 'Acme Corp',
+    });
   });
 });
