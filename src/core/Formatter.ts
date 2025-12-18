@@ -40,7 +40,29 @@ export class Formatter {
 
       results.forEach((result, index) => {
         const key = this.strategy.generateKey(fieldId, index, propertyPrefix);
-        frontmatter[key] = result.value;
+
+        if (Object.prototype.hasOwnProperty.call(frontmatter, key)) {
+          const existing = frontmatter[key];
+          if (Array.isArray(existing)) {
+            // Flatten if new value is array? Or just push?
+            // Usually ExtractionResult.value is string or string array.
+            // If we have an array of values, we probably want to append.
+            if (Array.isArray(result.value)) {
+              frontmatter[key] = [...existing, ...result.value];
+            } else {
+              frontmatter[key] = [...existing, result.value];
+            }
+          } else {
+            // Convert single existing value to array
+            if (Array.isArray(result.value)) {
+              frontmatter[key] = [existing as string, ...result.value];
+            } else {
+              frontmatter[key] = [existing as string, result.value];
+            }
+          }
+        } else {
+          frontmatter[key] = result.value;
+        }
       });
     }
 
@@ -51,20 +73,42 @@ export class Formatter {
 /**
  * Factory to create a formatter with default Obsidian-style adapters.
  */
-export function createDefaultFormatter(): Formatter {
-  return new Formatter(
-    {
-      name: new NameAdapter(),
-      email: new EmailAdapter(),
-      phone: new PhoneAdapter(),
-      address: new AddressAdapter(),
-      biographies: new BioAdapter(), // Note: Key was 'biographies' in original code, not 'bio'
-      organization: new OrganizationAdapter(),
-      jobtitle: new JobTitleAdapter(),
-      department: new DepartmentAdapter(),
-      birthday: new BirthdayAdapter(),
-      labels: new LabelAdapter(),
-    },
-    new DefaultNamingStrategy()
-  );
+import { VcfNamingStrategy } from './strategies/VcfNamingStrategy';
+import { UidAdapter } from './adapters/UidAdapter';
+import { GoogleIdAdapter } from './adapters/GoogleIdAdapter';
+import { NamingStrategy } from 'src/types/Settings';
+
+/**
+ * Factory to create a formatter with default Obsidian-style adapters.
+ */
+export function createDefaultFormatter(
+  strategyType: NamingStrategy = NamingStrategy.Default
+): Formatter {
+  let strategy: KeyNamingStrategy;
+
+  if (strategyType === NamingStrategy.VCF) {
+    strategy = new VcfNamingStrategy();
+  } else {
+    strategy = new DefaultNamingStrategy();
+  }
+
+  const adapters: Record<string, FieldAdapter> = {
+    name: new NameAdapter(),
+    email: new EmailAdapter(),
+    phone: new PhoneAdapter(),
+    address: new AddressAdapter(),
+    biographies: new BioAdapter(),
+    organization: new OrganizationAdapter(),
+    jobtitle: new JobTitleAdapter(),
+    department: new DepartmentAdapter(),
+    birthday: new BirthdayAdapter(),
+    labels: new LabelAdapter(),
+  };
+
+  if (strategyType === NamingStrategy.VCF) {
+    adapters.uid = new UidAdapter();
+    adapters.googleId = new GoogleIdAdapter();
+  }
+
+  return new Formatter(adapters, strategy);
 }

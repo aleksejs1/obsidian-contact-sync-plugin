@@ -174,6 +174,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       organizationAsLink: this.settings.organizationAsLink,
       trackSyncTime: this.settings.trackSyncTime,
       renameFiles: this.settings.renameFiles,
+      namingStrategy: this.settings.namingStrategy,
     };
 
     await this.noteWriter?.writeNotesForContacts(config, labelMap, contacts);

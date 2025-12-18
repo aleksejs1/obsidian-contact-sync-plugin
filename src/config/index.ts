@@ -17,8 +17,10 @@ export const URL_OAUTH_SCOPE =
 export const LINK_TO_MANUAL =
   'https://scribehow.com/shared/Create_a_own_client_for_the_Obsidian_Google_Contacts_Plugin__s3EkgN37QZet_KSTej53Wg';
 
+import { ContactSyncSettings, NamingStrategy } from '../types/Settings';
+
 /** Plugin default settings */
-export const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS: ContactSyncSettings = {
   clientId: '',
   clientSecret: '',
   accessToken: '',
@@ -34,4 +36,5 @@ export const DEFAULT_SETTINGS = {
   trackSyncTime: false,
   organizationAsLink: false,
   renameFiles: false,
+  namingStrategy: NamingStrategy.Default,
 };

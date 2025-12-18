@@ -3,6 +3,7 @@ import { ContactNoteWriter } from '../../core/ContactNoteWriter';
 import { Vault, TFile, FileStats, MetadataCache, FileManager } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
+import { NamingStrategy } from 'src/types/Settings';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
 
 jest.mock('obsidian', () => {
@@ -106,6 +107,7 @@ describe('ContactNoteWriter', () => {
         organizationAsLink: false,
         trackSyncTime: true,
         renameFiles: false,
+        namingStrategy: NamingStrategy.Default,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -154,6 +156,7 @@ describe('ContactNoteWriter', () => {
         organizationAsLink: false,
         trackSyncTime: true,
         renameFiles: false,
+        namingStrategy: NamingStrategy.Default,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -201,6 +204,7 @@ describe('ContactNoteWriter', () => {
         organizationAsLink: false,
         trackSyncTime: true,
         renameFiles: false,
+        namingStrategy: NamingStrategy.Default,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -242,6 +246,7 @@ describe('ContactNoteWriter', () => {
         organizationAsLink: false,
         trackSyncTime: true,
         renameFiles: false,
+        namingStrategy: NamingStrategy.Default,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -281,6 +286,7 @@ describe('ContactNoteWriter', () => {
         organizationAsLink: false,
         trackSyncTime: true,
         renameFiles: false,
+        namingStrategy: NamingStrategy.Default,
       };
 
       await contactNoteWriter.writeNotesForContacts(

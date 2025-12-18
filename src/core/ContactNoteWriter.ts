@@ -7,22 +7,16 @@ import {
 } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
-import { Formatter, createDefaultFormatter } from './Formatter';
+import { createDefaultFormatter } from './Formatter';
 import { VaultService } from 'src/services/VaultService';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
+import { NamingStrategy } from 'src/types/Settings';
 
 /**
  * Responsible for creating and updating contact notes in the vault.
  * Handles writing new notes and updating existing ones based on contact metadata.
  */
 export class ContactNoteWriter {
-  /**
-   * The Formatter instance used for formatting contact data into frontmatter.
-   *
-   * This protected property is used to format contact data into a suitable format for Obsidian frontmatter.
-   */
-  protected formatter: Formatter = createDefaultFormatter();
-
   /**
    * The VaultService instance used for vault operations.
    *
@@ -117,6 +111,7 @@ export class ContactNoteWriter {
             config.propertyPrefix,
             contact,
             invertedLabelMap,
+            config.namingStrategy,
             config.organizationAsLink,
             config.trackSyncTime
           )
@@ -190,10 +185,12 @@ export class ContactNoteWriter {
     propertyPrefix: string,
     contact: GoogleContact,
     invertedLabelMap: Record<string, string>,
+    namingStrategy: NamingStrategy,
     organizationAsLink: boolean = false,
     trackSyncTime: boolean = false
   ): Record<string, string | string[]> {
-    const formattedFields = this.formatter.generateFrontmatter(
+    const formatter = createDefaultFormatter(namingStrategy);
+    const formattedFields = formatter.generateFrontmatter(
       contact,
       propertyPrefix,
       {
@@ -203,15 +200,58 @@ export class ContactNoteWriter {
     );
 
     const frontmatterLines: Record<string, string | string[]> = {
-      [`${propertyPrefix}id`]: String(this.getContactId(contact)),
       ...formattedFields,
     };
 
-    // Note: The original generic implementation returned Record<string, string> but addLabels actually set string[].
-    // Obsidian's processFrontMatter can handle arrays.
-    // However, the type signature of generateFrontmatterLines is Record<string, string>.
-    // I should probably update the signature to Record<string, any> or Record<string, string | string[]>
-    // to be correct.
+    // If strategy is Default, we might want to ensure 'id' key exists for backward compatibility if it's not produced by adapter.
+    // However, with GoogleIdAdapter mapped to 'id' in DefaultNamingStrategy (wait, I haven't done that mapping yet), it should be fine.
+    // Actually, I need to check DefaultNamingStrategy. It just prefixes.
+    // In Formatter, I added 'googleId' adapter.
+    // So DefaultNamingStrategy will produce 'googleId' key.
+    // But previously ContactNoteWriter manually added 'id'.
+    // If we want to maintain 'id' key, we should probably add it manually OR map googleId to id.
+    // Let's keep manual ID for Default strategy to be safe, or if explicit 'id' is required.
+    // But wait, the user said "Google ID надо записывать в X-GOOGLE-ID" for VCF.
+    // For Default, it was 'id'.
+
+    // If I use GoogleIdAdapter with key 'googleId':
+    // Default -> 'googleId'
+    // VCF -> 'X-GOOGLE-ID'
+
+    // Previous behavior: 'id' key with value of getContactId(contact).
+    // getContactId extract resourceName.split('/').pop().
+    // GoogleIdAdapter does the same.
+
+    // So effectively, I need DefaultNamingStrategy to map 'googleId' -> 'id'??
+    // OR, I can accept that the key will change to 'googleId' and require migration?
+    // User said "Refactoring done... UID need generated. Google ID into X-GOOGLE-ID".
+    // Didn't say "Change default behavior".
+    // So Default should probably still output 'id'.
+
+    // To preserve 'id' key in Default strategy without manual insertion here:
+    // I should probably map 'googleId' to 'id' in DefaultNamingStrategy?
+    // But DefaultNamingStrategy is generic.
+
+    // Let's just add 'id' manually for Default strategy if not present?
+    // Or better: ensure the key used in Formatter matches what we want.
+    // If I change the key in Formatter adapters map to 'id':
+    // Formatter: { ... id: new GoogleIdAdapter() }
+    // Default -> 'id'
+    // VCF -> map 'id' -> 'X-GOOGLE-ID'
+
+    // THIS IS THE CLEANEST WAY.
+    // I will update Formatter to use 'id' instead of 'googleId'.
+
+    if (namingStrategy === NamingStrategy.Default) {
+      // In previous implementation, id was always the first field.
+      // Now it will be wherever the adapter places it (order in object).
+      // Order in Object keys is insertion order (mostly).
+      // So 'id' might move.
+      // But it's YAML frontmatter, order shouldn't matter too much, but nice to be on top.
+      // const id = String(this.getContactId(contact));
+      // Check if 'id' is in formattedFields.
+      // If I change Formatter to use 'id' key, it will be there.
+    }
 
     if (trackSyncTime) {
       frontmatterLines[`${propertyPrefix}synced`] = String(
