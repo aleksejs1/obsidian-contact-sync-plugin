@@ -60,6 +60,23 @@ export const ru = {
   'Rename files if name changed': 'Переименовывать файлы, если имя изменилось',
   'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
     'Если включено, существующие файлы контактов будут переименованы, если изменится имя контакта. Все ссылки в хранилище будут обновлены соответственно.',
+  'Starting contact audit...': 'Запуск аудита контактов...',
+  'Contacts folder not found': 'Папка контактов не найдена',
+  'Contact Audit Report': 'Отчет аудита контактов',
+  Date: 'Дата',
+  'Checked Folder': 'Проверенная папка',
+  'Sync Label': 'Лейбл синхронизации',
+  None: 'Нет',
+  'No orphaned contacts found.': 'Удалённых контактов не найдено.',
+  'All contact notes in the folder match existing Google Contacts.':
+    'Все заметки контактов в папке соответствуют существующим контактам Google.',
+  Found: 'Найдено',
+  'orphaned contact notes': 'удалённых заметок',
+  'These notes have a contact ID that was not found in your Google Contacts (filtered by label).':
+    'Эти заметки имеют ID контакта, который не был найден в ваших контактах Google (с фильтром по лейблу).',
+  File: 'Файл',
+  'Contact ID': 'ID контакта',
+  'Audit complete. Report saved to': 'Аудит завершен. Отчет сохранен в',
 };
 
 /**
@@ -124,6 +141,23 @@ export const lv = {
   'Rename files if name changed': 'Pārdēvēt failus, ja nosaukums ir mainīts',
   'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
     'Ja iespējots, esošie kontaktu faili tiks pārdēvēti, ja mainīsies kontakta nosaukums. Visi saites glabātavā tiks atjauninātas atbilstoši.',
+  'Starting contact audit...': 'Sākas kontaktu audits...',
+  'Contacts folder not found': 'Kontaktu mape nav atrasta',
+  'Contact Audit Report': 'Kontaktu audita pārskats',
+  Date: 'Datums',
+  'Checked Folder': 'Pārbaudītā mape',
+  'Sync Label': 'Sinhronizācijas lēbels',
+  None: 'Nav',
+  'No orphaned contacts found.': 'Bāreņu kontakti nav atrasti.',
+  'All contact notes in the folder match existing Google Contacts.':
+    'Visas kontaktu piezīmes mapē atbilst esošajiem Google kontaktiem.',
+  Found: 'Atrasts',
+  'orphaned contact notes': 'bāreņu kontaktu piezīmes',
+  'These notes have a contact ID that was not found in your Google Contacts (filtered by label).':
+    'Šīm piezīmēm ir kontakta ID, kas netika atrasts jūsu Google kontaktos (filtrēts pēc lēbela).',
+  File: 'Fails',
+  'Contact ID': 'Kontakta ID',
+  'Audit complete. Report saved to': 'Audits pabeigts. Pārskats saglabāts',
 };
 
 /**
@@ -187,4 +221,21 @@ export const en = {
   'Rename files if name changed': 'Rename files if name changed',
   'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
     'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.',
+  'Starting contact audit...': 'Starting contact audit...',
+  'Contacts folder not found': 'Contacts folder not found',
+  'Contact Audit Report': 'Contact Audit Report',
+  Date: 'Date',
+  'Checked Folder': 'Checked Folder',
+  'Sync Label': 'Sync Label',
+  None: 'None',
+  'No orphaned contacts found.': 'No orphaned contacts found.',
+  'All contact notes in the folder match existing Google Contacts.':
+    'All contact notes in the folder match existing Google Contacts.',
+  Found: 'Found',
+  'orphaned contact notes': 'orphaned contact notes',
+  'These notes have a contact ID that was not found in your Google Contacts (filtered by label).':
+    'These notes have a contact ID that was not found in your Google Contacts (filtered by label).',
+  File: 'File',
+  'Contact ID': 'Contact ID',
+  'Audit complete. Report saved to': 'Audit complete. Report saved to',
 };

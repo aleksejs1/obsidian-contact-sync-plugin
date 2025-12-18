@@ -9,6 +9,8 @@ Each contact becomes a separate note with YAML frontmatter for metadata and free
 
 - 🔄 Synchronize Google contacts into your Obsidian vault
 
+- 🔍 Audit contacts to find local notes that no longer exist in Google Contacts
+
 - 🗂 Configurable folder for storing contact notes
 
 - ✏️ Customizable note template (under the metadata block)
@@ -64,6 +66,8 @@ The plugin will automatically save the access and refresh tokens.
 
 2. Run the command: Google Contacts: Sync
 
+3. Run the command: Google Contacts: Audit Contacts
+
 
 ## 🔁 Sync Algorithm
 
@@ -118,6 +122,16 @@ You can write anything here — this section is safe.
 - If auto-syncing fails (e.g., due to a lack of internet connection), the next attempt will only occur during the next scheduled auto-sync. **No retries will be attempted** in between.
 
 - If a sync label is configured, only contacts with that label will be synchronized. Contacts without the specified label will be ignored during the sync process.
+
+## 🔍 Contact Audit
+
+The plugin provides a command to audit your local contact notes against your Google Contacts.
+
+- **Goal**: Identify contact notes in your vault that do not exist (or no longer match the sync label) in Google Contacts.
+- **How to run**: Open command palette and search for `Google Contacts: Audit Contacts`.
+- **Output**: Generates a report file `Contact Audit Report.md` in your vault root.
+  - If functioning correctly, it will list "No orphaned contacts found".
+  - If orphans are found, it lists the files and their contact IDs so you can decide whether to delete or keep them.
 
 ## 🔐 How to Get a Google Client ID and Secret
 To sync your contacts, you’ll need a valid Google Access Token that grants access to the People API. Follow the steps below to obtain the **Client ID** and **Client Secret**, and to configure your account so you can retrieve the necessary **Authorization Code** for the Obsidian plugin.

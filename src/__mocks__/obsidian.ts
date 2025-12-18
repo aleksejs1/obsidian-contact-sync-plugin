@@ -1,6 +1,7 @@
 export const normalizePath = (path: string) => path;
 export const parseYaml = () => ({});
 export const stringifyYaml = () => '';
+export const getLanguage = () => 'en';
 export class Vault {
   async read() {
     return '';
@@ -9,10 +10,19 @@ export class Vault {
 export class TFile {
   path: string = '';
 }
-export class TFolder {}
+export class TFolder {
+  children: unknown[] = [];
+}
 export class Notice {
   constructor(message: string) {
-    console.log('Notice:', message);
+    console.debug('Notice:', message);
+  }
+}
+
+export class FileManager {
+  processFrontMatter(file: TFile, fn: (frontmatter: unknown) => void) {
+    fn({});
+    console.debug('processFrontMatter', file);
   }
 }
 export class MockMetadataCache {
@@ -40,3 +50,12 @@ export class MockMetadataCache {
   trigger() {}
   tryTrigger() {}
 }
+
+export const requestUrl = jest.fn();
+export class App {
+  vault: unknown;
+  metadataCache: unknown;
+  workspace: unknown;
+  fileManager: unknown;
+}
+export class MetadataCache {}
