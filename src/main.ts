@@ -6,6 +6,7 @@ import { AuthManager } from './auth/AuthManager';
 import { GoogleContactsService } from './core/GoogleContactsService';
 import { ContactNoteWriter } from './core/ContactNoteWriter';
 import { ContactNoteConfig } from './types/ContactNoteConfig';
+import { ContactAuditService } from './core/ContactAuditService';
 import { t } from './i18n/translator';
 import type { GoogleContact } from './types/Contact';
 
@@ -27,6 +28,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
   /** Handles writing contact notes to the vault */
   noteWriter: ContactNoteWriter | null = null;
+  auditService: ContactAuditService | null = null;
 
   /** ID of the interval used for periodic sync */
   private syncIntervalId: number | null = null;
@@ -41,6 +43,22 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       callback: () => this.syncContacts(),
     });
 
+    this.addCommand({
+      id: 'audit-contacts',
+      name: 'Audit Contacts',
+      callback: async () => {
+        const token = await this.auth?.ensureValidToken();
+        if (!token) {
+          new Notice(
+            t('Failed to obtain access token. Please re-authenticate.')
+          );
+          return;
+        }
+        await this.updateAuthSettings();
+        await this.auditService?.auditContacts(token);
+      },
+    });
+
     await this.loadSettings();
     this.auth = new AuthManager(this.settings);
     this.addSettingTab(new ContactSyncSettingTab(this.app, this));
@@ -49,6 +67,11 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       this.app.vault,
       this.app.metadataCache,
       this.app.fileManager
+    );
+    this.auditService = new ContactAuditService(
+      this.app,
+      this.googleService,
+      this.settings
     );
 
     if (this.settings.syncOnStartup || this.shouldSyncNow()) {
