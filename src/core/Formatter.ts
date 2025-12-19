@@ -40,29 +40,7 @@ export class Formatter {
 
       results.forEach((result, index) => {
         const key = this.strategy.generateKey(fieldId, index, propertyPrefix);
-
-        if (Object.prototype.hasOwnProperty.call(frontmatter, key)) {
-          const existing = frontmatter[key];
-          if (Array.isArray(existing)) {
-            // Flatten if new value is array? Or just push?
-            // Usually ExtractionResult.value is string or string array.
-            // If we have an array of values, we probably want to append.
-            if (Array.isArray(result.value)) {
-              frontmatter[key] = [...existing, ...result.value];
-            } else {
-              frontmatter[key] = [...existing, result.value];
-            }
-          } else {
-            // Convert single existing value to array
-            if (Array.isArray(result.value)) {
-              frontmatter[key] = [existing as string, ...result.value];
-            } else {
-              frontmatter[key] = [existing as string, result.value];
-            }
-          }
-        } else {
-          frontmatter[key] = result.value;
-        }
+        frontmatter[key] = result.value;
       });
     }
 
