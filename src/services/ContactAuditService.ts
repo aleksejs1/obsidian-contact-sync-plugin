@@ -15,29 +15,56 @@ export class ContactAuditService {
   async auditContacts(token: string): Promise<void> {
     new Notice(t('Starting contact audit...'));
 
-    let labelMap: Record<string, string> = {};
+    const labelMap = await this.getLabelMap(token);
+    if (!labelMap) {
+      return;
+    }
+
+    const googleContacts = await this.getGoogleContacts(token);
+    if (!googleContacts) {
+      return;
+    }
+
+    const validGoogleIds = this.getValidGoogleIds(googleContacts, labelMap);
+    const orphans = this.identifyOrphans(validGoogleIds);
+
+    if (orphans) {
+      await this.generateReport(orphans);
+    }
+  }
+
+  private async getLabelMap(
+    token: string
+  ): Promise<Record<string, string> | null> {
     try {
-      labelMap = (await this.googleService.fetchGoogleGroups(token)) || {};
+      return await this.googleService.fetchGoogleGroups(token);
     } catch (error) {
       console.error('Failed to fetch Google groups', error);
       new Notice(
         t('Failed to fetch Google groups. Check console for details.')
       );
-      return;
+      return null;
     }
+  }
 
-    let googleContacts: GoogleContact[] = [];
+  private async getGoogleContacts(
+    token: string
+  ): Promise<GoogleContact[] | null> {
     try {
-      googleContacts =
-        (await this.googleService.fetchGoogleContacts(token)) || [];
+      return await this.googleService.fetchGoogleContacts(token);
     } catch (error) {
       console.error('Failed to fetch Google contacts', error);
       new Notice(
         t('Failed to fetch Google contacts. Check console for details.')
       );
-      return;
+      return null;
     }
+  }
 
+  private getValidGoogleIds(
+    googleContacts: GoogleContact[],
+    labelMap: Record<string, string>
+  ): Set<string> {
     const validGoogleIds = new Set<string>();
     googleContacts.forEach((contact) => {
       if (this.hasSyncLabel(contact, this.settings.syncLabel, labelMap)) {
@@ -47,32 +74,44 @@ export class ContactAuditService {
         }
       }
     });
+    return validGoogleIds;
+  }
 
+  private identifyOrphans(
+    validGoogleIds: Set<string>
+  ): { file: TFile; id: string }[] | null {
     const folderPath = this.settings.contactsFolder;
     const folder = this.app.vault.getAbstractFileByPath(folderPath);
     if (!folder || !(folder instanceof TFolder)) {
       new Notice(`${t('Contacts folder not found')}: ${folderPath}`);
-      return;
+      return null;
     }
 
     const files = getAllMarkdownFilesInFolder(folder);
     const orphans: { file: TFile; id: string }[] = [];
-
-    const propertyPrefix = this.settings.propertyNamePrefix || '';
-    const idField = `${propertyPrefix}id`;
+    const idField = `${this.settings.propertyNamePrefix}id`;
 
     for (const file of files) {
-      const cache = this.app.metadataCache.getFileCache(file);
-      const id = cache?.frontmatter?.[idField];
-
-      if (id) {
-        if (!validGoogleIds.has(String(id))) {
-          orphans.push({ file, id: String(id) });
-        }
+      const id = this.getContactIdFromFile(file, idField);
+      if (id && !validGoogleIds.has(id)) {
+        orphans.push({ file, id });
       }
     }
 
-    await this.generateReport(orphans);
+    return orphans;
+  }
+
+  private getContactIdFromFile(file: TFile, idField: string): string | null {
+    const cache = this.app.metadataCache.getFileCache(file);
+    const frontmatter = cache?.frontmatter as
+      | Record<string, unknown>
+      | undefined;
+    const id = frontmatter?.[idField];
+
+    if (typeof id === 'string' || typeof id === 'number') {
+      return String(id);
+    }
+    return null;
   }
 
   private async generateReport(
@@ -113,7 +152,7 @@ export class ContactAuditService {
     new Notice(`${t('Audit complete. Report saved to')} ${reportPath}`);
     const reportFile = this.app.vault.getAbstractFileByPath(reportPath);
     if (reportFile instanceof TFile) {
-      this.app.workspace.getLeaf(true).openFile(reportFile);
+      void this.app.workspace.getLeaf(true).openFile(reportFile);
     }
   }
 
@@ -122,18 +161,24 @@ export class ContactAuditService {
     syncLabel: string,
     labelMap: Record<string, string>
   ): boolean {
-    if (!syncLabel) return true;
+    if (!syncLabel) {
+      return true;
+    }
 
     const targetGroupId = labelMap[syncLabel];
-    if (!targetGroupId) return false;
+    if (!targetGroupId) {
+      return false;
+    }
 
-    return (contact.memberships || []).some(
+    return (contact.memberships ?? []).some(
       (m) => m.contactGroupMembership?.contactGroupId === targetGroupId
     );
   }
 
   private getContactId(contact: GoogleContact): string | null {
-    if (!contact.resourceName) return null;
-    return contact.resourceName.split('/').pop() || null;
+    if (!contact.resourceName) {
+      return null;
+    }
+    return contact.resourceName.split('/').pop() ?? null;
   }
 }

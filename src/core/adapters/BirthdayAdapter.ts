@@ -3,7 +3,9 @@ import { GoogleContact } from '../../types/Contact';
 
 export class BirthdayAdapter implements FieldAdapter {
   extract(contact: GoogleContact): ExtractionResult[] {
-    if (!contact.birthdays || contact.birthdays.length === 0) return [];
+    if (!contact.birthdays || contact.birthdays.length === 0) {
+      return [];
+    }
 
     const results: ExtractionResult[] = [];
     contact.birthdays.forEach((bday) => {

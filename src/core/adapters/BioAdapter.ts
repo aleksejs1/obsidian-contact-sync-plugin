@@ -3,7 +3,7 @@ import { GoogleContact } from '../../types/Contact';
 
 export class BioAdapter implements FieldAdapter {
   extract(contact: GoogleContact): ExtractionResult[] {
-    return (contact.biographies || [])
+    return (contact.biographies ?? [])
       .filter((item) => item.value)
       .map((item) => ({ value: item.value }));
   }

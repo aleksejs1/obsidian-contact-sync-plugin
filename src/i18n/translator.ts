@@ -7,7 +7,7 @@ import { ru, en, lv } from './translations';
 export class Translator {
   private language: string;
 
-  constructor(language: string = 'en') {
+  constructor(language = 'en') {
     this.language = language;
   }
 
@@ -42,7 +42,7 @@ export class Translator {
 }
 
 // Singleton-like instance for general use
-export const translator = new Translator(getLanguage()); // Default to the current Obsidian language
+const translator = new Translator(getLanguage()); // Default to the current Obsidian language
 
 /**
  * Global translation function.

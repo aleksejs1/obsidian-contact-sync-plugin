@@ -3,7 +3,7 @@ export const URL_OAUTH_AUTH = 'https://accounts.google.com/o/oauth2/v2/auth';
 export const URL_OAUTH_TOKEN = 'https://oauth2.googleapis.com/token';
 
 /** Google People API endpoints */
-export const URL_PEOPLE_BASE = 'https://people.googleapis.com/v1';
+const URL_PEOPLE_BASE = 'https://people.googleapis.com/v1';
 export const URL_PEOPLE_CONNECTIONS = `${URL_PEOPLE_BASE}/people/me/connections`;
 export const PERSONAL_FIELDS = `names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations`;
 export const URL_CONTACT_GROUPS = `${URL_PEOPLE_BASE}/contactGroups?pageSize=1000`;

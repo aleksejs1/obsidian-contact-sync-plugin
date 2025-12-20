@@ -16,7 +16,7 @@ import { LabelAdapter } from './adapters/LabelAdapter';
 /**
  * Formatter class responsible for coordinating field extraction and key generation.
  */
-export class Formatter {
+class Formatter {
   constructor(
     private adapters: Record<string, FieldAdapter>,
     private strategy: KeyNamingStrategy
@@ -48,7 +48,7 @@ export class Formatter {
       results.forEach((result, arrayIndex) => {
         // Use result.index if present (for grouping subfields),
         // otherwise use array index
-        const index = result.index !== undefined ? result.index : arrayIndex;
+        const index = result.index ?? arrayIndex;
         const key = this.strategy.generateKey(
           fieldId,
           index,

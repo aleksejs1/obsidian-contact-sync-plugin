@@ -5,6 +5,16 @@ import {
   PERSONAL_FIELDS,
 } from '../config';
 import type { GoogleContact, GoogleContactGroup } from '../types/Contact';
+import { RequestUrlResponse } from 'obsidian';
+
+interface PeopleConnectionsResponse {
+  connections?: GoogleContact[] | undefined;
+  nextPageToken?: string | undefined;
+}
+
+interface ContactGroupsResponse {
+  contactGroups?: GoogleContactGroup[];
+}
 
 /**
  * Core service responsible for interacting with Google contacts and Contact Groups APIs.
@@ -24,10 +34,7 @@ export class GoogleContactsService {
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
     let allContacts: GoogleContact[] = [];
     let nextPageToken: string | undefined = undefined;
-    let data: {
-      connections: GoogleContact[];
-      nextPageToken?: string | undefined;
-    } = {
+    let data: PeopleConnectionsResponse = {
       connections: [],
       nextPageToken: undefined,
     };
@@ -36,14 +43,14 @@ export class GoogleContactsService {
       const url = `${URL_PEOPLE_CONNECTIONS}?personFields=${PERSONAL_FIELDS}&pageSize=1000${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
 
       try {
-        const res = await requestUrl({
+        const res: RequestUrlResponse = await requestUrl({
           url,
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        data = await res.json;
+        data = (await res.json) as PeopleConnectionsResponse;
       } catch (error) {
         console.error(
           'Failed to fetch Google contacts',
@@ -54,7 +61,7 @@ export class GoogleContactsService {
           nextPageToken: undefined,
         };
       }
-      allContacts = allContacts.concat(data.connections || []);
+      allContacts = allContacts.concat(data.connections ?? []);
       nextPageToken = data.nextPageToken;
     } while (nextPageToken);
 
@@ -75,7 +82,7 @@ export class GoogleContactsService {
       },
     });
 
-    const data = await groupResponse.json;
+    const data = (await groupResponse.json) as ContactGroupsResponse;
     if (!Array.isArray(data.contactGroups)) {
       return {};
     }

@@ -1,6 +1,6 @@
-import { ContactAuditService } from '../core/ContactAuditService';
+import { ContactAuditService } from '../services/ContactAuditService';
 import { App, TFolder, TFile } from 'obsidian'; // Mock these
-import { GoogleContactsService } from '../core/GoogleContactsService';
+import { GoogleContactsService } from '../services/GoogleContactsService';
 import { ContactSyncSettings } from '../types/Settings';
 import { getAllMarkdownFilesInFolder } from '../utils/getAllMarkdownFilesInFolder';
 
@@ -48,6 +48,7 @@ describe('ContactAuditService', () => {
       contactsFolder: 'Contacts',
       syncLabel: 'My Contacts',
       accessToken: 'valid-token',
+      propertyNamePrefix: '',
     } as unknown as ContactSyncSettings;
 
     // Default valid mocks
@@ -57,10 +58,13 @@ describe('ContactAuditService', () => {
     (googleService.fetchGoogleContacts as jest.Mock).mockResolvedValue([]);
 
     // Mock TFolder return
-    if (!mockVault.getAbstractFileByPath)
+    if (!mockVault.getAbstractFileByPath) {
       throw new Error('mockVault.getAbstractFileByPath is undefined');
+    }
     mockVault.getAbstractFileByPath.mockImplementation((path: string) => {
-      if (path === 'Contacts') return new TFolder(); // Using mocked TFolder
+      if (path === 'Contacts') {
+        return new TFolder();
+      } // Using mocked TFolder
       return null;
     });
 
@@ -72,8 +76,9 @@ describe('ContactAuditService', () => {
   });
 
   it('should handle missing contacts folder', async () => {
-    if (!mockVault.getAbstractFileByPath)
+    if (!mockVault.getAbstractFileByPath) {
       throw new Error('mockVault.getAbstractFileByPath is undefined');
+    }
     mockVault.getAbstractFileByPath.mockReturnValue(null);
     await service.auditContacts('token');
     // valid, implies it returned early without throwing
@@ -133,11 +138,16 @@ describe('ContactAuditService', () => {
     ]);
 
     // Mock metadata
-    if (!mockMetadataCache.getFileCache)
+    if (!mockMetadataCache.getFileCache) {
       throw new Error('mockMetadataCache.getFileCache is undefined');
+    }
     mockMetadataCache.getFileCache.mockImplementation((file: TFile) => {
-      if (file === fileA) return { frontmatter: { id: 'contactA' } };
-      if (file === fileB) return { frontmatter: { id: 'contactB' } };
+      if (file === fileA) {
+        return { frontmatter: { id: 'contactA' } };
+      }
+      if (file === fileB) {
+        return { frontmatter: { id: 'contactB' } };
+      }
       return {};
     });
 
@@ -170,8 +180,9 @@ describe('ContactAuditService', () => {
 
     (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([fileA]);
 
-    if (!mockMetadataCache.getFileCache)
+    if (!mockMetadataCache.getFileCache) {
       throw new Error('mockMetadataCache.getFileCache is undefined');
+    }
     mockMetadataCache.getFileCache.mockReturnValue({
       frontmatter: { id: 'contactA' },
     });
@@ -208,11 +219,16 @@ describe('ContactAuditService', () => {
 
     (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([fileA, fileB]);
 
-    if (!mockMetadataCache.getFileCache)
+    if (!mockMetadataCache.getFileCache) {
       throw new Error('mockMetadataCache.getFileCache is undefined');
+    }
     mockMetadataCache.getFileCache.mockImplementation((file: TFile) => {
-      if (file === fileA) return { frontmatter: { id: 'contactA' } };
-      if (file === fileB) return { frontmatter: { id: 'contactB' } };
+      if (file === fileA) {
+        return { frontmatter: { id: 'contactA' } };
+      }
+      if (file === fileB) {
+        return { frontmatter: { id: 'contactB' } };
+      }
       return {};
     });
 

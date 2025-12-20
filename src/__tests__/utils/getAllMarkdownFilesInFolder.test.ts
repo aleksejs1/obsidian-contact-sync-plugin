@@ -15,10 +15,10 @@ describe('getAllMarkdownFilesInFolder', () => {
     }
   }
 
-  const isTFolder = (obj: MockTFolder): obj is MockTFolder =>
-    obj && obj.__isMockTFolder;
-  const isTFile = (obj: MockTFile): obj is MockTFile =>
-    obj && obj.__isMockTFile;
+  const isTFolder = (obj: unknown): obj is MockTFolder =>
+    typeof obj === 'object' && obj !== null && '__isMockTFolder' in obj;
+  const isTFile = (obj: unknown): obj is MockTFile =>
+    typeof obj === 'object' && obj !== null && '__isMockTFile' in obj;
 
   beforeAll(() => {
     Object.defineProperty(TFolder, Symbol.hasInstance, {

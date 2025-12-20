@@ -7,8 +7,10 @@ export class AddressAdapter implements FieldAdapter {
     contact: GoogleContact,
     context?: Record<string, unknown>
   ): ExtractionResult[] {
-    const addresses = contact.addresses || [];
-    if (addresses.length === 0) return [];
+    const addresses = contact.addresses ?? [];
+    if (addresses.length === 0) {
+      return [];
+    }
 
     // Check if we're using VCF strategy
     const isVcfStrategy =

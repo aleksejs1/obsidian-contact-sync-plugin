@@ -33,3 +33,6 @@ jobs:
     - name: Run type check
       run: npm run typecheck
 
+    - name: Run dependency check
+      run: npm run lint:deps
+

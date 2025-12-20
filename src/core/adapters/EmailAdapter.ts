@@ -3,7 +3,7 @@ import { GoogleContact } from '../../types/Contact';
 
 export class EmailAdapter implements FieldAdapter {
   extract(contact: GoogleContact): ExtractionResult[] {
-    return (contact.emailAddresses || [])
+    return (contact.emailAddresses ?? [])
       .filter((item) => item.value)
       .map((item) => ({ value: item.value }));
   }

@@ -61,7 +61,7 @@ export interface GoogleContact {
 /**
  * Represents a contact's birthday, including optional structured date and metadata.
  */
-export interface Birthday {
+interface Birthday {
   /** Structured date object (year, month, day) */
   date?: {
     year?: number;
@@ -79,7 +79,7 @@ export interface Birthday {
 /**
  * Represents a membership in a Google contact Group.
  */
-export interface ContactGroupMembership {
+interface ContactGroupMembership {
   /** Identifier of the contact group (e.g., "abc123") */
   contactGroupId: string;
 
@@ -90,7 +90,7 @@ export interface ContactGroupMembership {
 /**
  * Represents a contact's membership in various domains or groups.
  */
-export interface Membership {
+interface Membership {
   /** Membership in a specific contact group */
   contactGroupMembership?: ContactGroupMembership;
 

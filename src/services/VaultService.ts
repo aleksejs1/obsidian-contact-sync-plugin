@@ -34,7 +34,11 @@ export class VaultService {
    */
   async createFolderIfNotExists(folderPath: string): Promise<void> {
     const normalizedPath = normalizePath(folderPath);
-    await this.vault.createFolder(normalizedPath).catch(() => {});
+    try {
+      await this.vault.createFolder(normalizedPath);
+    } catch {
+      // Folder already exists or other error we can ignore
+    }
   }
 
   /**
@@ -43,7 +47,7 @@ export class VaultService {
    * @param filePath - The path of the file to retrieve.
    * @returns The TFile if found, or null.
    */
-  async getFileByPath(filePath: string): Promise<TFile | null> {
+  getFileByPath(filePath: string): TFile | null {
     return this.vault.getFileByPath(filePath);
   }
 
@@ -71,6 +75,6 @@ export class VaultService {
 
   async renameFile(file: TFile, newPath: string): Promise<void> {
     const normalizedPath = normalizePath(newPath);
-    return await this.fileManager.renameFile(file, normalizedPath);
+    await this.fileManager.renameFile(file, normalizedPath);
   }
 }

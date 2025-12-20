@@ -1,10 +1,10 @@
 import { Notice, Setting, App, PluginSettingTab } from 'obsidian';
 import { LINK_TO_MANUAL } from '../config';
 import { getAuthUrl } from '../auth/getAuthUrl';
-import GoogleContactsSyncPlugin from '../main';
+import { IPlugin } from '../types/IPlugin';
 import { NamingStrategy } from 'src/types/Settings';
 import { t } from '../i18n/translator';
-import { FolderSuggest } from 'src/core/FolderSuggest';
+import { FolderSuggest } from './FolderSuggest';
 
 /**
  * Settings tab for the Google contacts sync plugin.
@@ -12,14 +12,14 @@ import { FolderSuggest } from 'src/core/FolderSuggest';
  */
 export class ContactSyncSettingTab extends PluginSettingTab {
   /** Reference to the main plugin instance */
-  plugin: GoogleContactsSyncPlugin;
+  plugin: IPlugin;
 
   /**
    * Constructs the settings tab.
    * @param app The current Obsidian app instance.
    * @param plugin The instance of the GoogleContactsSyncPlugin.
    */
-  constructor(app: App, plugin: GoogleContactsSyncPlugin) {
+  constructor(app: App, plugin: IPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }

@@ -1,10 +1,6 @@
 import { FieldAdapter, ExtractionResult } from '../interfaces';
 import { GoogleContact } from '../../types/Contact';
 
-export interface LabelAdapterContext {
-  labelMap: Record<string, string>;
-}
-
 export class LabelAdapter implements FieldAdapter {
   extract(
     contact: GoogleContact,
