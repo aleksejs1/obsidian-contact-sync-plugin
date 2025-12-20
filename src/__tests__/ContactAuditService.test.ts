@@ -57,6 +57,8 @@ describe('ContactAuditService', () => {
     (googleService.fetchGoogleContacts as jest.Mock).mockResolvedValue([]);
 
     // Mock TFolder return
+    if (!mockVault.getAbstractFileByPath)
+      throw new Error('mockVault.getAbstractFileByPath is undefined');
     mockVault.getAbstractFileByPath.mockImplementation((path: string) => {
       if (path === 'Contacts') return new TFolder(); // Using mocked TFolder
       return null;
@@ -70,6 +72,8 @@ describe('ContactAuditService', () => {
   });
 
   it('should handle missing contacts folder', async () => {
+    if (!mockVault.getAbstractFileByPath)
+      throw new Error('mockVault.getAbstractFileByPath is undefined');
     mockVault.getAbstractFileByPath.mockReturnValue(null);
     await service.auditContacts('token');
     // valid, implies it returned early without throwing
@@ -129,6 +133,8 @@ describe('ContactAuditService', () => {
     ]);
 
     // Mock metadata
+    if (!mockMetadataCache.getFileCache)
+      throw new Error('mockMetadataCache.getFileCache is undefined');
     mockMetadataCache.getFileCache.mockImplementation((file: TFile) => {
       if (file === fileA) return { frontmatter: { id: 'contactA' } };
       if (file === fileB) return { frontmatter: { id: 'contactB' } };
@@ -164,6 +170,8 @@ describe('ContactAuditService', () => {
 
     (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([fileA]);
 
+    if (!mockMetadataCache.getFileCache)
+      throw new Error('mockMetadataCache.getFileCache is undefined');
     mockMetadataCache.getFileCache.mockReturnValue({
       frontmatter: { id: 'contactA' },
     });
@@ -200,6 +208,8 @@ describe('ContactAuditService', () => {
 
     (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([fileA, fileB]);
 
+    if (!mockMetadataCache.getFileCache)
+      throw new Error('mockMetadataCache.getFileCache is undefined');
     mockMetadataCache.getFileCache.mockImplementation((file: TFile) => {
       if (file === fileA) return { frontmatter: { id: 'contactA' } };
       if (file === fileB) return { frontmatter: { id: 'contactB' } };

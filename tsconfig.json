@@ -1,14 +1,24 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "lib": ["es2017", "dom"],
+    "lib": [
+      "es2017",
+      "dom"
+    ],
     "module": "esnext",
     "strict": true,
-    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "outDir": "./dist",
     "baseUrl": "."
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

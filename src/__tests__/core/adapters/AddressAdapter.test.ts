@@ -75,7 +75,7 @@ describe('AddressAdapter', () => {
     it('extracts all subfields for a single address', () => {
       const singleAddrContact: GoogleContact = {
         resourceName: 'p1',
-        addresses: [mockContact.addresses![0]],
+        addresses: [mockContact.addresses![0]!],
       };
       const results = adapter.extract(singleAddrContact, contextWithVcf);
 

@@ -11,7 +11,8 @@
     "prepare": "husky install",
     "clean": "rm -rf dist",
     "build": "npm run clean && npx rollup -c",
-    "doc": "npx typedoc"
+    "doc": "npx typedoc",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",

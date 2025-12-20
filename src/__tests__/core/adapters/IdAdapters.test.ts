@@ -9,7 +9,7 @@ describe('IdAdapters', () => {
       const contact: GoogleContact = { resourceName: 'people/c12345' };
       const results = adapter.extract(contact);
       expect(results).toHaveLength(1);
-      expect(results[0].value).toBe('c12345');
+      expect(results[0]!.value).toBe('c12345');
     });
 
     it('returns empty array if resourceName is missing', () => {

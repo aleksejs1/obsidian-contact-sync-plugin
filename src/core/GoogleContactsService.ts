@@ -24,7 +24,10 @@ export class GoogleContactsService {
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
     let allContacts: GoogleContact[] = [];
     let nextPageToken: string | undefined = undefined;
-    let data: { connections: GoogleContact[]; nextPageToken?: string } = {
+    let data: {
+      connections: GoogleContact[];
+      nextPageToken?: string | undefined;
+    } = {
       connections: [],
       nextPageToken: undefined,
     };

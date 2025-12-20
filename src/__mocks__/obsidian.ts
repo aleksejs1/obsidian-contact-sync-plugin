@@ -21,7 +21,7 @@ export class Notice {
 }
 
 export class FileManager {
-  processFrontMatter(file: TFile, fn: (frontmatter: unknown) => void) {
+  processFrontMatter(_file: TFile, fn: (frontmatter: unknown) => void) {
     fn({});
     // console.debug('processFrontMatter', file);
   }

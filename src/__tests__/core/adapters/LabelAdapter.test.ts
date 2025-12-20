@@ -16,7 +16,7 @@ describe('LabelAdapter', () => {
   it('extracts labels as an array for default strategy', () => {
     const results = adapter.extract(contactWithLabels, { labelMap });
     expect(results).toHaveLength(1);
-    expect(results[0].value).toEqual(['Friends', 'Family']);
+    expect(results[0]!.value).toEqual(['Friends', 'Family']);
   });
 
   it('extracts labels as a comma-separated string for VCF strategy', () => {
@@ -25,7 +25,7 @@ describe('LabelAdapter', () => {
       namingStrategy: 'VcfNamingStrategy',
     });
     expect(results).toHaveLength(1);
-    expect(results[0].value).toBe('Friends, Family');
+    expect(results[0]!.value).toBe('Friends, Family');
   });
 
   it('returns empty array if no labels or labelMap', () => {

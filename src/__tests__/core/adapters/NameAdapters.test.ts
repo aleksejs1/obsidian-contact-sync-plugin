@@ -16,7 +16,7 @@ describe('Name Adapters', () => {
         };
         const results = adapter.extract(contact, vcfContext);
         expect(results).toHaveLength(1);
-        expect(results[0].value).toBe('John Smith');
+        expect(results[0]!.value).toBe('John Smith');
       });
 
       it('falls back to organization name when displayName is missing', () => {
@@ -26,7 +26,7 @@ describe('Name Adapters', () => {
         };
         const results = adapter.extract(contact, vcfContext);
         expect(results).toHaveLength(1);
-        expect(results[0].value).toBe('Acme Corp');
+        expect(results[0]!.value).toBe('Acme Corp');
       });
 
       it('returns empty array when no displayName or organization', () => {
@@ -74,7 +74,7 @@ describe('Name Adapters', () => {
         };
         const results = adapter.extract(contact, defaultContext);
         expect(results).toHaveLength(1);
-        expect(results[0].value).toBe('John Smith');
+        expect(results[0]!.value).toBe('John Smith');
       });
 
       it('extracts multiple displayNames', () => {
@@ -84,8 +84,8 @@ describe('Name Adapters', () => {
         };
         const results = adapter.extract(contact, defaultContext);
         expect(results).toHaveLength(2);
-        expect(results[0].value).toBe('John Smith');
-        expect(results[1].value).toBe('Jane Doe');
+        expect(results[0]!.value).toBe('John Smith');
+        expect(results[1]!.value).toBe('Jane Doe');
       });
 
       it('falls back to organization name when displayName is missing', () => {
@@ -95,7 +95,7 @@ describe('Name Adapters', () => {
         };
         const results = adapter.extract(contact, defaultContext);
         expect(results).toHaveLength(1);
-        expect(results[0].value).toBe('Acme Corp');
+        expect(results[0]!.value).toBe('Acme Corp');
       });
 
       it('returns empty array when no displayName or organization', () => {
@@ -238,8 +238,8 @@ describe('Name Adapters', () => {
         const results = adapter.extract(contact, vcfContext);
 
         expect(results).toHaveLength(1);
-        expect(results[0].suffix).toBe('GN');
-        expect(results[0].value).toBe('John');
+        expect(results[0]!.suffix).toBe('GN');
+        expect(results[0]!.value).toBe('John');
       });
 
       it('falls back to organization name when no names', () => {
@@ -250,7 +250,7 @@ describe('Name Adapters', () => {
         const results = adapter.extract(contact, vcfContext);
 
         expect(results).toHaveLength(1);
-        expect(results[0].value).toBe('Acme Corp');
+        expect(results[0]!.value).toBe('Acme Corp');
       });
 
       it('returns empty array when no names or organizations', () => {
