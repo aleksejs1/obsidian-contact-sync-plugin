@@ -196,6 +196,7 @@ export class ContactNoteWriter {
       {
         labelMap: invertedLabelMap,
         organizationAsLink: organizationAsLink,
+        namingStrategy: namingStrategy,
       }
     );
 
@@ -253,7 +254,9 @@ export class ContactNoteWriter {
       // If I change Formatter to use 'id' key, it will be there.
     }
 
-    if (trackSyncTime) {
+    // VCF strategy doesn't support custom sync timestamps
+    // Skip adding the synced field for better vCard compatibility
+    if (trackSyncTime && namingStrategy !== NamingStrategy.VCF) {
       frontmatterLines[`${propertyPrefix}synced`] = String(
         new Date().toISOString()
       );

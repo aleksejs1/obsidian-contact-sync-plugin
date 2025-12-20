@@ -8,7 +8,6 @@ describe('VcfNamingStrategy', () => {
     expect(strategy.generateKey('email', 0, prefix)).toBe('EMAIL');
     expect(strategy.generateKey('phone', 0, prefix)).toBe('TEL');
     expect(strategy.generateKey('address', 0, prefix)).toBe('ADR');
-    expect(strategy.generateKey('uid', 0, prefix)).toBe('UID');
     expect(strategy.generateKey('googleId', 0, prefix)).toBe('X-GOOGLE-ID');
   });
 

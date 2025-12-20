@@ -94,7 +94,8 @@ describe('Formatter', () => {
   it('handles empty contact fields gracefully', () => {
     const emptyContact: GoogleContact = { resourceName: 'people/empty' };
     const result = formatter.generateFrontmatter(emptyContact, prefix);
-    expect(result).toEqual({});
+    // Empty contact still has Google ID
+    expect(result).toEqual({ gc_id: 'empty' });
   });
 
   it('handles organization as link', () => {

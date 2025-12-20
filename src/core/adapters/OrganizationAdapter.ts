@@ -10,13 +10,16 @@ export class OrganizationAdapter implements FieldAdapter {
     contact: GoogleContact,
     context?: Record<string, unknown>
   ): ExtractionResult[] {
-    const asLink = Boolean(context?.organizationAsLink);
+    const organizationAsLink = context?.organizationAsLink as boolean;
+    const isVcfStrategy =
+      context?.namingStrategy === 'VCF' || context?.namingStrategy === 'VCF';
 
     return (contact.organizations || [])
-      .filter((item) => item.name)
-      .map((item) => {
-        const value = asLink ? `[[${item.name}]]` : item.name;
-        return { value };
-      });
+      .map((org) => org.name)
+      .filter((name) => !!name)
+      .map((name) => ({
+        // For VCF strategy, don't use wiki links even if organizationAsLink is true
+        value: organizationAsLink && !isVcfStrategy ? `[[${name}]]` : name,
+      }));
   }
 }

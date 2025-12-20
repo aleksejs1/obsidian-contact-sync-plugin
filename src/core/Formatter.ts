@@ -38,8 +38,16 @@ export class Formatter {
     for (const [fieldId, adapter] of Object.entries(this.adapters)) {
       const results = adapter.extract(contact, context);
 
-      results.forEach((result, index) => {
-        const key = this.strategy.generateKey(fieldId, index, propertyPrefix);
+      results.forEach((result, arrayIndex) => {
+        // Use result.index if present (for grouping subfields),
+        // otherwise use array index
+        const index = result.index !== undefined ? result.index : arrayIndex;
+        const key = this.strategy.generateKey(
+          fieldId,
+          index,
+          propertyPrefix,
+          result.suffix
+        );
         frontmatter[key] = result.value;
       });
     }
@@ -52,7 +60,6 @@ export class Formatter {
  * Factory to create a formatter with default Obsidian-style adapters.
  */
 import { VcfNamingStrategy } from './strategies/VcfNamingStrategy';
-import { UidAdapter } from './adapters/UidAdapter';
 import { GoogleIdAdapter } from './adapters/GoogleIdAdapter';
 import { NamingStrategy } from 'src/types/Settings';
 
@@ -75,17 +82,19 @@ export function createDefaultFormatter(
     email: new EmailAdapter(),
     phone: new PhoneAdapter(),
     address: new AddressAdapter(),
-    biographies: new BioAdapter(),
+    birthday: new BirthdayAdapter(),
+    bio: new BioAdapter(),
     organization: new OrganizationAdapter(),
     jobtitle: new JobTitleAdapter(),
     department: new DepartmentAdapter(),
-    birthday: new BirthdayAdapter(),
     labels: new LabelAdapter(),
   };
 
   if (strategyType === NamingStrategy.VCF) {
-    adapters.uid = new UidAdapter();
     adapters.googleId = new GoogleIdAdapter();
+  } else {
+    // For Default strategy, use 'id' as the key
+    adapters.id = new GoogleIdAdapter();
   }
 
   return new Formatter(adapters, strategy);
