@@ -13,7 +13,8 @@
     "build": "npm run clean && npx rollup -c",
     "doc": "npx typedoc",
     "typecheck": "tsc --noEmit",
-    "lint:deps": "depcruise src"
+    "lint:deps": "depcruise src",
+    "lint:prune": "ts-prune"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +36,7 @@
     "prettier": "^3.5.3",
     "rollup": "^4.40.0",
     "ts-jest": "^29.3.2",
+    "ts-prune": "^0.10.3",
     "typedoc": "^0.28.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.0"

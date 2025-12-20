@@ -16,7 +16,7 @@ import { LabelAdapter } from './adapters/LabelAdapter';
 /**
  * Formatter class responsible for coordinating field extraction and key generation.
  */
-export class Formatter {
+class Formatter {
   constructor(
     private adapters: Record<string, FieldAdapter>,
     private strategy: KeyNamingStrategy

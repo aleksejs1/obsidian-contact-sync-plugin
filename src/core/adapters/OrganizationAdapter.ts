@@ -1,10 +1,6 @@
 import { FieldAdapter, ExtractionResult } from '../interfaces';
 import { GoogleContact } from '../../types/Contact';
 
-export interface OrganizationAdapterContext {
-  organizationAsLink: boolean;
-}
-
 export class OrganizationAdapter implements FieldAdapter {
   extract(
     contact: GoogleContact,
