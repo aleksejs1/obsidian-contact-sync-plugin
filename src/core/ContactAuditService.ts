@@ -17,7 +17,7 @@ export class ContactAuditService {
 
     let labelMap: Record<string, string> = {};
     try {
-      labelMap = (await this.googleService.fetchGoogleGroups(token)) || {};
+      labelMap = await this.googleService.fetchGoogleGroups(token);
     } catch (error) {
       console.error('Failed to fetch Google groups', error);
       new Notice(
@@ -28,8 +28,7 @@ export class ContactAuditService {
 
     let googleContacts: GoogleContact[] = [];
     try {
-      googleContacts =
-        (await this.googleService.fetchGoogleContacts(token)) || [];
+      googleContacts = await this.googleService.fetchGoogleContacts(token);
     } catch (error) {
       console.error('Failed to fetch Google contacts', error);
       new Notice(
@@ -58,16 +57,20 @@ export class ContactAuditService {
     const files = getAllMarkdownFilesInFolder(folder);
     const orphans: { file: TFile; id: string }[] = [];
 
-    const propertyPrefix = this.settings.propertyNamePrefix || '';
+    const propertyPrefix = this.settings.propertyNamePrefix;
     const idField = `${propertyPrefix}id`;
 
     for (const file of files) {
       const cache = this.app.metadataCache.getFileCache(file);
-      const id = cache?.frontmatter?.[idField];
+      const frontmatter = cache?.frontmatter as
+        | Record<string, unknown>
+        | undefined;
+      const id = frontmatter?.[idField];
 
-      if (id) {
-        if (!validGoogleIds.has(String(id))) {
-          orphans.push({ file, id: String(id) });
+      if (typeof id === 'string' || typeof id === 'number') {
+        const idStr = String(id);
+        if (!validGoogleIds.has(idStr)) {
+          orphans.push({ file, id: idStr });
         }
       }
     }
@@ -113,7 +116,7 @@ export class ContactAuditService {
     new Notice(`${t('Audit complete. Report saved to')} ${reportPath}`);
     const reportFile = this.app.vault.getAbstractFileByPath(reportPath);
     if (reportFile instanceof TFile) {
-      this.app.workspace.getLeaf(true).openFile(reportFile);
+      void this.app.workspace.getLeaf(true).openFile(reportFile);
     }
   }
 
@@ -122,18 +125,24 @@ export class ContactAuditService {
     syncLabel: string,
     labelMap: Record<string, string>
   ): boolean {
-    if (!syncLabel) return true;
+    if (!syncLabel) {
+      return true;
+    }
 
     const targetGroupId = labelMap[syncLabel];
-    if (!targetGroupId) return false;
+    if (!targetGroupId) {
+      return false;
+    }
 
-    return (contact.memberships || []).some(
+    return (contact.memberships ?? []).some(
       (m) => m.contactGroupMembership?.contactGroupId === targetGroupId
     );
   }
 
   private getContactId(contact: GoogleContact): string | null {
-    if (!contact.resourceName) return null;
-    return contact.resourceName.split('/').pop() || null;
+    if (!contact.resourceName) {
+      return null;
+    }
+    return contact.resourceName.split('/').pop() ?? null;
   }
 }

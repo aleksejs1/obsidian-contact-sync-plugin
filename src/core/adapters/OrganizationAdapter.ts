@@ -14,7 +14,7 @@ export class OrganizationAdapter implements FieldAdapter {
     const isVcfStrategy =
       context?.namingStrategy === 'VcfNamingStrategy' ||
       context?.namingStrategy === 'VcfNamingStrategy';
-    return (contact.organizations || [])
+    return (contact.organizations ?? [])
       .map((org) => org.name)
       .filter((name) => !!name)
       .map((name) => ({

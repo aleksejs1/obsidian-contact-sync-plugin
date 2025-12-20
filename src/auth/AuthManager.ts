@@ -1,6 +1,13 @@
 import type { ContactSyncSettings } from '../types/Settings';
 import { requestUrl } from 'obsidian';
 import { URL_OAUTH_TOKEN, URI_OATUH_REDIRECT } from '../config';
+import { RequestUrlResponse } from 'obsidian';
+
+interface TokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+}
 
 /**
  * Manages OAuth2 authentication for accessing the Google contacts API.
@@ -41,7 +48,7 @@ export class AuthManager {
       redirect_uri: URI_OATUH_REDIRECT,
       grant_type: 'authorization_code',
     };
-    const response = await requestUrl({
+    const res: RequestUrlResponse = await requestUrl({
       url: URL_OAUTH_TOKEN,
       method: 'POST',
       headers: {
@@ -50,10 +57,10 @@ export class AuthManager {
       body: JSON.stringify(body),
     });
 
-    const data = await response.json;
-    this.accessToken = await data.access_token;
-    this.refreshToken = (await data.refresh_token) || this.refreshToken;
-    this.tokenExpiresAt = Date.now() + (await data.expires_in) * 1000;
+    const data = res.json as TokenResponse;
+    this.accessToken = data.access_token;
+    this.refreshToken = data.refresh_token ?? this.refreshToken;
+    this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
   }
 
   /**
@@ -81,7 +88,7 @@ export class AuthManager {
     }
 
     try {
-      const response = await requestUrl({
+      const res: RequestUrlResponse = await requestUrl({
         url: URL_OAUTH_TOKEN,
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -93,7 +100,7 @@ export class AuthManager {
         }).toString(),
       });
 
-      const data = await response.json;
+      const data = res.json as TokenResponse;
       if (!data.access_token) {
         throw new Error('Failed to refresh token');
       }

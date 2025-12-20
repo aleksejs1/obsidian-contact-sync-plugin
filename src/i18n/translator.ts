@@ -7,7 +7,7 @@ import { ru, en, lv } from './translations';
 export class Translator {
   private language: string;
 
-  constructor(language: string = 'en') {
+  constructor(language = 'en') {
     this.language = language;
   }
 

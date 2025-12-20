@@ -48,7 +48,7 @@ export class Formatter {
       results.forEach((result, arrayIndex) => {
         // Use result.index if present (for grouping subfields),
         // otherwise use array index
-        const index = result.index !== undefined ? result.index : arrayIndex;
+        const index = result.index ?? arrayIndex;
         const key = this.strategy.generateKey(
           fieldId,
           index,

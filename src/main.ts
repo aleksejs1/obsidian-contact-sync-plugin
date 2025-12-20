@@ -75,21 +75,25 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     );
 
     if (this.settings.syncOnStartup || this.shouldSyncNow()) {
-      this.syncContacts();
+      void this.syncContacts();
     }
 
     this.setupAutoSync();
   }
 
-  async onunload() {
-    if (this.syncIntervalId) clearInterval(this.syncIntervalId);
+  onunload() {
+    if (this.syncIntervalId) {
+      clearInterval(this.syncIntervalId);
+    }
   }
 
   /**
    * Sets up automatic periodic syncing using setInterval based on plugin settings.
    */
   setupAutoSync() {
-    if (this.syncIntervalId) clearInterval(this.syncIntervalId);
+    if (this.syncIntervalId) {
+      clearInterval(this.syncIntervalId);
+    }
 
     const interval = this.settings.syncIntervalMinutes;
 
@@ -98,7 +102,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
         window.setInterval(
           () => {
             if (this.shouldSyncNow()) {
-              this.syncContacts();
+              void this.syncContacts();
             }
           },
           interval * 60 * 1000
@@ -114,8 +118,12 @@ export default class GoogleContactsSyncPlugin extends Plugin {
   shouldSyncNow(): boolean {
     const { lastSyncTime, syncIntervalMinutes } = this.settings;
 
-    if (syncIntervalMinutes === 0) return false;
-    if (!lastSyncTime) return true;
+    if (syncIntervalMinutes === 0) {
+      return false;
+    }
+    if (!lastSyncTime) {
+      return true;
+    }
 
     const last = new Date(lastSyncTime).getTime();
     const now = Date.now();
@@ -128,18 +136,18 @@ export default class GoogleContactsSyncPlugin extends Plugin {
    * Performs the contact synchronization process: fetching, processing, and saving contact notes.
    */
   async syncContacts() {
-    this.updateLastSyncTime();
+    void this.updateLastSyncTime();
 
     const token = await this.auth?.ensureValidToken();
     if (!token) {
       new Notice(t('Failed to obtain access token. Please re-authenticate.'));
       return;
     }
-    this.updateAuthSettings();
+    void this.updateAuthSettings();
 
     let labelMap: Record<string, string> = {};
     try {
-      labelMap = (await this.googleService?.fetchGoogleGroups(token)) || {};
+      labelMap = (await this.googleService?.fetchGoogleGroups(token)) ?? {};
     } catch (error) {
       console.error(
         'Failed to fetch Google groups',
@@ -153,7 +161,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
     let contacts: GoogleContact[] = [];
     try {
-      contacts = (await this.googleService?.fetchGoogleContacts(token)) || [];
+      contacts = (await this.googleService?.fetchGoogleContacts(token)) ?? [];
     } catch (error) {
       console.error(
         'Failed to fetch Google contacts',
@@ -167,8 +175,8 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
     const config: ContactNoteConfig = {
       folderPath: this.settings.contactsFolder,
-      prefix: this.settings.fileNamePrefix || '',
-      propertyPrefix: this.settings.propertyNamePrefix || '',
+      prefix: this.settings.fileNamePrefix,
+      propertyPrefix: this.settings.propertyNamePrefix,
       syncLabel: this.settings.syncLabel,
       noteBody: this.settings.noteTemplate || '# Notes\n',
       organizationAsLink: this.settings.organizationAsLink,
@@ -204,7 +212,11 @@ export default class GoogleContactsSyncPlugin extends Plugin {
    * Loads plugin settings from disk, applying defaults as needed.
    */
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign(
+      {},
+      DEFAULT_SETTINGS,
+      (await this.loadData()) as Partial<ContactSyncSettings>
+    );
   }
 
   /**

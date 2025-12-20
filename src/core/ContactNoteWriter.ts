@@ -70,18 +70,24 @@ export class ContactNoteWriter {
     await this.vaultService.createFolderIfNotExists(config.folderPath);
 
     const folder = this.vaultService.getFolderByPath(config.folderPath);
-    if (!folder) return;
+    if (!folder) {
+      return;
+    }
     const files = getAllMarkdownFilesInFolder(folder);
-    const filesIdMapping = await this.scanFiles(files, config.propertyPrefix);
-    const invertedLabelMap: Record<string, string> = Object.fromEntries(
+    const filesIdMapping = this.scanFiles(files, config.propertyPrefix);
+    const invertedLabelMap = Object.fromEntries(
       Object.entries(labelMap).map((a) => a.reverse())
-    );
+    ) as Record<string, string>;
 
     for (const contact of contacts) {
-      if (!this.hasSyncLabel(contact, config.syncLabel, labelMap)) continue;
+      if (!this.hasSyncLabel(contact, config.syncLabel, labelMap)) {
+        continue;
+      }
 
       const id = this.getContactId(contact);
-      if (!id) continue;
+      if (!id) {
+        continue;
+      }
 
       const filename = this.getFilename(
         contact,
@@ -89,22 +95,24 @@ export class ContactNoteWriter {
         config.folderPath,
         config.prefix
       );
-      if (!filename) continue;
+      if (!filename) {
+        continue;
+      }
 
       if (config.renameFiles && filesIdMapping[id]) {
         const existingFile = filesIdMapping[id];
         if (existingFile.path !== filename) {
           await this.vaultService.renameFile(existingFile, filename);
-          delete filesIdMapping[id];
-          filesIdMapping[id] = (await this.vaultService.getFileByPath(
-            filename
-          )) as TFile;
+          const updatedFile = this.vaultService.getFileByPath(filename);
+          if (updatedFile) {
+            filesIdMapping[id] = updatedFile;
+          }
         }
       }
 
       await this.fileManager.processFrontMatter(
-        filesIdMapping[id] ||
-          (await this.vaultService.getFileByPath(filename)) ||
+        filesIdMapping[id] ??
+          this.vaultService.getFileByPath(filename) ??
           (await this.vaultService.createFile(filename, config.noteBody)),
         this.processFrontMatter(
           this.generateFrontmatterLines(
@@ -138,8 +146,10 @@ export class ContactNoteWriter {
   ): string | null {
     // Try displayName first, then organization name, then fall back to ID
     const name =
-      contact.names?.[0]?.displayName || contact.organizations?.[0]?.name || id;
-    if (!name) return null;
+      contact.names?.[0]?.displayName ?? contact.organizations?.[0]?.name ?? id;
+    if (!name) {
+      return null;
+    }
     const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
     const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
     return filename;
@@ -168,8 +178,10 @@ export class ContactNoteWriter {
    * @returns The extracted contact ID, or null if not found.
    */
   private getContactId(contact: GoogleContact): string | null {
-    if (!contact.resourceName) return null;
-    return contact.resourceName.split('/').pop() || null;
+    if (!contact.resourceName) {
+      return null;
+    }
+    return contact.resourceName.split('/').pop() ?? null;
   }
 
   /**
@@ -186,8 +198,8 @@ export class ContactNoteWriter {
     contact: GoogleContact,
     invertedLabelMap: Record<string, string>,
     namingStrategy: NamingStrategy,
-    organizationAsLink: boolean = false,
-    trackSyncTime: boolean = false
+    organizationAsLink = false,
+    trackSyncTime = false
   ): Record<string, string | string[]> {
     const formatter = createDefaultFormatter(namingStrategy);
     const formattedFields = formatter.generateFrontmatter(
@@ -205,9 +217,7 @@ export class ContactNoteWriter {
     };
 
     if (trackSyncTime && namingStrategy !== NamingStrategy.VCF) {
-      frontmatterLines[`${propertyPrefix}synced`] = String(
-        new Date().toISOString()
-      );
+      frontmatterLines[`${propertyPrefix}synced`] = new Date().toISOString();
     }
 
     return frontmatterLines;
@@ -226,10 +236,12 @@ export class ContactNoteWriter {
     syncLabel: string,
     labelMap: Record<string, string>
   ): boolean {
-    if (!syncLabel) return true;
+    if (!syncLabel) {
+      return true;
+    }
 
     const targetGroupId = labelMap[syncLabel];
-    return (contact.memberships || []).some(
+    return (contact.memberships ?? []).some(
       (m) => m.contactGroupMembership?.contactGroupId === targetGroupId
     );
   }
@@ -241,17 +253,20 @@ export class ContactNoteWriter {
    * @param propertyPrefix - The prefix to use for identifying frontmatter properties.
    * @returns A mapping of property values to TFile objects.
    */
-  protected async scanFiles(
+  protected scanFiles(
     files: TFile[],
     propertyPrefix: string
-  ): Promise<Record<string, TFile>> {
+  ): Record<string, TFile> {
     const idToFileMapping: Record<string, TFile> = {};
 
     for (const file of files) {
-      const frontmatter = this.metadataCache.getFileCache(file)?.frontmatter;
+      const frontmatter = this.metadataCache.getFileCache(file)?.frontmatter as
+        | Record<string, unknown>
+        | undefined;
       const idFieldName = `${propertyPrefix}id`;
-      if (frontmatter && frontmatter[idFieldName]) {
-        idToFileMapping[frontmatter[idFieldName]] = file;
+      const idValue = frontmatter?.[idFieldName];
+      if (typeof idValue === 'string' || typeof idValue === 'number') {
+        idToFileMapping[String(idValue)] = file;
       }
     }
 

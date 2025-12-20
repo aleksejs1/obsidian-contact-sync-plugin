@@ -8,13 +8,12 @@ export class Vault {
   }
 }
 export class TFile {
-  path: string = '';
+  path = '';
 }
 export class TFolder {
   children: unknown[] = [];
 }
 export class Notice {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(_message: string) {
     // console.debug('Notice:', message);
   }
@@ -27,7 +26,7 @@ export class FileManager {
   }
 }
 export class MockMetadataCache {
-  private fileCacheMap: Map<string, unknown> = new Map();
+  private fileCacheMap = new Map<string, unknown>();
   setFileCache(file: TFile, cache: unknown) {
     this.fileCacheMap.set(file.path, cache);
   }

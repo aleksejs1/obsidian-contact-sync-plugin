@@ -24,7 +24,7 @@ export class VcfNamingStrategy implements KeyNamingStrategy {
     _prefix: string,
     suffix?: string
   ): string {
-    const vcfKey = this.keyMap[baseKey] || baseKey.toUpperCase();
+    const vcfKey = this.keyMap[baseKey] ?? baseKey.toUpperCase();
     // VCF format doesn't support prefixes, but needs indexed notation
     // for multiple values: EMAIL[2], EMAIL[3], etc.
     // This format is compatible with obsidian-vcf-contacts plugin

@@ -3,7 +3,9 @@ import { GoogleContact } from '../../types/Contact';
 
 export class GoogleIdAdapter implements FieldAdapter {
   extract(contact: GoogleContact): ExtractionResult[] {
-    if (!contact.resourceName) return [];
+    if (!contact.resourceName) {
+      return [];
+    }
 
     // resourceName is like "people/c1234567890"
     // We want the ID part "c1234567890"

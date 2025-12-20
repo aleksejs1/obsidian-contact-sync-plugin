@@ -28,7 +28,7 @@ export class NameAdapter implements FieldAdapter {
     }
 
     // For VCF strategy: extract all structured name fields
-    const names = contact.names || [];
+    const names = contact.names ?? [];
 
     if (names.length === 0) {
       // Fall back to organization name if no name data

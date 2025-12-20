@@ -55,8 +55,25 @@ jest.mock('src/utils/getAllMarkdownFilesInFolder', () => ({
   getAllMarkdownFilesInFolder: jest.fn(),
 }));
 
+class TestContactNoteWriter extends ContactNoteWriter {
+  public scanFiles(
+    files: TFile[],
+    propertyPrefix: string
+  ): Record<string, TFile> {
+    return super.scanFiles(files, propertyPrefix);
+  }
+
+  public hasSyncLabel(
+    contact: GoogleContact,
+    syncLabel: string,
+    labelMap: Record<string, string>
+  ): boolean {
+    return super.hasSyncLabel(contact, syncLabel, labelMap);
+  }
+}
+
 describe('ContactNoteWriter', () => {
-  let contactNoteWriter: ContactNoteWriter;
+  let contactNoteWriter: TestContactNoteWriter;
   let vault: Vault;
   let metadataCache: MetadataCache;
   let fileManager: FileManager;
@@ -72,7 +89,7 @@ describe('ContactNoteWriter', () => {
       getFileByPath: jest.fn(),
       processFrontMatter: jest.fn(),
     } as unknown as FileManager;
-    contactNoteWriter = new ContactNoteWriter(
+    contactNoteWriter = new TestContactNoteWriter(
       vault,
       metadataCache,
       fileManager
@@ -96,7 +113,7 @@ describe('ContactNoteWriter', () => {
       (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
-      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+      (vault.getFileByPath as jest.Mock).mockReturnValue(null);
 
       const config: ContactNoteConfig = {
         prefix: 'prefix-',
@@ -145,7 +162,7 @@ describe('ContactNoteWriter', () => {
       (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
-      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+      (vault.getFileByPath as jest.Mock).mockReturnValue(null);
 
       const config: ContactNoteConfig = {
         prefix: 'prefix-',
@@ -193,7 +210,7 @@ describe('ContactNoteWriter', () => {
       (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
-      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+      (vault.getFileByPath as jest.Mock).mockReturnValue(null);
 
       const config: ContactNoteConfig = {
         prefix: 'prefix-',
@@ -235,7 +252,7 @@ describe('ContactNoteWriter', () => {
       (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
-      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+      (vault.getFileByPath as jest.Mock).mockReturnValue(null);
 
       const config: ContactNoteConfig = {
         prefix: 'prefix-',
@@ -275,7 +292,7 @@ describe('ContactNoteWriter', () => {
       (vault.getFolderByPath as jest.Mock).mockReturnValue(mockFolder);
       (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
       (vault.create as jest.Mock).mockResolvedValue(undefined);
-      (vault.getFileByPath as jest.Mock).mockResolvedValue(null);
+      (vault.getFileByPath as jest.Mock).mockReturnValue(null);
 
       const config: ContactNoteConfig = {
         prefix: 'prefix-',
@@ -323,10 +340,7 @@ describe('ContactNoteWriter', () => {
         },
       });
 
-      const result = await contactNoteWriter['scanFiles'](
-        mockFiles,
-        'propertyPrefix-'
-      );
+      const result = contactNoteWriter.scanFiles(mockFiles, 'propertyPrefix-');
 
       expect(result).toEqual({
         '123': mockFiles[0], // Expect the file with id 123
@@ -348,7 +362,7 @@ describe('ContactNoteWriter', () => {
       };
       const mockLabelMap = { family: 'group1' };
 
-      const result = contactNoteWriter['hasSyncLabel'](
+      const result = contactNoteWriter.hasSyncLabel(
         mockContact,
         'family',
         mockLabelMap
@@ -370,7 +384,7 @@ describe('ContactNoteWriter', () => {
       };
       const mockLabelMap = { family: 'group1' };
 
-      const result = contactNoteWriter['hasSyncLabel'](
+      const result = contactNoteWriter.hasSyncLabel(
         mockContact,
         'family',
         mockLabelMap
@@ -386,7 +400,7 @@ describe('ContactNoteWriter', () => {
       };
       const mockLabelMap = { family: 'group1' };
 
-      const result = contactNoteWriter['hasSyncLabel'](
+      const result = contactNoteWriter.hasSyncLabel(
         mockContact,
         'family',
         mockLabelMap
