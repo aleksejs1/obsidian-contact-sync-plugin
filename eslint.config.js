@@ -40,6 +40,7 @@ export default tseslint.config(
           allowBoolean: true,
         },
       ],
+      complexity: ['error', 10],
     },
   },
   {

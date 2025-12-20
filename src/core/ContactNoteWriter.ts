@@ -73,59 +73,113 @@ export class ContactNoteWriter {
     if (!folder) {
       return;
     }
+
     const files = getAllMarkdownFilesInFolder(folder);
     const filesIdMapping = this.scanFiles(files, config.propertyPrefix);
-    const invertedLabelMap = Object.fromEntries(
-      Object.entries(labelMap).map((a) => a.reverse())
-    ) as Record<string, string>;
+    const invertedLabelMap = this.getInvertedLabelMap(labelMap);
 
     for (const contact of contacts) {
-      if (!this.hasSyncLabel(contact, config.syncLabel, labelMap)) {
-        continue;
-      }
-
-      const id = this.getContactId(contact);
-      if (!id) {
-        continue;
-      }
-
-      const filename = this.getFilename(
+      await this.processContact(
         contact,
-        id,
-        config.folderPath,
-        config.prefix
-      );
-      if (!filename) {
-        continue;
-      }
-
-      if (config.renameFiles && filesIdMapping[id]) {
-        const existingFile = filesIdMapping[id];
-        if (existingFile.path !== filename) {
-          await this.vaultService.renameFile(existingFile, filename);
-          const updatedFile = this.vaultService.getFileByPath(filename);
-          if (updatedFile) {
-            filesIdMapping[id] = updatedFile;
-          }
-        }
-      }
-
-      await this.fileManager.processFrontMatter(
-        filesIdMapping[id] ??
-          this.vaultService.getFileByPath(filename) ??
-          (await this.vaultService.createFile(filename, config.noteBody)),
-        this.processFrontMatter(
-          this.generateFrontmatterLines(
-            config.propertyPrefix,
-            contact,
-            invertedLabelMap,
-            config.namingStrategy,
-            config.organizationAsLink,
-            config.trackSyncTime
-          )
-        )
+        config,
+        labelMap,
+        invertedLabelMap,
+        filesIdMapping
       );
     }
+  }
+
+  private getInvertedLabelMap(
+    labelMap: Record<string, string>
+  ): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(labelMap).map(([key, value]) => [value, key])
+    ) as Record<string, string>;
+  }
+
+  private async processContact(
+    contact: GoogleContact,
+    config: ContactNoteConfig,
+    labelMap: Record<string, string>,
+    invertedLabelMap: Record<string, string>,
+    filesIdMapping: Record<string, TFile>
+  ): Promise<void> {
+    if (!this.hasSyncLabel(contact, config.syncLabel, labelMap)) {
+      return;
+    }
+
+    const id = this.getContactId(contact);
+    if (!id) {
+      return;
+    }
+
+    let filename = this.getFilename(
+      contact,
+      id,
+      config.folderPath,
+      config.prefix
+    );
+    if (!filename) {
+      return;
+    }
+
+    if (config.renameFiles && filesIdMapping[id]) {
+      filename = await this.ensureRenamed(id, filename, filesIdMapping);
+    }
+
+    const file = await this.getOrCreateFile(
+      id,
+      filename,
+      filesIdMapping,
+      config.noteBody
+    );
+    if (!file) {
+      return;
+    }
+    await this.fileManager.processFrontMatter(
+      file,
+      this.processFrontMatter(
+        this.generateFrontmatterLines(
+          config.propertyPrefix,
+          contact,
+          invertedLabelMap,
+          config.namingStrategy,
+          config.organizationAsLink,
+          config.trackSyncTime
+        )
+      )
+    );
+  }
+
+  private async ensureRenamed(
+    id: string,
+    filename: string,
+    filesIdMapping: Record<string, TFile>
+  ): Promise<string> {
+    const existingFile = filesIdMapping[id];
+    if (existingFile && existingFile.path !== filename) {
+      await this.vaultService.renameFile(existingFile, filename);
+      const updatedFile = this.vaultService.getFileByPath(filename);
+      if (updatedFile) {
+        filesIdMapping[id] = updatedFile;
+        return filename;
+      }
+    }
+    return existingFile?.path ?? filename;
+  }
+
+  private async getOrCreateFile(
+    id: string,
+    filename: string,
+    filesIdMapping: Record<string, TFile>,
+    noteBody: string
+  ): Promise<TFile | null> {
+    const existingFile =
+      filesIdMapping[id] ?? this.vaultService.getFileByPath(filename);
+    if (existingFile) {
+      return existingFile;
+    }
+    return await this.vaultService.createFile(filename, noteBody);
   }
 
   /**

@@ -138,16 +138,42 @@ export default class GoogleContactsSyncPlugin extends Plugin {
   async syncContacts() {
     void this.updateLastSyncTime();
 
+    const token = await this.getToken();
+    if (!token) {
+      return;
+    }
+
+    const labelMap = await this.getLabelMap(token);
+    if (!labelMap) {
+      return;
+    }
+
+    const contacts = await this.getContacts(token);
+    if (!contacts) {
+      return;
+    }
+
+    const config = this.getNoteConfig();
+    await this.noteWriter?.writeNotesForContacts(config, labelMap, contacts);
+
+    new Notice(t('Google contacts synced!'));
+  }
+
+  private async getToken(): Promise<string | null> {
     const token = await this.auth?.ensureValidToken();
     if (!token) {
       new Notice(t('Failed to obtain access token. Please re-authenticate.'));
-      return;
+      return null;
     }
     void this.updateAuthSettings();
+    return token;
+  }
 
-    let labelMap: Record<string, string> = {};
+  private async getLabelMap(
+    token: string
+  ): Promise<Record<string, string> | null> {
     try {
-      labelMap = (await this.googleService?.fetchGoogleGroups(token)) ?? {};
+      return (await this.googleService?.fetchGoogleGroups(token)) ?? {};
     } catch (error) {
       console.error(
         'Failed to fetch Google groups',
@@ -156,12 +182,13 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       new Notice(
         t('Failed to fetch Google groups. Check console for details.')
       );
-      return;
+      return null;
     }
+  }
 
-    let contacts: GoogleContact[] = [];
+  private async getContacts(token: string): Promise<GoogleContact[] | null> {
     try {
-      contacts = (await this.googleService?.fetchGoogleContacts(token)) ?? [];
+      return (await this.googleService?.fetchGoogleContacts(token)) ?? [];
     } catch (error) {
       console.error(
         'Failed to fetch Google contacts',
@@ -170,10 +197,12 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       new Notice(
         t('Failed to fetch Google contacts. Check console for details.')
       );
-      return;
+      return null;
     }
+  }
 
-    const config: ContactNoteConfig = {
+  private getNoteConfig(): ContactNoteConfig {
+    return {
       folderPath: this.settings.contactsFolder,
       prefix: this.settings.fileNamePrefix,
       propertyPrefix: this.settings.propertyNamePrefix,
@@ -184,10 +213,6 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       renameFiles: this.settings.renameFiles,
       namingStrategy: this.settings.namingStrategy,
     };
-
-    await this.noteWriter?.writeNotesForContacts(config, labelMap, contacts);
-
-    new Notice(t('Google contacts synced!'));
   }
 
   /**
