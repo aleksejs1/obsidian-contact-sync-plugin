@@ -36,7 +36,15 @@ export const ru = {
   'e.g. p ': 'например, p ',
   'Property name prefix': 'Префикс имени свойства',
   'Prefix to add to the beginning of each contact property name':
-    'Префикс, добавляемый к имени свойства контакта',
+    'Префикс, добавляемый к имени свойства контакта (игнорируется в стратегии VCF)',
+  'Naming strategy': 'Стратегия именования',
+  'Strategy to generate frontmatter keys from contact data':
+    'Стратегия генерации ключей frontmatter из данных контакта',
+  Default: 'Стандартная',
+  'VCF (vCard)': 'VCF (vCard)',
+  'Organization as link': 'Организация как ссылка',
+  'Organization name will be stored as a obsidian link [[...]] instead of plain text':
+    'Название организации будет сохранено как ссылка Obsidian [[...]] вместо обычного текста (игнорируется в стратегии VCF)',
   'Label to sync': 'Лейблы для синхронизации',
   'If not empty, then only contacts with this label will synced':
     'Если указана, синхронизируются только контакты с этим лейблом',
@@ -56,7 +64,7 @@ export const ru = {
   'Track last sync time in notes':
     'Отслеживать время последней синхронизации в заметках',
   'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
-    'Если включено, плагин будет обновлять свойство синхронизации в каждой заметке с временем последней синхронизации. Это может вызвать проблемы с производительностью при очень больших списках контактов.',
+    'Если включено, плагин будет обновлять свойство синхронизации в каждой заметке с временем последней синхронизации. Это может вызвать проблемы с производительностью при очень больших списках контактов. (игнорируется в стратегии VCF)',
   'Rename files if name changed': 'Переименовывать файлы, если имя изменилось',
   'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
     'Если включено, существующие файлы контактов будут переименованы, если изменится имя контакта. Все ссылки в хранилище будут обновлены соответственно.',
@@ -117,7 +125,15 @@ export const lv = {
   'e.g. p ': 'piem., p ',
   'Property name prefix': 'Īpašības nosaukuma prefikss',
   'Prefix to add to the beginning of each contact property name':
-    'Prefikss, ko pievienot katras kontaktpersonas īpašības nosaukumam',
+    'Prefikss, ko pievienot katras kontaktpersonas īpašības nosaukumam (tiek ignorēts VCF stratēģijā)',
+  'Naming strategy': 'Nosaukšanas stratēģija',
+  'Strategy to generate frontmatter keys from contact data':
+    'Stratēģija frontmatter atslēgu ģenerēšanai no kontakta datiem',
+  Default: 'Noklusējuma',
+  'VCF (vCard)': 'VCF (vCard)',
+  'Organization as link': 'Organizācija kā saite',
+  'Organization name will be stored as a obsidian link [[...]] instead of plain text':
+    'Organizācijas nosaukums tiks saglabāts kā Obsidian saite [[...]], nevis parasts teksts (tiek ignorēts VCF stratēģijā)',
   'Label to sync': 'Etiķete sinhronizēšanai',
   'If not empty, then only contacts with this label will synced':
     'Ja nav tukšs, tiks sinhronizēti tikai šīs etiķetes kontakti',
@@ -137,7 +153,7 @@ export const lv = {
   'Track last sync time in notes':
     'Sekot pēdējās sinhronizācijas laikam piezīmēs',
   'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
-    'Ja iespējots, spraudnis atjauninās synced rekvizītu katrā piezīmē ar pēdējās sinhronizācijas laiku. Tas var radīt veiktspējas problēmas, ja kontaktu skaits ir ļoti liels.',
+    'Ja iespējots, spraudnis atjauninās synced rekvizītu katrā piezīmē ar pēdējās sinhronizācijas laiku. Tas var radīt veiktspējas problēmas, ja kontaktu skaits ir ļoti liels. (tiek ignorēts VCF stratēģijā)',
   'Rename files if name changed': 'Pārdēvēt failus, ja nosaukums ir mainīts',
   'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
     'Ja iespējots, esošie kontaktu faili tiks pārdēvēti, ja mainīsies kontakta nosaukums. Visi saites glabātavā tiks atjauninātas atbilstoši.',
@@ -197,7 +213,15 @@ export const en = {
   'e.g. p ': 'e.g. p ',
   'Property name prefix': 'Property name prefix',
   'Prefix to add to the beginning of each contact property name':
-    'Prefix to add to the beginning of each contact property name',
+    'Prefix to add to the beginning of each contact property name (ignored in VCF strategy)',
+  'Naming strategy': 'Naming strategy',
+  'Strategy to generate frontmatter keys from contact data':
+    'Strategy to generate frontmatter keys from contact data',
+  Default: 'Default',
+  'VCF (vCard)': 'VCF (vCard)',
+  'Organization as link': 'Organization as link',
+  'Organization name will be stored as a obsidian link [[...]] instead of plain text':
+    'Organization name will be stored as a obsidian link [[...]] instead of plain text (ignored in VCF strategy)',
   'Label to sync': 'Label to sync',
   'If not empty, then only contacts with this label will synced':
     'If not empty, then only contacts with this label will synced',
@@ -217,7 +241,7 @@ export const en = {
     'Failed to obtain access token. Please re-authenticate.',
   'Track last sync time in notes': 'Track last sync time in notes',
   'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.':
-    'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists.',
+    'If enabled, the plugin will update the synced property in each note with the last synchronization time. This may cause performance issues with very large contact lists. (ignored in VCF strategy)',
   'Rename files if name changed': 'Rename files if name changed',
   'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.':
     'If enabled, existing contact files will be renamed if the contact name changes. All links in vault will be updated accordingly.',

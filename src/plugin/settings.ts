@@ -87,6 +87,20 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(t('Naming strategy'))
+      .setDesc(t('Strategy to generate frontmatter keys from contact data'))
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption('Default', t('Default'))
+          .addOption('VCF', t('VCF (vCard)'))
+          .setValue(this.plugin.settings.namingStrategy)
+          .onChange(async (value) => {
+            this.plugin.settings.namingStrategy = value as NamingStrategy;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName(t('Property name prefix'))
       .setDesc(
         t('Prefix to add to the beginning of each contact property name')
@@ -97,20 +111,6 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.propertyNamePrefix)
           .onChange(async (value) => {
             this.plugin.settings.propertyNamePrefix = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName(t('Naming strategy'))
-      .setDesc(t('Strategy to generate frontmatter keys from contact data'))
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption('Default', t('Default'))
-          .addOption('VCF', t('VCF (vCard)'))
-          .setValue(this.plugin.settings.namingStrategy)
-          .onChange(async (value) => {
-            this.plugin.settings.namingStrategy = value as NamingStrategy;
             await this.plugin.saveSettings();
           })
       );
