@@ -3,6 +3,7 @@ import { ContactNoteWriter } from '../../core/ContactNoteWriter';
 import { FileManager, MetadataCache, Vault } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
+import { NamingStrategy } from 'src/types/Settings';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
 
 jest.mock('obsidian', () => {
@@ -113,6 +114,7 @@ describe('ContactNoteWriterUpdate', () => {
         organizationAsLink: false,
         trackSyncTime: true,
         renameFiles: false,
+        namingStrategy: NamingStrategy.Default,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -157,6 +159,7 @@ describe('ContactNoteWriterUpdate', () => {
         organizationAsLink: false,
         trackSyncTime: true,
         renameFiles: false,
+        namingStrategy: NamingStrategy.Default,
       };
 
       await contactNoteWriter.writeNotesForContacts(

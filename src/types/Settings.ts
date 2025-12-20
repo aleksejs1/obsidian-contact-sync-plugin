@@ -49,4 +49,12 @@ export interface ContactSyncSettings {
 
   /** Whether to rename existing contact files in case if name has been changed based on current naming settings */
   renameFiles: boolean;
+
+  /** Naming strategy to use for contact properties */
+  namingStrategy: NamingStrategy;
+}
+
+export enum NamingStrategy {
+  Default = 'Default',
+  VCF = 'VCF',
 }

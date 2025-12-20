@@ -2,6 +2,7 @@ import { Notice, Setting, App, PluginSettingTab } from 'obsidian';
 import { LINK_TO_MANUAL } from '../config';
 import { getAuthUrl } from '../auth/getAuthUrl';
 import GoogleContactsSyncPlugin from '../main';
+import { NamingStrategy } from 'src/types/Settings';
 import { t } from '../i18n/translator';
 import { FolderSuggest } from 'src/core/FolderSuggest';
 
@@ -81,6 +82,20 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.fileNamePrefix)
           .onChange(async (value) => {
             this.plugin.settings.fileNamePrefix = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(t('Naming strategy'))
+      .setDesc(t('Strategy to generate frontmatter keys from contact data'))
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption('Default', t('Default'))
+          .addOption('VCF', t('VCF (vCard)'))
+          .setValue(this.plugin.settings.namingStrategy)
+          .onChange(async (value) => {
+            this.plugin.settings.namingStrategy = value as NamingStrategy;
             await this.plugin.saveSettings();
           })
       );

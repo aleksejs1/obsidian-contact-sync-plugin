@@ -7,22 +7,16 @@ import {
 } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
-import { Formatter } from './Formatter';
+import { createDefaultFormatter } from './Formatter';
 import { VaultService } from 'src/services/VaultService';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
+import { NamingStrategy } from 'src/types/Settings';
 
 /**
  * Responsible for creating and updating contact notes in the vault.
  * Handles writing new notes and updating existing ones based on contact metadata.
  */
 export class ContactNoteWriter {
-  /**
-   * The Formatter instance used for formatting contact data into frontmatter.
-   *
-   * This protected property is used to format contact data into a suitable format for Obsidian frontmatter.
-   */
-  protected formatter: Formatter = new Formatter();
-
   /**
    * The VaultService instance used for vault operations.
    *
@@ -117,6 +111,7 @@ export class ContactNoteWriter {
             config.propertyPrefix,
             contact,
             invertedLabelMap,
+            config.namingStrategy,
             config.organizationAsLink,
             config.trackSyncTime
           )
@@ -157,9 +152,9 @@ export class ContactNoteWriter {
    * @returns A function that takes a frontmatter object and updates it with the provided lines.
    */
   private processFrontMatter(
-    frontmatterLines: Record<string, string>
-  ): (frontmatter: Record<string, string>) => void {
-    return (frontmatter: Record<string, string>) => {
+    frontmatterLines: Record<string, string | string[]>
+  ): (frontmatter: Record<string, unknown>) => void {
+    return (frontmatter: Record<string, unknown>) => {
       for (const key in frontmatterLines) {
         frontmatter[key] = frontmatterLines[key];
       }
@@ -190,43 +185,30 @@ export class ContactNoteWriter {
     propertyPrefix: string,
     contact: GoogleContact,
     invertedLabelMap: Record<string, string>,
+    namingStrategy: NamingStrategy,
     organizationAsLink: boolean = false,
     trackSyncTime: boolean = false
-  ): Record<string, string> {
-    const frontmatterLines: Record<string, string> = {
-      [`${propertyPrefix}id`]: String(this.getContactId(contact)),
+  ): Record<string, string | string[]> {
+    const formatter = createDefaultFormatter(namingStrategy);
+    const formattedFields = formatter.generateFrontmatter(
+      contact,
+      propertyPrefix,
+      {
+        labelMap: invertedLabelMap,
+        organizationAsLink: organizationAsLink,
+        namingStrategy: namingStrategy,
+      }
+    );
+
+    const frontmatterLines: Record<string, string | string[]> = {
+      ...formattedFields,
     };
 
-    if (trackSyncTime) {
+    if (trackSyncTime && namingStrategy !== NamingStrategy.VCF) {
       frontmatterLines[`${propertyPrefix}synced`] = String(
         new Date().toISOString()
       );
     }
-
-    this.formatter.addNameField(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addEmailField(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addPhoneField(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addAddressFields(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addBioField(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addOrganizationFields(
-      frontmatterLines,
-      contact,
-      propertyPrefix,
-      organizationAsLink
-    );
-    this.formatter.addJobTitleFields(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addDepartmentFields(
-      frontmatterLines,
-      contact,
-      propertyPrefix
-    );
-    this.formatter.addBirthdayFields(frontmatterLines, contact, propertyPrefix);
-    this.formatter.addLabels(
-      frontmatterLines,
-      contact,
-      propertyPrefix,
-      invertedLabelMap
-    );
 
     return frontmatterLines;
   }

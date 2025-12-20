@@ -14,15 +14,16 @@ export class TFolder {
   children: unknown[] = [];
 }
 export class Notice {
-  constructor(message: string) {
-    console.debug('Notice:', message);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constructor(_message: string) {
+    // console.debug('Notice:', message);
   }
 }
 
 export class FileManager {
   processFrontMatter(file: TFile, fn: (frontmatter: unknown) => void) {
     fn({});
-    console.debug('processFrontMatter', file);
+    // console.debug('processFrontMatter', file);
   }
 }
 export class MockMetadataCache {

@@ -66,6 +66,9 @@ describe('GoogleContactsService', () => {
     });
 
     it('should handle API errors gracefully', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
       (requestUrl as jest.Mock).mockRejectedValue(
         new Error('API request failed')
       );
@@ -73,6 +76,8 @@ describe('GoogleContactsService', () => {
       expect(
         await googleContactsService.fetchGoogleContacts(mockToken)
       ).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
     });
   });
 

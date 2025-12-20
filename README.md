@@ -19,7 +19,9 @@ Each contact becomes a separate note with YAML frontmatter for metadata and free
 
 - 📛 Filename prefix support (e.g. `p Ivan Ivanov.md`)
 
-- 🧩 Customizable prefix for metadata keys (e.g. `s_name_1`, `s_email_1`)
+- 🧩 Multiple naming strategies for frontmatter keys:
+    - **Default**: Customizable prefix (e.g., `s_name`, `s_email_2`).
+    - **VCF (vCard)**: Fully compatible with the [VCF Contacts](https://github.com/broekema41/obsidian-vcf-contacts) plugin.
 
 - 📇 Supports multiple names, emails, phone numbers, birthdays, addresses, organizations, job titles, department, labels
 
@@ -79,25 +81,42 @@ The plugin will automatically save the access and refresh tokens.
 
 - There's an option to change the note title if a contact's name changes. Links in notes will automatically update if this option is enabled in the settings.
     
-- If there is more than one piece of information for a given property (e.g., multiple phone numbers or multiple birthdays), the plugin appends a number to the property name. For example:
-    
+- How field names are generated depends on the selected **Naming Strategy**:
+
+#### Default Strategy
+The plugin appends a number starting from 2 for additional pieces of information:
 ```yaml
 phone: +123456789
 phone_2: +987654321
-birthday: 1990-05-10
-birthday_2: 1992-07-15
 ```
 
-- You can define a **prefix** for the property names in the frontmatter. This allows you to avoid conflicts with existing properties and to better organize your notes. For example, if the prefix is `sync_`, the properties will be stored as:
+You can also define a **prefix** for the property names. For example, if the prefix is `sync_`, the properties will be stored as:
 
 ```yaml
 sync_id: CONTACT_ID
 sync_name: Full Name
 sync_email: email@example.com
 sync_phone: +123456789
-sync_birthday: 1990-05-10
 sync_synced: 2025-04-19T12:34:56.789Z
 ```
+
+#### VCF (vCard) Strategy
+Designed for full compatibility with the [VCF Contacts](https://github.com/broekema41/obsidian-vcf-contacts) plugin. It uses standard vCard field names and indexed notation for multiple values:
+
+```yaml
+FN: Full Name
+TEL: +123456789
+TEL[2]: +987654321
+EMAIL: email@example.com
+ADR.CITY: New York
+CATEGORIES: Friends, Work
+```
+
+> [!IMPORTANT]
+> To ensure strict vCard compatibility, the following settings are **ignored** when the VCF strategy is active:
+> - **Property name prefix** (keys always use standard vCard names).
+> - **Organization as link** (organizations stored as plain text).
+> - **Track last sync time** (no `synced` field added).
 
 - If no matching file exists, a new note is created with the following structure:
     

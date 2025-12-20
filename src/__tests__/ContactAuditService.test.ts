@@ -77,19 +77,29 @@ describe('ContactAuditService', () => {
   });
 
   it('should handle fetchGoogleGroups failure', async () => {
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     (googleService.fetchGoogleGroups as jest.Mock).mockRejectedValue(
       new Error('Fail')
     );
     await service.auditContacts('token');
     expect(mockVault.create).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 
   it('should handle fetchGoogleContacts failure', async () => {
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     (googleService.fetchGoogleContacts as jest.Mock).mockRejectedValue(
       new Error('Fail')
     );
     await service.auditContacts('token');
     expect(mockVault.create).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 
   it('should identify orphaned contacts correctly', async () => {
