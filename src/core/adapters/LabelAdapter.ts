@@ -25,11 +25,12 @@ export class LabelAdapter implements FieldAdapter {
     });
 
     if (labels.length > 0) {
-      // Formatter expects value to be string or string[].
-      // However, extraction result is array of results.
-      // The original code put all labels into a single field 'labels' which was an array of strings.
-      // My interface says `value: string | string[]`.
-      // So I can return one ExtractionResult where value is string[].
+      const isVcfStrategy = context?.namingStrategy === 'VcfNamingStrategy';
+      if (isVcfStrategy) {
+        // For VCF strategy, return as a comma-separated string
+        return [{ value: labels.join(', ') }];
+      }
+      // For default strategy, return as an array of strings
       return [{ value: labels }];
     }
     return [];

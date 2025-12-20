@@ -1,5 +1,6 @@
 import { createDefaultFormatter } from '../../core/Formatter';
 import { GoogleContact } from '../../types/Contact';
+import { NamingStrategy } from '../../types/Settings';
 
 describe('Formatter', () => {
   const formatter = createDefaultFormatter();
@@ -138,6 +139,26 @@ describe('Formatter', () => {
 
     expect(result).toMatchObject({
       [`${prefix}name`]: 'Acme Corp',
+    });
+  });
+
+  it('handles labels as comma-separated string in VCF strategy', () => {
+    const vcfFormatter = createDefaultFormatter(NamingStrategy.VCF);
+    const contactWithLabels: GoogleContact = {
+      resourceName: 'people/lbl',
+      memberships: [
+        { contactGroupMembership: { contactGroupId: 'group1' } },
+        { contactGroupMembership: { contactGroupId: 'group2' } },
+      ],
+    };
+    const labelMap = { group1: 'Friends', group2: 'Family' };
+
+    const result = vcfFormatter.generateFrontmatter(contactWithLabels, '', {
+      labelMap,
+    });
+
+    expect(result).toMatchObject({
+      CATEGORIES: 'Friends, Family',
     });
   });
 });
