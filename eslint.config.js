@@ -1,6 +1,7 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
+import boundaries from 'eslint-plugin-boundaries';
 
 export default tseslint.config(
   {
@@ -11,6 +12,57 @@ export default tseslint.config(
   ...tseslint.configs.stylisticTypeChecked,
   prettier,
   {
+    plugins: {
+      boundaries,
+    },
+    settings: {
+      'boundaries/elements': [
+        {
+          type: 'entry',
+          pattern: 'src/main.ts',
+        },
+        {
+          type: 'core',
+          pattern: 'src/core/**/*',
+        },
+        {
+          type: 'plugin',
+          pattern: 'src/plugin/**/*',
+        },
+        {
+          type: 'services',
+          pattern: 'src/services/**/*',
+        },
+        {
+          type: 'auth',
+          pattern: 'src/auth/**/*',
+        },
+        {
+          type: 'types',
+          pattern: 'src/types/**/*',
+        },
+        {
+          type: 'utils',
+          pattern: 'src/utils/**/*',
+        },
+        {
+          type: 'i18n',
+          pattern: 'src/i18n/**/*',
+        },
+        {
+          type: 'config',
+          pattern: 'src/config/**/*',
+        },
+        {
+          type: 'tests',
+          pattern: 'src/__tests__/**/*',
+        },
+        {
+          type: 'mocks',
+          pattern: 'src/__mocks__/**/*',
+        },
+      ],
+    },
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -18,6 +70,96 @@ export default tseslint.config(
       },
     },
     rules: {
+      'boundaries/entry-point': [
+        'error',
+        {
+          default: 'allow',
+        },
+      ],
+      'boundaries/no-private': 'error',
+      'boundaries/element-types': [
+        'error',
+        {
+          default: 'disallow',
+          rules: [
+            {
+              from: 'entry',
+              allow: [
+                'core',
+                'plugin',
+                'services',
+                'auth',
+                'types',
+                'utils',
+                'i18n',
+                'config',
+              ],
+            },
+            {
+              from: 'core',
+              allow: [
+                'types',
+                'utils',
+                'config',
+                'i18n',
+                'core',
+              ],
+            },
+            {
+              from: 'plugin',
+              allow: [
+                'core',
+                'services',
+                'auth',
+                'types',
+                'utils',
+                'i18n',
+                'config',
+                'plugin',
+              ],
+            },
+            {
+              from: 'services',
+              allow: ['types', 'utils', 'config', 'services'],
+            },
+            {
+              from: 'auth',
+              allow: ['types', 'utils', 'config', 'auth'],
+            },
+            {
+              from: 'types',
+              allow: ['types'],
+            },
+            {
+              from: 'utils',
+              allow: ['utils'],
+            },
+            {
+              from: 'i18n',
+              allow: ['i18n', 'types'],
+            },
+            {
+              from: 'config',
+              allow: ['config'],
+            },
+            {
+              from: 'tests',
+              allow: [
+                'core',
+                'plugin',
+                'services',
+                'auth',
+                'types',
+                'utils',
+                'i18n',
+                'config',
+                'mocks',
+                'tests',
+              ],
+            },
+          ],
+        },
+      ],
       curly: ['error', 'all'],
       eqeqeq: ['error', 'always'],
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],

@@ -7,8 +7,8 @@ import {
 } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
-import { createDefaultFormatter } from './Formatter';
-import { VaultService } from 'src/services/VaultService';
+import { createDefaultFormatter } from '../core/Formatter';
+import { VaultService } from './VaultService';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 import { NamingStrategy } from 'src/types/Settings';
 

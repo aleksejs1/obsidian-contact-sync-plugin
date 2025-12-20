@@ -1,5 +1,5 @@
 import { MockMetadataCache } from 'src/__mocks__/obsidian';
-import { ContactNoteWriter } from '../../core/ContactNoteWriter';
+import { ContactNoteWriter } from '../../services/ContactNoteWriter';
 import { Vault, TFile, FileStats, MetadataCache, FileManager } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';

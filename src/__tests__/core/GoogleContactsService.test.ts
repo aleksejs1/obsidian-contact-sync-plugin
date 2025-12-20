@@ -1,4 +1,4 @@
-import { GoogleContactsService } from '../../core/GoogleContactsService';
+import { GoogleContactsService } from '../../services/GoogleContactsService';
 import { requestUrl } from 'obsidian';
 import {
   URL_PEOPLE_CONNECTIONS,

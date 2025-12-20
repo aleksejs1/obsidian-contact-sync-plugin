@@ -3,10 +3,10 @@ import { ContactSyncSettingTab } from './plugin/settings';
 import { DEFAULT_SETTINGS } from './config';
 import { Plugin, Notice } from 'obsidian';
 import { AuthManager } from './auth/AuthManager';
-import { GoogleContactsService } from './core/GoogleContactsService';
-import { ContactNoteWriter } from './core/ContactNoteWriter';
+import { GoogleContactsService } from './services/GoogleContactsService';
+import { ContactNoteWriter } from './services/ContactNoteWriter';
 import { ContactNoteConfig } from './types/ContactNoteConfig';
-import { ContactAuditService } from './core/ContactAuditService';
+import { ContactAuditService } from './services/ContactAuditService';
 import { t } from './i18n/translator';
 import type { GoogleContact } from './types/Contact';
 

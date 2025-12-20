@@ -4,7 +4,7 @@ import { getAuthUrl } from '../auth/getAuthUrl';
 import { IPlugin } from '../types/IPlugin';
 import { NamingStrategy } from 'src/types/Settings';
 import { t } from '../i18n/translator';
-import { FolderSuggest } from 'src/core/FolderSuggest';
+import { FolderSuggest } from './FolderSuggest';
 
 /**
  * Settings tab for the Google contacts sync plugin.

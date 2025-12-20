@@ -1,6 +1,6 @@
-import { ContactAuditService } from '../core/ContactAuditService';
+import { ContactAuditService } from '../services/ContactAuditService';
 import { App, TFolder, TFile } from 'obsidian'; // Mock these
-import { GoogleContactsService } from '../core/GoogleContactsService';
+import { GoogleContactsService } from '../services/GoogleContactsService';
 import { ContactSyncSettings } from '../types/Settings';
 import { getAllMarkdownFilesInFolder } from '../utils/getAllMarkdownFilesInFolder';
 
