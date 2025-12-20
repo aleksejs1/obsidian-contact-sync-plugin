@@ -6,7 +6,22 @@ export interface GoogleContact {
   resourceName: string;
 
   /** Array of name objects (usually contains a displayName) */
-  names?: { displayName: string }[];
+  names?: {
+    displayName?: string;
+    displayNameLastFirst?: string;
+    unstructuredName?: string;
+    familyName?: string;
+    givenName?: string;
+    middleName?: string;
+    honorificPrefix?: string;
+    honorificSuffix?: string;
+    phoneticFullName?: string;
+    phoneticFamilyName?: string;
+    phoneticGivenName?: string;
+    phoneticMiddleName?: string;
+    phoneticHonorificPrefix?: string;
+    phoneticHonorificSuffix?: string;
+  }[];
 
   /** Array of email address objects */
   emailAddresses?: { value: string }[];

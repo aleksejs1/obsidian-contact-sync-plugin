@@ -2,6 +2,7 @@ import { GoogleContact } from 'src/types/Contact';
 import { FieldAdapter, KeyNamingStrategy } from './interfaces';
 import { DefaultNamingStrategy } from './strategies/DefaultNamingStrategy';
 import { NameAdapter } from './adapters/NameAdapter';
+import { FormattedNameAdapter } from './adapters/FormattedNameAdapter';
 import { EmailAdapter } from './adapters/EmailAdapter';
 import { PhoneAdapter } from './adapters/PhoneAdapter';
 import { BioAdapter } from './adapters/BioAdapter';
@@ -35,8 +36,14 @@ export class Formatter {
   ): Record<string, string | string[]> {
     const frontmatter: Record<string, string | string[]> = {};
 
+    // Add strategy name to context so adapters can conditionally extract fields
+    const strategyContext = {
+      ...context,
+      namingStrategy: this.strategy.constructor.name,
+    };
+
     for (const [fieldId, adapter] of Object.entries(this.adapters)) {
-      const results = adapter.extract(contact, context);
+      const results = adapter.extract(contact, strategyContext);
 
       results.forEach((result, arrayIndex) => {
         // Use result.index if present (for grouping subfields),
@@ -92,6 +99,7 @@ export function createDefaultFormatter(
 
   if (strategyType === NamingStrategy.VCF) {
     adapters.googleId = new GoogleIdAdapter();
+    adapters.formattedName = new FormattedNameAdapter();
   } else {
     // For Default strategy, use 'id' as the key
     adapters.id = new GoogleIdAdapter();

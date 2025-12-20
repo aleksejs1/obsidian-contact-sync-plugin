@@ -11,8 +11,8 @@ export class VcfNamingStrategy implements KeyNamingStrategy {
     birthday: 'BDAY',
     website: 'URL',
     googleId: 'X-GOOGLE-ID',
-    // Default fallback (though we should map all known fields)
-    name: 'FN',
+    formattedName: 'FN', // VCard FN property for formatted/display name
+    name: 'N', // VCard N property for structured name
     department: 'ROLE', // VCard ROLE property seems appropriate for department/role
     labels: 'CATEGORIES',
     biographies: 'NOTE', // Map biographies to NOTE as well

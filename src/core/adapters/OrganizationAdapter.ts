@@ -12,8 +12,8 @@ export class OrganizationAdapter implements FieldAdapter {
   ): ExtractionResult[] {
     const organizationAsLink = context?.organizationAsLink as boolean;
     const isVcfStrategy =
-      context?.namingStrategy === 'VCF' || context?.namingStrategy === 'VCF';
-
+      context?.namingStrategy === 'VcfNamingStrategy' ||
+      context?.namingStrategy === 'VcfNamingStrategy';
     return (contact.organizations || [])
       .map((org) => org.name)
       .filter((name) => !!name)
