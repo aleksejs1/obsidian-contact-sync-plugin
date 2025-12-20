@@ -12,7 +12,8 @@
     "clean": "rm -rf dist",
     "build": "npm run clean && npx rollup -c",
     "doc": "npx typedoc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:deps": "depcruise src"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
     "@types/jest": "^29.5.14",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
+    "dependency-cruiser": "^17.3.4",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
     "husky": "^9.1.7",
