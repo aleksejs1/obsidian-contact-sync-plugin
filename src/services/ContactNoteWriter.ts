@@ -189,9 +189,7 @@ export class ContactNoteWriter {
    *
    * @param contact - The Google contact to generate a filename for.
    * @param id - The contact ID.
-   * @param folderPath - The folder path where the note will be stored.
-   * @param prefix - The prefix to use for the filename.
-   * @param lastFirst - Whether to format the name as Last First.
+   * @param context - The context containing folder path, prefix, and naming preferences.
    * @returns The generated filename, or null if the name is not available.
    */
   private getFilename(
@@ -240,6 +238,12 @@ export class ContactNoteWriter {
     return null;
   }
 
+  /**
+   * @param name The name to normalize.
+   * @param folderPath The folder path where the note will be stored.
+   * @param prefix The prefix to use for the filename.
+   * @returns Noralized filename with path and user defined prefix.
+   */
   private getNormalizedFilename(
     name: string,
     folderPath: string,
@@ -249,6 +253,11 @@ export class ContactNoteWriter {
     return normalizePath(`${folderPath}/${prefix}${safeName}.md`);
   }
 
+  /**
+   * @param contact Source google contact
+   * @param lastFirst If the last name should be first
+   * @returns The last name first formatted display name, or null if not available or wrong strategy.
+   */
   private getLastFirstName(contact: GoogleContact, lastFirst: boolean) {
     if (!lastFirst) {
       return null;
