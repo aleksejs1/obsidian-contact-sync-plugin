@@ -3,12 +3,19 @@ import {
   URL_CONTACT_GROUPS,
   URL_PEOPLE_CONNECTIONS,
   PERSONAL_FIELDS,
+  URL_PEOPLE_OTHER_CONTACTS,
+  OTHER_CONTACTS_FIELDS,
 } from '../config';
 import type { GoogleContact, GoogleContactGroup } from '../types/Contact';
 import { RequestUrlResponse } from 'obsidian';
 
 interface PeopleConnectionsResponse {
   connections?: GoogleContact[] | undefined;
+  nextPageToken?: string | undefined;
+}
+
+interface OtherContactsResponse {
+  otherContacts?: GoogleContact[] | undefined;
   nextPageToken?: string | undefined;
 }
 
@@ -32,6 +39,19 @@ export class GoogleContactsService {
    * @returns An array of Google contact objects.
    */
   async fetchGoogleContacts(token: string): Promise<GoogleContact[]> {
+    const [connections, otherContacts] = await Promise.all([
+      this.fetchConnections(token),
+      this.fetchOtherContacts(token),
+    ]);
+    return [...connections, ...otherContacts];
+  }
+
+  /**
+   * Fetches the list of Google contacts (people/me/connections) using the provided access token.
+   * @param token OAuth access token.
+   * @returns An array of Google contact objects.
+   */
+  private async fetchConnections(token: string): Promise<GoogleContact[]> {
     let allContacts: GoogleContact[] = [];
     let nextPageToken: string | undefined = undefined;
     let data: PeopleConnectionsResponse = {
@@ -62,6 +82,48 @@ export class GoogleContactsService {
         };
       }
       allContacts = allContacts.concat(data.connections ?? []);
+      nextPageToken = data.nextPageToken;
+    } while (nextPageToken);
+
+    return allContacts;
+  }
+
+  /**
+   * Fetches the list of "Other contacts" using the provided access token.
+   * @param token OAuth access token.
+   * @returns An array of Google contact objects from "Other contacts".
+   */
+  private async fetchOtherContacts(token: string): Promise<GoogleContact[]> {
+    let allContacts: GoogleContact[] = [];
+    let nextPageToken: string | undefined = undefined;
+    let data: OtherContactsResponse = {
+      otherContacts: [],
+      nextPageToken: undefined,
+    };
+
+    do {
+      const url = `${URL_PEOPLE_OTHER_CONTACTS}?readMask=${OTHER_CONTACTS_FIELDS}&pageSize=1000${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
+
+      try {
+        const res: RequestUrlResponse = await requestUrl({
+          url,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        data = (await res.json) as OtherContactsResponse;
+      } catch (error) {
+        console.error(
+          'Failed to fetch Other contacts',
+          JSON.stringify(error, null, 2)
+        );
+        data = {
+          otherContacts: [],
+          nextPageToken: undefined,
+        };
+      }
+      allContacts = allContacts.concat(data.otherContacts ?? []);
       nextPageToken = data.nextPageToken;
     } while (nextPageToken);
 
