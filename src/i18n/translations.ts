@@ -85,6 +85,10 @@ export const ru = {
   File: 'Файл',
   'Contact ID': 'ID контакта',
   'Audit complete. Report saved to': 'Аудит завершен. Отчет сохранен в',
+  'Format file names as Last First':
+    'Форматировать имена файлов как Фамилия Имя',
+  'If enabled, contact file names will be formatted as Last First instead of First Last':
+    'Если включено, имена файлов контактов будут форматироваться как Фамилия Имя вместо Имя Фамилия',
 };
 
 /**
@@ -174,6 +178,10 @@ export const lv = {
   File: 'Fails',
   'Contact ID': 'Kontakta ID',
   'Audit complete. Report saved to': 'Audits pabeigts. Pārskats saglabāts',
+  'Format file names as Last First':
+    'Formatēt failu nosaukumus kā Uzvārds Vārds',
+  'If enabled, contact file names will be formatted as Last First instead of First Last':
+    'Ja iespējots, kontaktu failu nosaukumi tiks formatēti kā Uzvārds Vārds, nevis Vārds Uzvārds',
 };
 
 /**
@@ -262,4 +270,7 @@ export const en = {
   File: 'File',
   'Contact ID': 'Contact ID',
   'Audit complete. Report saved to': 'Audit complete. Report saved to',
+  'Format file names as Last First': 'Format file names as Last First',
+  'If enabled, contact file names will be formatted as Last First instead of First Last':
+    'If enabled, contact file names will be formatted as Last First instead of First Last',
 };

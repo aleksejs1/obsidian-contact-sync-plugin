@@ -19,6 +19,8 @@ Each contact becomes a separate note with YAML frontmatter for metadata and free
 
 - 📛 Filename prefix support (e.g. `p Ivan Ivanov.md`)
 
+- 🏷️ Customizable naming strategy for filenames as last name first (e.g. `p Ivanov Ivan.md`)
+
 - 🧩 Multiple naming strategies for frontmatter keys:
     - **Default**: Customizable prefix (e.g., `s_name`, `s_email_2`).
     - **VCF (vCard)**: Fully compatible with the [VCF Contacts](https://github.com/broekema41/obsidian-vcf-contacts) plugin.

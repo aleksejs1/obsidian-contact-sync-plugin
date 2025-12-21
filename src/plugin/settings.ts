@@ -87,6 +87,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(t('Format file names as Last First'))
+      .setDesc(
+        t(
+          'If enabled, contact file names will be formatted as Last First instead of First Last'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.lastFirst)
+          .onChange(async (value) => {
+            this.plugin.settings.lastFirst = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName(t('Naming strategy'))
       .setDesc(t('Strategy to generate frontmatter keys from contact data'))
       .addDropdown((dropdown) =>

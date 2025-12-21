@@ -10,4 +10,5 @@ export interface ContactNoteConfig {
   trackSyncTime: boolean;
   renameFiles: boolean;
   namingStrategy: NamingStrategy;
+  lastFirst: boolean;
 }

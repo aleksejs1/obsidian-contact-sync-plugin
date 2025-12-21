@@ -52,6 +52,9 @@ export interface ContactSyncSettings {
 
   /** Naming strategy to use for contact properties */
   namingStrategy: NamingStrategy;
+
+  /** Whether to format names as Last, First */
+  lastFirst: boolean;
 }
 
 export enum NamingStrategy {

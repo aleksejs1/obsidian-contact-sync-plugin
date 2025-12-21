@@ -212,6 +212,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       trackSyncTime: this.settings.trackSyncTime,
       renameFiles: this.settings.renameFiles,
       namingStrategy: this.settings.namingStrategy,
+      lastFirst: this.settings.lastFirst,
     };
   }
 

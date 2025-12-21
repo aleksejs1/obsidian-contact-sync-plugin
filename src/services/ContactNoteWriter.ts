@@ -117,7 +117,8 @@ export class ContactNoteWriter {
       contact,
       id,
       config.folderPath,
-      config.prefix
+      config.prefix,
+      config.lastFirst
     );
     if (!filename) {
       return;
@@ -190,23 +191,35 @@ export class ContactNoteWriter {
    * @param id - The contact ID.
    * @param folderPath - The folder path where the note will be stored.
    * @param prefix - The prefix to use for the filename.
+   * @param lastFirst - Whether to format the name as Last, First.
    * @returns The generated filename, or null if the name is not available.
    */
   private getFilename(
     contact: GoogleContact,
     id: string,
     folderPath: string,
-    prefix: string
-  ): string | null {
-    // Try displayName first, then organization name, then fall back to ID
+    prefix: string,
+    lastFirst: boolean
+  ): string {
     const name =
-      contact.names?.[0]?.displayName ?? contact.organizations?.[0]?.name ?? id;
-    if (!name) {
+      this.getLastFirstName(contact, lastFirst) ??
+      contact.names?.[0]?.displayName ??
+      contact.organizations?.[0]?.name ??
+      id;
+    const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
+    return normalizePath(`${folderPath}/${prefix}${safeName}.md`);
+  }
+
+  /**
+   * @param contact Source google contact
+   * @param lastFirst If the last name should be first
+   * @returns The last name first formatted display name, or null if not available or wrong strategy.
+   */
+  private getLastFirstName(contact: GoogleContact, lastFirst: boolean) {
+    if (!lastFirst) {
       return null;
     }
-    const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
-    const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
-    return filename;
+    return contact.names?.[0]?.displayNameLastFirst?.replace(/,/g, '');
   }
 
   /**
