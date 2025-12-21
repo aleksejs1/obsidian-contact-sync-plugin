@@ -8,6 +8,7 @@ describe('Formatter', () => {
 
   const mockContact: GoogleContact = {
     resourceName: 'people/123',
+    etag: 'etag-123',
     names: [{ displayName: 'Alice Smith' }],
     emailAddresses: [{ value: 'alice@example.com' }],
     phoneNumbers: [{ value: '+1234567890' }, { value: '' }],
@@ -44,6 +45,7 @@ describe('Formatter', () => {
 
   const mockContactMultiple: GoogleContact = {
     resourceName: 'people/123',
+    etag: 'etag-123',
     names: [{ displayName: 'Alice Smith' }],
     emailAddresses: [
       { value: 'primary@example.com' },
@@ -93,7 +95,7 @@ describe('Formatter', () => {
   });
 
   it('handles empty contact fields gracefully', () => {
-    const emptyContact: GoogleContact = { resourceName: 'people/empty' };
+    const emptyContact: GoogleContact = { resourceName: 'people/empty', etag: 'etag-empty' };
     const result = formatter.generateFrontmatter(emptyContact, prefix);
     // Empty contact still has Google ID
     expect(result).toEqual({ gc_id: 'empty' });
@@ -111,6 +113,7 @@ describe('Formatter', () => {
   it('handles labels correctly', () => {
     const contactWithLabels: GoogleContact = {
       resourceName: 'people/lbl',
+      etag: 'etag-lbl',
       memberships: [
         { contactGroupMembership: { contactGroupId: 'group1' } },
         { contactGroupMembership: { contactGroupId: 'group2' } },
@@ -130,6 +133,7 @@ describe('Formatter', () => {
   it('falls back to organization name if display name is missing', () => {
     const contactNoName: GoogleContact = {
       resourceName: 'people/noname',
+      etag: 'etag-noname',
       organizations: [
         { name: 'Acme Corp', title: 'CEO', department: 'Management' },
       ],
@@ -146,6 +150,7 @@ describe('Formatter', () => {
     const vcfFormatter = createDefaultFormatter(NamingStrategy.VCF);
     const contactWithLabels: GoogleContact = {
       resourceName: 'people/lbl',
+      etag: 'etag-lbl',
       memberships: [
         { contactGroupMembership: { contactGroupId: 'group1' } },
         { contactGroupMembership: { contactGroupId: 'group2' } },
@@ -166,6 +171,7 @@ describe('Formatter', () => {
     const vcfFormatter = createDefaultFormatter(NamingStrategy.VCF);
     const contactWithAddr: GoogleContact = {
       resourceName: 'people/addr',
+      etag: 'etag-addr',
       addresses: [
         {
           streetAddress: '123 Main St',

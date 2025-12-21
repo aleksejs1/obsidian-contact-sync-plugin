@@ -59,6 +59,51 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: 'upload-contact-note',
+      name: 'Upload Note to Google Contact',
+      editorCallback: async (_editor, view) => {
+        const file = view.file;
+        if (!file) {
+          return;
+        }
+
+        const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
+        const googleId = frontmatter?.googleId as string | undefined;
+
+        if (!googleId) {
+          new Notice(t('No Google ID found in this note.'));
+          return;
+        }
+
+        const token = await this.getToken();
+        if (!token) {
+          return;
+        }
+
+        let content = await this.app.vault.read(file);
+
+        // Remove frontmatter
+        const frontmatterRegex = /^---\n[\s\S]*?\n---\n/;
+        const match = frontmatterRegex.exec(content);
+        if (match) {
+          content = content.replace(match[0], '');
+        }
+
+        const success = await this.googleService?.updateContactNote(
+          googleId,
+          content.trim(),
+          token
+        );
+
+        if (success) {
+          new Notice(t('Note uploaded to Google Contact!'));
+        } else {
+          new Notice(t('Failed to upload note. See console for details.'));
+        }
+      },
+    });
+
     await this.loadSettings();
     this.auth = new AuthManager(this.settings);
     this.addSettingTab(new ContactSyncSettingTab(this.app, this));

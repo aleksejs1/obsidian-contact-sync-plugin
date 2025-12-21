@@ -5,6 +5,9 @@ export interface GoogleContact {
   /** Unique resource identifier for the contact (e.g., "people/c123...") */
   resourceName: string;
 
+  /** ETag of the resource for concurrency control */
+  etag: string;
+
   /** Array of name objects (usually contains a displayName) */
   names?: {
     displayName?: string;
@@ -56,6 +59,21 @@ export interface GoogleContact {
     title: string;
     department: string;
   }[];
+
+  /** User defined data */
+  userDefined?: {
+    key: string;
+    value: string;
+  }[];
+
+  /** Metadata about the contact */
+  metadata?: {
+    sources: {
+      type: string;
+      id: string;
+    }[];
+    objectType?: string;
+  };
 }
 
 /**

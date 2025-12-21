@@ -20,7 +20,7 @@ class Formatter {
   constructor(
     private adapters: Record<string, FieldAdapter>,
     private strategy: KeyNamingStrategy
-  ) {}
+  ) { }
 
   /**
    * Generates a frontmatter object from a Google Contact.

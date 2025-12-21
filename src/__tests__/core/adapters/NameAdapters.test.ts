@@ -12,6 +12,7 @@ describe('Name Adapters', () => {
       it('extracts displayName for VCF strategy', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [{ displayName: 'John Smith' }],
         };
         const results = adapter.extract(contact, vcfContext);
@@ -22,6 +23,7 @@ describe('Name Adapters', () => {
       it('falls back to organization name when displayName is missing', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           organizations: [{ name: 'Acme Corp', title: '', department: '' }],
         };
         const results = adapter.extract(contact, vcfContext);
@@ -32,6 +34,7 @@ describe('Name Adapters', () => {
       it('returns empty array when no displayName or organization', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
         };
         const results = adapter.extract(contact, vcfContext);
         expect(results).toEqual([]);
@@ -44,6 +47,7 @@ describe('Name Adapters', () => {
       it('returns empty array for default strategy', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [{ displayName: 'John Smith' }],
         };
         const results = adapter.extract(contact, defaultContext);
@@ -53,6 +57,7 @@ describe('Name Adapters', () => {
       it('returns empty array when no context provided', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [{ displayName: 'John Smith' }],
         };
         const results = adapter.extract(contact);
@@ -70,6 +75,7 @@ describe('Name Adapters', () => {
       it('extracts displayName for default strategy', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [{ displayName: 'John Smith' }],
         };
         const results = adapter.extract(contact, defaultContext);
@@ -80,6 +86,7 @@ describe('Name Adapters', () => {
       it('extracts multiple displayNames', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [{ displayName: 'John Smith' }, { displayName: 'Jane Doe' }],
         };
         const results = adapter.extract(contact, defaultContext);
@@ -91,6 +98,7 @@ describe('Name Adapters', () => {
       it('falls back to organization name when displayName is missing', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           organizations: [{ name: 'Acme Corp', title: '', department: '' }],
         };
         const results = adapter.extract(contact, defaultContext);
@@ -101,6 +109,7 @@ describe('Name Adapters', () => {
       it('returns empty array when no displayName or organization', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
         };
         const results = adapter.extract(contact, defaultContext);
         expect(results).toEqual([]);
@@ -113,6 +122,7 @@ describe('Name Adapters', () => {
       it('extracts all structured name fields', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [
             {
               displayName: 'Dr. John Michael Smith Jr.',
@@ -137,6 +147,7 @@ describe('Name Adapters', () => {
       it('all subfields have the same index', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [
             {
               givenName: 'John',
@@ -154,6 +165,7 @@ describe('Name Adapters', () => {
       it('extracts phonetic name fields', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [
             {
               phoneticFullName: 'Jon Sumisu',
@@ -191,6 +203,7 @@ describe('Name Adapters', () => {
       it('handles multiple names with different indices', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [
             {
               givenName: 'John',
@@ -228,6 +241,7 @@ describe('Name Adapters', () => {
       it('handles partial name data', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [
             {
               givenName: 'John',
@@ -245,6 +259,7 @@ describe('Name Adapters', () => {
       it('falls back to organization name when no names', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
           organizations: [{ name: 'Acme Corp', title: '', department: '' }],
         };
         const results = adapter.extract(contact, vcfContext);
@@ -256,6 +271,7 @@ describe('Name Adapters', () => {
       it('returns empty array when no names or organizations', () => {
         const contact: GoogleContact = {
           resourceName: 'people/123',
+          etag: 'etag-123',
         };
         const results = adapter.extract(contact, vcfContext);
 

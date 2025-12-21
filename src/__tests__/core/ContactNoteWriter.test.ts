@@ -101,6 +101,7 @@ describe('ContactNoteWriter', () => {
       const mockContacts: GoogleContact[] = [
         {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [{ displayName: 'Alice Smith' }],
           emailAddresses: [{ value: 'alice@example.com' }],
         },
@@ -144,6 +145,7 @@ describe('ContactNoteWriter', () => {
       const mockContacts: GoogleContact[] = [
         {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [{ displayName: 'Alice Smith' }],
           emailAddresses: [{ value: 'alice@example.com' }],
           memberships: [
@@ -194,6 +196,7 @@ describe('ContactNoteWriter', () => {
       const mockContacts: GoogleContact[] = [
         {
           resourceName: 'people/123',
+          etag: 'etag-123',
           emailAddresses: [{ value: 'alice@example.com' }],
           memberships: [
             {
@@ -243,6 +246,7 @@ describe('ContactNoteWriter', () => {
       const mockContacts: GoogleContact[] = [
         {
           resourceName: '',
+          etag: '',
           names: [],
           emailAddresses: [{ value: 'alice@example.com' }],
         },
@@ -283,6 +287,7 @@ describe('ContactNoteWriter', () => {
       const mockContacts: GoogleContact[] = [
         {
           resourceName: 'people/123',
+          etag: 'etag-123',
           names: [{ displayName: 'Alice Smith' }],
           emailAddresses: [{ value: 'alice@example.com' }],
         },
@@ -357,6 +362,7 @@ describe('ContactNoteWriter', () => {
     it('should return true if contact has the sync label', () => {
       const mockContact: GoogleContact = {
         resourceName: 'people/123',
+        etag: 'etag-123',
         memberships: [
           {
             contactGroupMembership: {
@@ -379,6 +385,7 @@ describe('ContactNoteWriter', () => {
     it('should return false if contact does not have the sync label', () => {
       const mockContact: GoogleContact = {
         resourceName: 'people/123',
+        etag: 'etag-123',
         memberships: [
           {
             contactGroupMembership: {
@@ -401,6 +408,7 @@ describe('ContactNoteWriter', () => {
     it('should return false if contact have no labels', () => {
       const mockContact: GoogleContact = {
         resourceName: 'people/123',
+        etag: 'etag-123',
         memberships: [{}],
       };
       const mockLabelMap = { family: 'group1' };
