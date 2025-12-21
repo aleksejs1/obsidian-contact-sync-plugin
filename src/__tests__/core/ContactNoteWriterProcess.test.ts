@@ -115,6 +115,7 @@ describe('ContactNoteWriterUpdate', () => {
         trackSyncTime: true,
         renameFiles: false,
         namingStrategy: NamingStrategy.Default,
+        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -160,6 +161,7 @@ describe('ContactNoteWriterUpdate', () => {
         trackSyncTime: true,
         renameFiles: false,
         namingStrategy: NamingStrategy.Default,
+        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(

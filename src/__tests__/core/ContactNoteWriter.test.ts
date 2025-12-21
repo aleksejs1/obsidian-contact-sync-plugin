@@ -125,6 +125,7 @@ describe('ContactNoteWriter', () => {
         trackSyncTime: true,
         renameFiles: false,
         namingStrategy: NamingStrategy.Default,
+        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -174,6 +175,7 @@ describe('ContactNoteWriter', () => {
         trackSyncTime: true,
         renameFiles: false,
         namingStrategy: NamingStrategy.Default,
+        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -222,6 +224,7 @@ describe('ContactNoteWriter', () => {
         trackSyncTime: true,
         renameFiles: false,
         namingStrategy: NamingStrategy.Default,
+        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -264,6 +267,7 @@ describe('ContactNoteWriter', () => {
         trackSyncTime: true,
         renameFiles: false,
         namingStrategy: NamingStrategy.Default,
+        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -304,6 +308,7 @@ describe('ContactNoteWriter', () => {
         trackSyncTime: true,
         renameFiles: false,
         namingStrategy: NamingStrategy.Default,
+        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(

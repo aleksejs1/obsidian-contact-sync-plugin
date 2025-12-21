@@ -37,4 +37,5 @@ export const DEFAULT_SETTINGS: ContactSyncSettings = {
   organizationAsLink: false,
   renameFiles: false,
   namingStrategy: NamingStrategy.Default,
+  lastFirst: false,
 };

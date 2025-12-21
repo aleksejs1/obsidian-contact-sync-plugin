@@ -113,12 +113,13 @@ export class ContactNoteWriter {
       return;
     }
 
-    let filename = this.getFilename(
-      contact,
-      id,
-      config.folderPath,
-      config.prefix
-    );
+    const filenameContext = {
+      folderPath: config.folderPath,
+      prefix: config.prefix,
+      lastFirst: config.lastFirst,
+    };
+
+    let filename = this.getFilename(contact, id, filenameContext);
     if (!filename) {
       return;
     }
@@ -190,23 +191,69 @@ export class ContactNoteWriter {
    * @param id - The contact ID.
    * @param folderPath - The folder path where the note will be stored.
    * @param prefix - The prefix to use for the filename.
+   * @param lastFirst - Whether to format the name as Last First.
    * @returns The generated filename, or null if the name is not available.
    */
   private getFilename(
     contact: GoogleContact,
     id: string,
+    context: Record<string, string | boolean>
+  ): string | null {
+    const displayNameLastFirst = this.getLastFirstName(
+      contact,
+      context.lastFirst as boolean
+    );
+    if (displayNameLastFirst) {
+      return this.getNormalizedFilename(
+        displayNameLastFirst,
+        context.folderPath as string,
+        context.prefix as string
+      );
+    }
+
+    const displayName = contact.names?.[0]?.displayName;
+    if (displayName) {
+      return this.getNormalizedFilename(
+        displayName,
+        context.folderPath as string,
+        context.prefix as string
+      );
+    }
+
+    const organizationName = contact.organizations?.[0]?.name;
+    if (organizationName) {
+      return this.getNormalizedFilename(
+        organizationName,
+        context.folderPath as string,
+        context.prefix as string
+      );
+    }
+
+    if (id) {
+      return this.getNormalizedFilename(
+        id,
+        context.folderPath as string,
+        context.prefix as string
+      );
+    }
+
+    return null;
+  }
+
+  private getNormalizedFilename(
+    name: string,
     folderPath: string,
     prefix: string
-  ): string | null {
-    // Try displayName first, then organization name, then fall back to ID
-    const name =
-      contact.names?.[0]?.displayName ?? contact.organizations?.[0]?.name ?? id;
-    if (!name) {
+  ): string {
+    const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
+    return normalizePath(`${folderPath}/${prefix}${safeName}.md`);
+  }
+
+  private getLastFirstName(contact: GoogleContact, lastFirst: boolean) {
+    if (!lastFirst) {
       return null;
     }
-    const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
-    const filename = normalizePath(`${folderPath}/${prefix}${safeName}.md`);
-    return filename;
+    return contact.names?.[0]?.displayNameLastFirst?.replace(/,/g, '');
   }
 
   /**
