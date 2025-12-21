@@ -1,12 +1,13 @@
 import { FieldAdapter, ExtractionResult } from '../interfaces';
 import { GoogleContact } from '../../types/Contact';
+import { NamingStrategy } from 'src/types/Settings';
 
 export class NameAdapter implements FieldAdapter {
   extract(
     contact: GoogleContact,
     context?: Record<string, unknown>
   ): ExtractionResult[] {
-    const isVcfStrategy = context?.namingStrategy === 'VcfNamingStrategy';
+    const isVcfStrategy = context?.namingStrategy === NamingStrategy.VCF;
 
     if (isVcfStrategy) {
       return this.extractVcf(contact);

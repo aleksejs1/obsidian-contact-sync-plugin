@@ -12,10 +12,7 @@ export class AddressAdapter implements FieldAdapter {
       return [];
     }
 
-    // Check if we're using VCF strategy
-    const isVcfStrategy =
-      context?.namingStrategy === NamingStrategy.VCF ||
-      context?.namingStrategy === 'VCF';
+    const isVcfStrategy = context?.namingStrategy === NamingStrategy.VCF;
 
     if (isVcfStrategy) {
       // For VCF strategy, return subfields

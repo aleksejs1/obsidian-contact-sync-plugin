@@ -36,10 +36,14 @@ class Formatter {
   ): Record<string, string | string[]> {
     const frontmatter: Record<string, string | string[]> = {};
 
+    const isVcfStrategy =
+      this.strategy.constructor.name === 'VcfNamingStrategy';
     // Add strategy name to context so adapters can conditionally extract fields
     const strategyContext = {
       ...context,
-      namingStrategy: this.strategy.constructor.name,
+      namingStrategy: isVcfStrategy
+        ? NamingStrategy.VCF
+        : NamingStrategy.Default,
     };
 
     for (const [fieldId, adapter] of Object.entries(this.adapters)) {

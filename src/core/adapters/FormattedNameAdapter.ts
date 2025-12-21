@@ -1,6 +1,6 @@
 import { FieldAdapter, ExtractionResult } from '../interfaces';
 import { GoogleContact } from '../../types/Contact';
-
+import { NamingStrategy } from 'src/types/Settings';
 /**
  * Adapter for extracting formatted name (FN in vCard).
  * This is the full display name of the contact.
@@ -11,7 +11,7 @@ export class FormattedNameAdapter implements FieldAdapter {
     context?: Record<string, unknown>
   ): ExtractionResult[] {
     const results: ExtractionResult[] = [];
-    const isVcfStrategy = context?.namingStrategy === 'VcfNamingStrategy';
+    const isVcfStrategy = context?.namingStrategy === NamingStrategy.VCF;
 
     // Only extract for VCF strategy
     if (!isVcfStrategy) {

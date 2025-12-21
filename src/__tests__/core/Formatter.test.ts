@@ -161,4 +161,31 @@ describe('Formatter', () => {
       CATEGORIES: 'Friends, Family',
     });
   });
+
+  it('splits address fields in VCF strategy', () => {
+    const vcfFormatter = createDefaultFormatter(NamingStrategy.VCF);
+    const contactWithAddr: GoogleContact = {
+      resourceName: 'people/addr',
+      addresses: [
+        {
+          streetAddress: '123 Main St',
+          city: 'Springfield',
+          country: 'USA',
+          postalCode: '12345',
+          formattedValue: '123 Main St\nSpringfield\nUSA',
+          formattedType: '',
+          extendedAddress: '',
+          type: '',
+          countryCode: '',
+        },
+      ],
+    };
+
+    const result = vcfFormatter.generateFrontmatter(contactWithAddr, '');
+
+    expect(result['ADR.STREET']).toBe('123 Main St');
+    expect(result['ADR.CITY']).toBe('Springfield');
+    expect(result['ADR.COUNTRY']).toBe('USA');
+    expect(result['ADR.POSTALCODE']).toBe('12345');
+  });
 });

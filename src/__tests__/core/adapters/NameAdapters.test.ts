@@ -7,7 +7,7 @@ describe('Name Adapters', () => {
     const adapter = new FormattedNameAdapter();
 
     describe('VCF Strategy', () => {
-      const vcfContext = { namingStrategy: 'VcfNamingStrategy' };
+      const vcfContext = { namingStrategy: 'VCF' };
 
       it('extracts displayName for VCF strategy', () => {
         const contact: GoogleContact = {
@@ -108,7 +108,7 @@ describe('Name Adapters', () => {
     });
 
     describe('VCF Strategy', () => {
-      const vcfContext = { namingStrategy: 'VcfNamingStrategy' };
+      const vcfContext = { namingStrategy: 'VCF' };
 
       it('extracts all structured name fields', () => {
         const contact: GoogleContact = {

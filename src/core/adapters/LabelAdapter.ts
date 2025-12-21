@@ -1,5 +1,6 @@
 import { FieldAdapter, ExtractionResult } from '../interfaces';
 import { GoogleContact } from '../../types/Contact';
+import { NamingStrategy } from 'src/types/Settings';
 
 export class LabelAdapter implements FieldAdapter {
   extract(
@@ -21,7 +22,7 @@ export class LabelAdapter implements FieldAdapter {
     });
 
     if (labels.length > 0) {
-      const isVcfStrategy = context?.namingStrategy === 'VcfNamingStrategy';
+      const isVcfStrategy = context?.namingStrategy === NamingStrategy.VCF;
       if (isVcfStrategy) {
         // For VCF strategy, return as a comma-separated string
         return [{ value: labels.join(', ') }];

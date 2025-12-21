@@ -1,5 +1,6 @@
 import { FieldAdapter, ExtractionResult } from '../interfaces';
 import { GoogleContact } from '../../types/Contact';
+import { NamingStrategy } from 'src/types/Settings';
 
 export class OrganizationAdapter implements FieldAdapter {
   extract(
@@ -7,9 +8,7 @@ export class OrganizationAdapter implements FieldAdapter {
     context?: Record<string, unknown>
   ): ExtractionResult[] {
     const organizationAsLink = context?.organizationAsLink as boolean;
-    const isVcfStrategy =
-      context?.namingStrategy === 'VcfNamingStrategy' ||
-      context?.namingStrategy === 'VcfNamingStrategy';
+    const isVcfStrategy = context?.namingStrategy === NamingStrategy.VCF;
     return (contact.organizations ?? [])
       .map((org) => org.name)
       .filter((name) => !!name)

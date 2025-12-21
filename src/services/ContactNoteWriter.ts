@@ -334,6 +334,12 @@ export class ContactNoteWriter {
       const idValue = frontmatter?.[idFieldName];
       if (typeof idValue === 'string' || typeof idValue === 'number') {
         idToFileMapping[String(idValue)] = file;
+      } else {
+        const vcfIdFieldName = `X-GOOGLE-ID`;
+        const vcfIdValue = frontmatter?.[vcfIdFieldName];
+        if (typeof vcfIdValue === 'string' || typeof vcfIdValue === 'number') {
+          idToFileMapping[String(vcfIdValue)] = file;
+        }
       }
     }
 

@@ -22,7 +22,7 @@ describe('LabelAdapter', () => {
   it('extracts labels as a comma-separated string for VCF strategy', () => {
     const results = adapter.extract(contactWithLabels, {
       labelMap,
-      namingStrategy: 'VcfNamingStrategy',
+      namingStrategy: 'VCF',
     });
     expect(results).toHaveLength(1);
     expect(results[0]!.value).toBe('Friends, Family');
