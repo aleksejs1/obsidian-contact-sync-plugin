@@ -113,13 +113,13 @@ export class ContactNoteWriter {
       return;
     }
 
-    const filenameContext = {
-      folderPath: config.folderPath,
-      prefix: config.prefix,
-      lastFirst: config.lastFirst,
-    };
-
-    let filename = this.getFilename(contact, id, filenameContext);
+    let filename = this.getFilename(
+      contact,
+      id,
+      config.folderPath,
+      config.prefix,
+      config.lastFirst
+    );
     if (!filename) {
       return;
     }
@@ -189,66 +189,23 @@ export class ContactNoteWriter {
    *
    * @param contact - The Google contact to generate a filename for.
    * @param id - The contact ID.
-   * @param context - The context containing folder path, prefix, and naming preferences.
+   * @param folderPath - The folder path where the note will be stored.
+   * @param prefix - The prefix to use for the filename.
+   * @param lastFirst - Whether to format the name as Last, First.
    * @returns The generated filename, or null if the name is not available.
    */
   private getFilename(
     contact: GoogleContact,
     id: string,
-    context: Record<string, string | boolean>
-  ): string | null {
-    const displayNameLastFirst = this.getLastFirstName(
-      contact,
-      context.lastFirst as boolean
-    );
-    if (displayNameLastFirst) {
-      return this.getNormalizedFilename(
-        displayNameLastFirst,
-        context.folderPath as string,
-        context.prefix as string
-      );
-    }
-
-    const displayName = contact.names?.[0]?.displayName;
-    if (displayName) {
-      return this.getNormalizedFilename(
-        displayName,
-        context.folderPath as string,
-        context.prefix as string
-      );
-    }
-
-    const organizationName = contact.organizations?.[0]?.name;
-    if (organizationName) {
-      return this.getNormalizedFilename(
-        organizationName,
-        context.folderPath as string,
-        context.prefix as string
-      );
-    }
-
-    if (id) {
-      return this.getNormalizedFilename(
-        id,
-        context.folderPath as string,
-        context.prefix as string
-      );
-    }
-
-    return null;
-  }
-
-  /**
-   * @param name The name to normalize.
-   * @param folderPath The folder path where the note will be stored.
-   * @param prefix The prefix to use for the filename.
-   * @returns Noralized filename with path and user defined prefix.
-   */
-  private getNormalizedFilename(
-    name: string,
     folderPath: string,
-    prefix: string
+    prefix: string,
+    lastFirst: boolean
   ): string {
+    const name =
+      this.getLastFirstName(contact, lastFirst) ??
+      contact.names?.[0]?.displayName ??
+      contact.organizations?.[0]?.name ??
+      id;
     const safeName = name.replace(/[\\/:*?"<>|]/g, '_');
     return normalizePath(`${folderPath}/${prefix}${safeName}.md`);
   }
