@@ -89,6 +89,10 @@ export const ru = {
     'Форматировать имена файлов как Фамилия Имя',
   'If enabled, contact file names will be formatted as Last First instead of First Last':
     'Если включено, имена файлов контактов будут форматироваться как Фамилия Имя вместо Имя Фамилия',
+  'No Google ID found in this note.': 'В этой заметке не найден Google ID.',
+  'Note uploaded to Google Contact!': 'Заметка загружена в контакт Google!',
+  'Failed to upload note. See console for details.':
+    'Не удалось загрузить заметку. Подробности в консоли.',
 };
 
 /**
@@ -182,6 +186,10 @@ export const lv = {
     'Formatēt failu nosaukumus kā Uzvārds Vārds',
   'If enabled, contact file names will be formatted as Last First instead of First Last':
     'Ja iespējots, kontaktu failu nosaukumi tiks formatēti kā Uzvārds Vārds, nevis Vārds Uzvārds',
+  'No Google ID found in this note.': 'Šajā piezīmē nav atrasts Google ID.',
+  'Note uploaded to Google Contact!': 'Piezīme augšupielādēta Google kontaktā!',
+  'Failed to upload note. See console for details.':
+    'Neizdevās augšupielādēt piezīmi. Sīkāka informācija konsolē.',
 };
 
 /**
@@ -273,4 +281,8 @@ export const en = {
   'Format file names as Last First': 'Format file names as Last First',
   'If enabled, contact file names will be formatted as Last First instead of First Last':
     'If enabled, contact file names will be formatted as Last First instead of First Last',
+  'No Google ID found in this note.': 'No Google ID found in this note.',
+  'Note uploaded to Google Contact!': 'Note uploaded to Google Contact!',
+  'Failed to upload note. See console for details.':
+    'Failed to upload note. See console for details.',
 };

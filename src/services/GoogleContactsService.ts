@@ -2,6 +2,7 @@ import { requestUrl } from 'obsidian';
 import {
   URL_CONTACT_GROUPS,
   URL_PEOPLE_CONNECTIONS,
+  URL_PEOPLE_BASE,
   PERSONAL_FIELDS,
   URL_PEOPLE_OTHER_CONTACTS,
   OTHER_CONTACTS_FIELDS,
@@ -160,5 +161,110 @@ export class GoogleContactsService {
       }
     });
     return labelMap;
+  }
+
+  /**
+   * Fetches a single contact by resource name.
+   * @param resourceName Resource name of the contact.
+   * @param token OAuth access token.
+   * @returns The Google contact object.
+   */
+  async fetchContact(
+    resourceName: string,
+    token: string
+  ): Promise<GoogleContact | null> {
+    const url = `${URL_PEOPLE_BASE}/${resourceName}?personFields=${PERSONAL_FIELDS}`;
+
+    try {
+      const res: RequestUrlResponse = await requestUrl({
+        url,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return (await res.json) as GoogleContact;
+    } catch (error) {
+      console.error(
+        'Failed to fetch contact',
+        JSON.stringify(error, null, 2)
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Updates the contact note (userDefined field) for a given contact.
+   * @param resourceName Resource name of the contact.
+   * @param noteContent Content of the note to upload.
+   * @param token OAuth access token.
+   * @returns True if successful, false otherwise.
+   */
+  async updateContactNote(
+    resourceName: string,
+    noteContent: string,
+    token: string
+  ): Promise<boolean> {
+    const contact = await this.fetchContact(resourceName, token);
+    if (!contact) {
+      console.warn(`Contact ${resourceName} not found.`);
+      return false;
+    }
+
+    // Check if we can write to this contact.
+    // "Other contacts" usually have constraints, but checking metadata sources is more robust.
+    // READ_SOURCE_TYPE_PROFILE and READ_SOURCE_TYPE_DOMAIN_CONTACT are usually read-only.
+    // READ_SOURCE_TYPE_CONTACT is what we want.
+    const isContact = contact.metadata?.sources.some(
+      (s) => s.type === 'CONTACT'
+    );
+    if (!isContact) {
+      console.warn(
+        `Contact ${resourceName} is not a valid contact for updates (source type constraint).`
+      );
+      return false;
+    }
+
+    // Construct request body
+    const body = {
+      etag: contact.etag,
+      userDefined: [
+        {
+          key: 'obsidian-note',
+          value: noteContent,
+        },
+      ],
+    };
+
+    // We need to preserve existing userDefined fields if any, but replace logic is simpler for now:
+    // The requirement says "upload data to fields under userDefined... key obsidian-note".
+    // If we want to preserve others, we should merge.
+    if (contact.userDefined) {
+      const otherFields = contact.userDefined.filter(
+        (ud) => ud.key !== 'obsidian-note'
+      );
+      body.userDefined = [...otherFields, ...body.userDefined];
+    }
+
+    const url = `${URL_PEOPLE_BASE}/${resourceName}:updateContact?updatePersonFields=userDefined`;
+
+    try {
+      await requestUrl({
+        url,
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      return true;
+    } catch (error) {
+      console.error(
+        'Failed to update contact note',
+        JSON.stringify(error, null, 2)
+      );
+      return false;
+    }
   }
 }

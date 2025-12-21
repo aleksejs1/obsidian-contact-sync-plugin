@@ -7,6 +7,7 @@ describe('LabelAdapter', () => {
 
   const contactWithLabels: GoogleContact = {
     resourceName: 'people/lbl',
+    etag: 'etag-lbl',
     memberships: [
       { contactGroupMembership: { contactGroupId: 'group1' } },
       { contactGroupMembership: { contactGroupId: 'group2' } },
@@ -29,7 +30,7 @@ describe('LabelAdapter', () => {
   });
 
   it('returns empty array if no labels or labelMap', () => {
-    expect(adapter.extract({ resourceName: 'p1' })).toEqual([]);
+    expect(adapter.extract({ resourceName: 'p1', etag: 'etag-p1' })).toEqual([]);
     expect(adapter.extract(contactWithLabels, { labelMap: {} })).toEqual([]);
   });
 });

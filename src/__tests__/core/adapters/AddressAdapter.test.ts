@@ -22,6 +22,7 @@ describe('AddressAdapter', () => {
 
   const mockContact: GoogleContact = {
     resourceName: 'people/p1',
+    etag: 'etag-p1',
     addresses: [
       createAddress({
         streetAddress: '123 Main St',
@@ -56,12 +57,13 @@ describe('AddressAdapter', () => {
     });
 
     it('returns empty array if no addresses', () => {
-      expect(adapter.extract({ resourceName: 'p2' })).toEqual([]);
+      expect(adapter.extract({ resourceName: 'p2', etag: 'etag-p2' })).toEqual([]);
     });
 
     it('filters out addresses without formattedValue', () => {
       const contact: GoogleContact = {
         resourceName: 'p3',
+        etag: 'etag-p3',
         addresses: [createAddress({ streetAddress: 'No Formatted Value' })],
       };
       expect(adapter.extract(contact)).toEqual([]);
@@ -75,6 +77,7 @@ describe('AddressAdapter', () => {
     it('extracts all subfields for a single address', () => {
       const singleAddrContact: GoogleContact = {
         resourceName: 'p1',
+        etag: 'etag-p1',
         addresses: [mockContact.addresses![0]!],
       };
       const results = adapter.extract(singleAddrContact, contextWithVcf);
@@ -110,6 +113,7 @@ describe('AddressAdapter', () => {
     it('only extracts present subfields', () => {
       const partialContact: GoogleContact = {
         resourceName: 'p4',
+        etag: 'etag-p4',
         addresses: [
           createAddress({
             city: 'Minimal City',
@@ -126,7 +130,7 @@ describe('AddressAdapter', () => {
     });
 
     it('returns empty array if no addresses', () => {
-      expect(adapter.extract({ resourceName: 'p5' }, contextWithVcf)).toEqual(
+      expect(adapter.extract({ resourceName: 'p5', etag: 'etag-p5' }, contextWithVcf)).toEqual(
         []
       );
     });
