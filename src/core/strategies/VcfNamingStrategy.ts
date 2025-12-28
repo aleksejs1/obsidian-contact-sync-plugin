@@ -6,6 +6,7 @@ export class VcfNamingStrategy implements KeyNamingStrategy {
     phone: 'TEL',
     address: 'ADR',
     organization: 'ORG',
+    relations: 'X-RELATION',
     jobtitle: 'TITLE',
     bio: 'NOTE',
     birthday: 'BDAY',
