@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2021",
     "lib": [
-      "es2017",
+      "es2021",
       "dom"
     ],
     "module": "esnext",
