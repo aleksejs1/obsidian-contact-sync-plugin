@@ -56,6 +56,12 @@ export interface GoogleContact {
     title: string;
     department: string;
   }[];
+
+  relations?: {
+    person: string;
+    type: string;
+    metadata: string;
+  }[];
 }
 
 /**
