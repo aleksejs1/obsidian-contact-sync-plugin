@@ -38,6 +38,7 @@ export const DEFAULT_SETTINGS: ContactSyncSettings = {
   syncOnStartup: false,
   trackSyncTime: false,
   organizationAsLink: false,
+  relationsAsLink: false,
   renameFiles: false,
   namingStrategy: NamingStrategy.Default,
   lastFirst: false,
