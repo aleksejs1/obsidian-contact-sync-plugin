@@ -5,7 +5,7 @@ export const URL_OAUTH_TOKEN = 'https://oauth2.googleapis.com/token';
 /** Google People API endpoints */
 const URL_PEOPLE_BASE = 'https://people.googleapis.com/v1';
 export const URL_PEOPLE_CONNECTIONS = `${URL_PEOPLE_BASE}/people/me/connections`;
-export const PERSONAL_FIELDS = `names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations`;
+export const PERSONAL_FIELDS = `names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations,relations`;
 export const OTHER_CONTACTS_FIELDS = `names,emailAddresses,phoneNumbers`;
 export const URL_CONTACT_GROUPS = `${URL_PEOPLE_BASE}/contactGroups?pageSize=1000`;
 
@@ -38,6 +38,7 @@ export const DEFAULT_SETTINGS: ContactSyncSettings = {
   syncOnStartup: false,
   trackSyncTime: false,
   organizationAsLink: false,
+  relationsAsLink: true,
   renameFiles: false,
   namingStrategy: NamingStrategy.Default,
   lastFirst: false,

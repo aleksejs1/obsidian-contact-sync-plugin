@@ -47,6 +47,9 @@ export interface ContactSyncSettings {
   /** Save organization as obsidian link */
   organizationAsLink: boolean;
 
+  /** Save relationships as links */
+  relationsAsLink: boolean;
+
   /** Whether to rename existing contact files in case if name has been changed based on current naming settings */
   renameFiles: boolean;
 

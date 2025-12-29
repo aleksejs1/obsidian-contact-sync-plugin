@@ -12,6 +12,7 @@ import { JobTitleAdapter } from './adapters/JobTitleAdapter';
 import { DepartmentAdapter } from './adapters/DepartmentAdapter';
 import { BirthdayAdapter } from './adapters/BirthdayAdapter';
 import { LabelAdapter } from './adapters/LabelAdapter';
+import { RelationsAdapter } from './adapters/RelationsAdapter';
 
 /**
  * Formatter class responsible for coordinating field extraction and key generation.
@@ -99,6 +100,7 @@ export function createDefaultFormatter(
     jobtitle: new JobTitleAdapter(),
     department: new DepartmentAdapter(),
     labels: new LabelAdapter(),
+    relations: new RelationsAdapter(),
   };
 
   if (strategyType === NamingStrategy.VCF) {
