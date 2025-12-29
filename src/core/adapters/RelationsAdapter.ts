@@ -9,12 +9,11 @@ export class RelationsAdapter implements FieldAdapter {
   ): ExtractionResult[] {
     const relationsAsLink = context?.relationsAsLink as boolean;
     const isVcfStrategy = context?.namingStrategy === NamingStrategy.VCF;
-    console.log('RelationsAdapter context:', context);
     return (contact.relations ?? [])
       .filter((relation) => !!relation.person)
       .map((relation) => ({
         // For VCF strategy, don't use wiki links even if organizationsAsLink is true
-        value: relationsAsLink && !isVcfStrategy ? `${relation.type}; [[${relation.person}]]` : `${relation.type}; ${relation.person}`,
+        value: relationsAsLink && !isVcfStrategy ? `[[${relation.person}|${relation.person} (${relation.type})]]` : `${relation.person} (${relation.type})`,
       }));
   }
 }
