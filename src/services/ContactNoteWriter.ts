@@ -146,6 +146,7 @@ export class ContactNoteWriter {
           invertedLabelMap,
           config.namingStrategy,
           config.organizationAsLink,
+          config.relationsAsLink,
           config.trackSyncTime
         )
       )
@@ -266,6 +267,7 @@ export class ContactNoteWriter {
     invertedLabelMap: Record<string, string>,
     namingStrategy: NamingStrategy,
     organizationAsLink = false,
+    relationsAsLink = false,
     trackSyncTime = false
   ): Record<string, string | string[]> {
     const formatter = createDefaultFormatter(namingStrategy);
@@ -275,6 +277,7 @@ export class ContactNoteWriter {
       {
         labelMap: invertedLabelMap,
         organizationAsLink: organizationAsLink,
+        relationsAsLink: relationsAsLink,
         namingStrategy: namingStrategy,
       }
     );

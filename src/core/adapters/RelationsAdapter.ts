@@ -7,13 +7,14 @@ export class RelationsAdapter implements FieldAdapter {
     contact: GoogleContact,
     context?: Record<string, unknown>
   ): ExtractionResult[] {
-    const relationAsLink = context?.relationAsLink as boolean;
+    const relationsAsLink = context?.relationsAsLink as boolean;
     const isVcfStrategy = context?.namingStrategy === NamingStrategy.VCF;
+    console.log('RelationsAdapter context:', context);
     return (contact.relations ?? [])
       .filter((relation) => !!relation.person)
       .map((relation) => ({
-        // For VCF strategy, don't use wiki links even if organizationAsLink is true
-        value: relationAsLink && !isVcfStrategy ? `${relation.type}; [[${relation.person}]]` : `${relation.type}; ${relation.person}`,
+        // For VCF strategy, don't use wiki links even if organizationsAsLink is true
+        value: relationsAsLink && !isVcfStrategy ? `${relation.type}; [[${relation.person}]]` : `${relation.type}; ${relation.person}`,
       }));
   }
 }

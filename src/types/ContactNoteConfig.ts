@@ -7,6 +7,7 @@ export interface ContactNoteConfig {
   syncLabel: string;
   noteBody: string;
   organizationAsLink: boolean;
+  relationsAsLink: boolean;
   trackSyncTime: boolean;
   renameFiles: boolean;
   namingStrategy: NamingStrategy;

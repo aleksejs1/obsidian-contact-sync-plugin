@@ -209,6 +209,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       syncLabel: this.settings.syncLabel,
       noteBody: this.settings.noteTemplate || '# Notes\n',
       organizationAsLink: this.settings.organizationAsLink,
+      relationsAsLink: this.settings.relationsAsLink,
       trackSyncTime: this.settings.trackSyncTime,
       renameFiles: this.settings.renameFiles,
       namingStrategy: this.settings.namingStrategy,
