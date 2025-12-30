@@ -3,8 +3,9 @@ import { ContactNoteWriter } from '../../services/ContactNoteWriter';
 import { FileManager, MetadataCache, Vault } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
-import { NamingStrategy } from 'src/types/Settings';
+
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
+import { DEFAULT_TEST_CONFIG } from '../helpers';
 
 jest.mock('obsidian', () => {
   const actual = jest.requireActual('obsidian');
@@ -106,17 +107,8 @@ describe('ContactNoteWriterUpdate', () => {
       (vault.read as jest.Mock).mockResolvedValue(mockExistingContent);
 
       const config: ContactNoteConfig = {
-        folderPath: 'path/to/folder',
-        prefix: 'prefix-',
-        propertyPrefix: 'propertyPrefix-',
-        syncLabel: '',
+        ...DEFAULT_TEST_CONFIG,
         noteBody: mockNoteBody,
-        organizationAsLink: false,
-        relationsAsLink: false,
-        trackSyncTime: true,
-        renameFiles: false,
-        namingStrategy: NamingStrategy.Default,
-        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(
@@ -153,17 +145,8 @@ describe('ContactNoteWriterUpdate', () => {
       (vault.read as jest.Mock).mockResolvedValue(mockExistingContent);
 
       const config: ContactNoteConfig = {
-        folderPath: 'path/to/folder',
-        prefix: 'prefix-',
-        propertyPrefix: 'propertyPrefix-',
-        syncLabel: '',
+        ...DEFAULT_TEST_CONFIG,
         noteBody: mockNoteBody,
-        organizationAsLink: false,
-        relationsAsLink: false,
-        trackSyncTime: true,
-        renameFiles: false,
-        namingStrategy: NamingStrategy.Default,
-        lastFirst: false,
       };
 
       await contactNoteWriter.writeNotesForContacts(

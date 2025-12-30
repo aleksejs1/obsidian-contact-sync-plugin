@@ -14,7 +14,7 @@
     "doc": "npx typedoc",
     "typecheck": "tsc --noEmit",
     "lint:deps": "depcruise src",
-    "lint:prune": "ts-prune",
+    "lint:prune": "ts-prune -i \"(main|__mocks__)\"",
     "quality": "npm run typecheck && npm run lint:deps && npm run lint:prune && npm run lint && npm run test"
   },
   "keywords": [],

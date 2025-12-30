@@ -25,7 +25,10 @@ Each contact becomes a separate note with YAML frontmatter for metadata and free
     - **Default**: Customizable prefix (e.g., `s_name`, `s_email_2`).
     - **VCF (vCard)**: Fully compatible with the [VCF Contacts](https://github.com/broekema41/obsidian-vcf-contacts) plugin.
 
-- 📇 Supports multiple names, emails, phone numbers, birthdays, addresses, organizations, job titles, department, labels
+- 📇 Supports multiple names, emails, phone numbers, birthdays, addresses, organizations, job titles, department, labels, relations
+
+
+- 🏷️ Option to sync Relations as Obsidian links (e.g. `[[Jane Doe|Jane Doe (spouse)]]`)
 
 ## 📸 Screenshots
 
@@ -118,6 +121,7 @@ CATEGORIES: Friends, Work
 > To ensure strict vCard compatibility, the following settings are **ignored** when the VCF strategy is active:
 > - **Property name prefix** (keys always use standard vCard names).
 > - **Organization as link** (organizations stored as plain text).
+> - **Relations as link** (relations stored as plain text).
 > - **Track last sync time** (no `synced` field added).
 
 - If no matching file exists, a new note is created with the following structure:

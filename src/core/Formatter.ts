@@ -17,7 +17,7 @@ import { RelationsAdapter } from './adapters/RelationsAdapter';
 /**
  * Formatter class responsible for coordinating field extraction and key generation.
  */
-class Formatter {
+export class Formatter {
   constructor(
     private adapters: Record<string, FieldAdapter>,
     private strategy: KeyNamingStrategy

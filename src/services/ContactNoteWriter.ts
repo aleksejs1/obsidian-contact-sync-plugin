@@ -11,6 +11,7 @@ import { createDefaultFormatter } from '../core/Formatter';
 import { VaultService } from './VaultService';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 import { NamingStrategy } from 'src/types/Settings';
+import { AdapterContext } from 'src/types/AdapterContext';
 
 /**
  * Responsible for creating and updating contact notes in the vault.
@@ -78,14 +79,13 @@ export class ContactNoteWriter {
     const filesIdMapping = this.scanFiles(files, config.propertyPrefix);
     const invertedLabelMap = this.getInvertedLabelMap(labelMap);
 
+    const context: AdapterContext = {
+      ...config,
+      labelMap: invertedLabelMap,
+    };
+
     for (const contact of contacts) {
-      await this.processContact(
-        contact,
-        config,
-        labelMap,
-        invertedLabelMap,
-        filesIdMapping
-      );
+      await this.processContact(contact, context, labelMap, filesIdMapping);
     }
   }
 
@@ -99,12 +99,11 @@ export class ContactNoteWriter {
 
   private async processContact(
     contact: GoogleContact,
-    config: ContactNoteConfig,
+    context: AdapterContext,
     labelMap: Record<string, string>,
-    invertedLabelMap: Record<string, string>,
     filesIdMapping: Record<string, TFile>
   ): Promise<void> {
-    if (!this.hasSyncLabel(contact, config.syncLabel, labelMap)) {
+    if (!this.hasSyncLabel(contact, context.syncLabel, labelMap)) {
       return;
     }
 
@@ -116,15 +115,15 @@ export class ContactNoteWriter {
     let filename = this.getFilename(
       contact,
       id,
-      config.folderPath,
-      config.prefix,
-      config.lastFirst
+      context.folderPath,
+      context.prefix,
+      context.lastFirst
     );
     if (!filename) {
       return;
     }
 
-    if (config.renameFiles && filesIdMapping[id]) {
+    if (context.renameFiles && filesIdMapping[id]) {
       filename = await this.ensureRenamed(id, filename, filesIdMapping);
     }
 
@@ -132,24 +131,14 @@ export class ContactNoteWriter {
       id,
       filename,
       filesIdMapping,
-      config.noteBody
+      context.noteBody
     );
     if (!file) {
       return;
     }
     await this.fileManager.processFrontMatter(
       file,
-      this.processFrontMatter(
-        this.generateFrontmatterLines(
-          config.propertyPrefix,
-          contact,
-          invertedLabelMap,
-          config.namingStrategy,
-          config.organizationAsLink,
-          config.relationsAsLink,
-          config.trackSyncTime
-        )
-      )
+      this.processFrontMatter(this.generateFrontmatterLines(context, contact))
     );
   }
 
@@ -255,39 +244,31 @@ export class ContactNoteWriter {
   /**
    * Generates frontmatter lines for a contact based on the provided property prefix and contact data.
    *
-   * @param propertyPrefix - The prefix to use for frontmatter properties.
+   * @param context - The adapter context containing configuration and label map.
    * @param contact - The Google contact to generate frontmatter for.
-   * @param invertedLabelMap - A mapping of label names to their corresponding group IDs.
-   * @param organizationAsLink - Whether to format organization names as Obsidian links.
    * @returns A record of frontmatter properties and their values.
    */
   private generateFrontmatterLines(
-    propertyPrefix: string,
-    contact: GoogleContact,
-    invertedLabelMap: Record<string, string>,
-    namingStrategy: NamingStrategy,
-    organizationAsLink = false,
-    relationsAsLink = false,
-    trackSyncTime = false
+    context: AdapterContext,
+    contact: GoogleContact
   ): Record<string, string | string[]> {
-    const formatter = createDefaultFormatter(namingStrategy);
+    const formatter = createDefaultFormatter(context.namingStrategy);
     const formattedFields = formatter.generateFrontmatter(
       contact,
-      propertyPrefix,
-      {
-        labelMap: invertedLabelMap,
-        organizationAsLink: organizationAsLink,
-        relationsAsLink: relationsAsLink,
-        namingStrategy: namingStrategy,
-      }
+      context.propertyPrefix,
+      context as unknown as Record<string, unknown>
     );
 
     const frontmatterLines: Record<string, string | string[]> = {
       ...formattedFields,
     };
 
-    if (trackSyncTime && namingStrategy !== NamingStrategy.VCF) {
-      frontmatterLines[`${propertyPrefix}synced`] = new Date().toISOString();
+    if (
+      context.trackSyncTime &&
+      context.namingStrategy !== NamingStrategy.VCF
+    ) {
+      frontmatterLines[`${context.propertyPrefix}synced`] =
+        new Date().toISOString();
     }
 
     return frontmatterLines;

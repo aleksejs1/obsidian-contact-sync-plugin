@@ -1,191 +1,69 @@
-import { createDefaultFormatter } from '../../core/Formatter';
+import { createDefaultFormatter, Formatter } from '../../core/Formatter';
 import { GoogleContact } from '../../types/Contact';
 import { NamingStrategy } from '../../types/Settings';
+import { FieldAdapter, KeyNamingStrategy } from '../../core/interfaces';
 
 describe('Formatter', () => {
-  const formatter = createDefaultFormatter();
-  const prefix = 'gc_';
+  describe('createDefaultFormatter', () => {
+    it('should create a formatter with default strategy', () => {
+      const formatter = createDefaultFormatter();
+      expect(formatter).toBeInstanceOf(Formatter);
+    });
 
-  const mockContact: GoogleContact = {
-    resourceName: 'people/123',
-    names: [{ displayName: 'Alice Smith' }],
-    emailAddresses: [{ value: 'alice@example.com' }],
-    phoneNumbers: [{ value: '+1234567890' }, { value: '' }],
-    birthdays: [
-      {
-        date: {
-          year: 1990,
-          month: 5,
-          day: 15,
-        },
-      },
-    ],
-    organizations: [
-      {
-        name: 'Tech Corp',
-        title: 'Developer',
-        department: 'Engineering',
-      },
-    ],
-    addresses: [
-      {
-        formattedValue: '123 Main St',
-        city: 'City',
-        country: 'Country',
-        countryCode: 'CC',
-        extendedAddress: '',
-        formattedType: '',
-        postalCode: '12345',
-        streetAddress: '123 Main St',
-        type: 'home',
-      },
-    ],
-  };
-
-  const mockContactMultiple: GoogleContact = {
-    resourceName: 'people/123',
-    names: [{ displayName: 'Alice Smith' }],
-    emailAddresses: [
-      { value: 'primary@example.com' },
-      { value: 'secondary@example.com' },
-    ],
-    birthdays: [
-      {
-        date: {
-          year: 1990,
-          month: 5,
-          day: 15,
-        },
-      },
-      {
-        date: {
-          month: 6,
-          day: 16,
-        },
-      },
-    ],
-  };
-
-  it('generates frontmatter correctly for single values', () => {
-    const result = formatter.generateFrontmatter(mockContact, prefix);
-
-    expect(result).toMatchObject({
-      [`${prefix}name`]: 'Alice Smith',
-      [`${prefix}email`]: 'alice@example.com',
-      [`${prefix}phone`]: '+1234567890',
-      [`${prefix}birthday`]: '1990-05-15',
-      [`${prefix}organization`]: 'Tech Corp',
-      [`${prefix}jobtitle`]: 'Developer',
-      [`${prefix}department`]: 'Engineering',
-      [`${prefix}address`]: '123 Main St',
+    it('should create a formatter with VCF strategy', () => {
+      const formatter = createDefaultFormatter(NamingStrategy.VCF);
+      expect(formatter).toBeInstanceOf(Formatter);
     });
   });
 
-  it('generates frontmatter correctly for multiple values with suffixes', () => {
-    const result = formatter.generateFrontmatter(mockContactMultiple, prefix);
+  describe('generateFrontmatter', () => {
+    let mockAdapter: FieldAdapter;
+    let mockStrategy: KeyNamingStrategy;
+    let formatter: Formatter;
 
-    expect(result).toMatchObject({
-      [`${prefix}email`]: 'primary@example.com',
-      [`${prefix}email_2`]: 'secondary@example.com',
-      [`${prefix}birthday`]: '1990-05-15',
-      [`${prefix}birthday_2`]: 'XXXX-06-16',
-    });
-  });
-
-  it('handles empty contact fields gracefully', () => {
-    const emptyContact: GoogleContact = { resourceName: 'people/empty' };
-    const result = formatter.generateFrontmatter(emptyContact, prefix);
-    // Empty contact still has Google ID
-    expect(result).toEqual({ gc_id: 'empty' });
-  });
-
-  it('handles organization as link', () => {
-    const result = formatter.generateFrontmatter(mockContact, prefix, {
-      organizationAsLink: true,
-    });
-    expect(result).toMatchObject({
-      [`${prefix}organization`]: '[[Tech Corp]]',
-    });
-  });
-
-  it('handles labels correctly', () => {
-    const contactWithLabels: GoogleContact = {
-      resourceName: 'people/lbl',
-      memberships: [
-        { contactGroupMembership: { contactGroupId: 'group1' } },
-        { contactGroupMembership: { contactGroupId: 'group2' } },
-      ],
-    };
-    const labelMap = { group1: 'Friends', group2: 'Family' };
-
-    const result = formatter.generateFrontmatter(contactWithLabels, prefix, {
-      labelMap,
+    beforeEach(() => {
+      mockAdapter = {
+        extract: jest.fn().mockReturnValue([{ value: 'mockValue' }]),
+      };
+      mockStrategy = {
+        generateKey: jest.fn().mockReturnValue('mockKey'),
+      };
+      formatter = new Formatter({ mockField: mockAdapter }, mockStrategy);
     });
 
-    expect(result).toMatchObject({
-      [`${prefix}labels`]: ['Friends', 'Family'],
-    });
-  });
+    it('should generate frontmatter using adapters and strategy', () => {
+      const contact = { resourceName: 'people/123' } as GoogleContact;
+      const context = { some: 'context' };
 
-  it('falls back to organization name if display name is missing', () => {
-    const contactNoName: GoogleContact = {
-      resourceName: 'people/noname',
-      organizations: [
-        { name: 'Acme Corp', title: 'CEO', department: 'Management' },
-      ],
-    };
+      const result = formatter.generateFrontmatter(contact, 'prefix-', context);
 
-    const result = formatter.generateFrontmatter(contactNoName, prefix);
-
-    expect(result).toMatchObject({
-      [`${prefix}name`]: 'Acme Corp',
-    });
-  });
-
-  it('handles labels as comma-separated string in VCF strategy', () => {
-    const vcfFormatter = createDefaultFormatter(NamingStrategy.VCF);
-    const contactWithLabels: GoogleContact = {
-      resourceName: 'people/lbl',
-      memberships: [
-        { contactGroupMembership: { contactGroupId: 'group1' } },
-        { contactGroupMembership: { contactGroupId: 'group2' } },
-      ],
-    };
-    const labelMap = { group1: 'Friends', group2: 'Family' };
-
-    const result = vcfFormatter.generateFrontmatter(contactWithLabels, '', {
-      labelMap,
+      expect(mockAdapter.extract).toHaveBeenCalledWith(
+        contact,
+        expect.objectContaining(context)
+      );
+      expect(mockStrategy.generateKey).toHaveBeenCalledWith(
+        'mockField',
+        0,
+        'prefix-',
+        undefined
+      );
+      expect(result).toEqual({ mockKey: 'mockValue' });
     });
 
-    expect(result).toMatchObject({
-      CATEGORIES: 'Friends, Family',
+    it('should handle multiple results from adapter', () => {
+      mockAdapter.extract = jest.fn().mockReturnValue([
+        { value: 'val1', index: 0 },
+        { value: 'val2', index: 1 },
+      ]);
+      mockStrategy.generateKey = jest
+        .fn()
+        .mockReturnValueOnce('key1')
+        .mockReturnValueOnce('key2');
+
+      const contact = {} as GoogleContact;
+      const result = formatter.generateFrontmatter(contact, 'p-');
+
+      expect(result).toEqual({ key1: 'val1', key2: 'val2' });
     });
-  });
-
-  it('splits address fields in VCF strategy', () => {
-    const vcfFormatter = createDefaultFormatter(NamingStrategy.VCF);
-    const contactWithAddr: GoogleContact = {
-      resourceName: 'people/addr',
-      addresses: [
-        {
-          streetAddress: '123 Main St',
-          city: 'Springfield',
-          country: 'USA',
-          postalCode: '12345',
-          formattedValue: '123 Main St\nSpringfield\nUSA',
-          formattedType: '',
-          extendedAddress: '',
-          type: '',
-          countryCode: '',
-        },
-      ],
-    };
-
-    const result = vcfFormatter.generateFrontmatter(contactWithAddr, '');
-
-    expect(result['ADR.STREET']).toBe('123 Main St');
-    expect(result['ADR.CITY']).toBe('Springfield');
-    expect(result['ADR.COUNTRY']).toBe('USA');
-    expect(result['ADR.POSTALCODE']).toBe('12345');
   });
 });

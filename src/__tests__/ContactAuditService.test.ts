@@ -244,4 +244,133 @@ describe('ContactAuditService', () => {
       expect.stringContaining('A.md')
     );
   });
+
+  it('should modify existing report file if it exists', async () => {
+    // 1. Mock Report File existing
+    const existingIsFile = new TFile();
+    // We need getAbstractFileByPath to return folder for 'Contacts' and file for 'Report.md'
+    if (!mockVault.getAbstractFileByPath) {
+      throw new Error('mockVault.getAbstractFileByPath is undefined');
+    }
+    mockVault.getAbstractFileByPath.mockImplementation((path: string) => {
+      if (path === 'Contacts') {
+        return new TFolder();
+      }
+      if (path === 'Contact Audit Report.md') {
+        return existingIsFile;
+      }
+      return null;
+    });
+
+    // 2. Setup orphans to trigger report generation
+    (googleService.fetchGoogleContacts as jest.Mock).mockResolvedValue([]);
+    const fileA = { basename: 'A', path: 'Contacts/A.md' } as TFile;
+    (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([fileA]);
+    // mock cache to return ID that makes it an orphan
+    if (!mockMetadataCache.getFileCache) {
+      throw new Error('mockMetadataCache.getFileCache is undefined');
+    }
+    mockMetadataCache.getFileCache.mockReturnValue({
+      frontmatter: { id: 'contactA' },
+    });
+
+    await service.auditContacts('token');
+
+    expect(mockVault.modify).toHaveBeenCalledWith(
+      existingIsFile,
+      expect.any(String)
+    );
+  });
+
+  it('should handle empty syncLabel (include all)', async () => {
+    service = new ContactAuditService(app, googleService, {
+      ...settings,
+      syncLabel: '',
+    });
+
+    // Google: Contact A (no memberships)
+    const contactA = { resourceName: 'people/contactA', memberships: [] };
+    (googleService.fetchGoogleContacts as jest.Mock).mockResolvedValue([
+      contactA,
+    ]);
+
+    // Local: File A
+    const fileA = { basename: 'A', path: 'Contacts/A.md' } as TFile;
+    (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([fileA]);
+
+    if (!mockMetadataCache.getFileCache) {
+      throw new Error('mockMetadataCache.getFileCache is undefined');
+    }
+    mockMetadataCache.getFileCache.mockReturnValue({
+      frontmatter: { id: 'contactA' },
+    });
+
+    await service.auditContacts('token');
+
+    // Should NOT be orphaned because syncLabel is empty -> all google contacts valid
+    expect(mockVault.create).toHaveBeenCalledWith(
+      expect.stringContaining('Report'),
+      expect.stringContaining('No orphaned contacts found')
+    );
+  });
+
+  it('should handle contact with missing resourceName', async () => {
+    // Google contact with no resourceName BUT valid label so getContactId is called
+    const contactInvalid = {
+      resourceName: undefined,
+      memberships: [{ contactGroupMembership: { contactGroupId: 'group/1' } }],
+    };
+
+    (googleService.fetchGoogleContacts as jest.Mock).mockResolvedValue([
+      contactInvalid,
+    ]);
+
+    const fileA = { basename: 'A', path: 'Contacts/A.md' } as TFile;
+    (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([fileA]);
+
+    if (!mockMetadataCache.getFileCache) {
+      throw new Error('mockMetadataCache.getFileCache is undefined');
+    }
+    mockMetadataCache.getFileCache.mockReturnValue({
+      frontmatter: { id: 'contactA' },
+    });
+
+    await service.auditContacts('token');
+
+    // fileA is orphan because 'contactInvalid' yields no ID
+    expect(mockVault.create).toHaveBeenCalledWith(
+      expect.stringContaining('Report'),
+      expect.stringContaining('Found 1 orphaned')
+    );
+  });
+
+  it('should return false if sync label not found in map', async () => {
+    // Label map returns 'My Contacts', but we want 'Other'
+    service = new ContactAuditService(app, googleService, {
+      ...settings,
+      syncLabel: 'NonExistentLabel',
+    });
+
+    const contactA = { resourceName: 'people/contactA', memberships: [] };
+    (googleService.fetchGoogleContacts as jest.Mock).mockResolvedValue([
+      contactA,
+    ]);
+    (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
+
+    await service.auditContacts('token');
+  });
+
+  it('should handle contact with undefined memberships', async () => {
+    service = new ContactAuditService(app, googleService, {
+      ...settings,
+      syncLabel: 'My Contacts',
+    });
+    const contact = { resourceName: 'people/contactA', memberships: undefined };
+    (googleService.fetchGoogleContacts as jest.Mock).mockResolvedValue([
+      contact,
+    ]);
+    (getAllMarkdownFilesInFolder as jest.Mock).mockReturnValue([]);
+
+    await service.auditContacts('token');
+  });
 });

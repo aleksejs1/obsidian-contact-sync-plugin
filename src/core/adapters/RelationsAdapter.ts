@@ -13,7 +13,10 @@ export class RelationsAdapter implements FieldAdapter {
       .filter((relation) => !!relation.person)
       .map((relation) => ({
         // For VCF strategy, don't use wiki links even if organizationsAsLink is true
-        value: relationsAsLink && !isVcfStrategy ? `[[${relation.person}|${relation.person} (${relation.type})]]` : `${relation.person} (${relation.type})`,
+        value:
+          relationsAsLink && !isVcfStrategy
+            ? `[[${relation.person}|${relation.person} (${relation.type})]]`
+            : `${relation.person} (${relation.type})`,
       }));
   }
 }

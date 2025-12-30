@@ -45,6 +45,9 @@ export const ru = {
   'Organization as link': 'Организация как ссылка',
   'Organization name will be stored as a obsidian link [[...]] instead of plain text':
     'Название организации будет сохранено как ссылка Obsidian [[...]] вместо обычного текста (игнорируется в стратегии VCF)',
+  'Relations as links': 'Связи как ссылки',
+  'Related people names will be stored as a obsidian link [[...]] instead of plain text':
+    'Имена связанных людей будут сохранены как ссылка Obsidian [[...]] вместо обычного текста',
   'Label to sync': 'Лейблы для синхронизации',
   'If not empty, then only contacts with this label will synced':
     'Если указана, синхронизируются только контакты с этим лейблом',
@@ -138,6 +141,9 @@ export const lv = {
   'Organization as link': 'Organizācija kā saite',
   'Organization name will be stored as a obsidian link [[...]] instead of plain text':
     'Organizācijas nosaukums tiks saglabāts kā Obsidian saite [[...]], nevis parasts teksts (tiek ignorēts VCF stratēģijā)',
+  'Relations as links': 'Attiecības kā saites',
+  'Related people names will be stored as a obsidian link [[...]] instead of plain text':
+    'Saistīto personu vārdi tiks saglabāti kā Obsidian saite [[...]], nevis parasts teksts',
   'Label to sync': 'Etiķete sinhronizēšanai',
   'If not empty, then only contacts with this label will synced':
     'Ja nav tukšs, tiks sinhronizēti tikai šīs etiķetes kontakti',
@@ -230,6 +236,9 @@ export const en = {
   'Organization as link': 'Organization as link',
   'Organization name will be stored as a obsidian link [[...]] instead of plain text':
     'Organization name will be stored as a obsidian link [[...]] instead of plain text (ignored in VCF strategy)',
+  'Relations as links': 'Relations as links',
+  'Related people names will be stored as a obsidian link [[...]] instead of plain text':
+    'Related people names will be stored as a obsidian link [[...]] instead of plain text',
   'Label to sync': 'Label to sync',
   'If not empty, then only contacts with this label will synced':
     'If not empty, then only contacts with this label will synced',
