@@ -22,7 +22,7 @@ export class Formatter {
   constructor(
     private adapters: Record<string, FieldAdapter>,
     private strategy: KeyNamingStrategy
-  ) {}
+  ) { }
 
   /**
    * Generates a frontmatter object from a Google Contact.
@@ -61,7 +61,8 @@ export class Formatter {
           fieldId,
           index,
           propertyPrefix,
-          result.suffix
+          result.suffix,
+          result.type
         );
         frontmatter[key] = result.value;
       });

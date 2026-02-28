@@ -45,6 +45,7 @@ describe('Formatter', () => {
         'mockField',
         0,
         'prefix-',
+        undefined,
         undefined
       );
       expect(result).toEqual({ mockKey: 'mockValue' });

@@ -96,6 +96,10 @@ export const ru = {
   'Skip nameless contacts': 'Пропускать контакты без имени',
   'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync':
     'Если включено, контакты без имени (у которых файл называется по ID) будут пропускаться при синхронизации',
+  'Use contact types for emails and phones':
+    'Использовать типы для e-mail и телефонов',
+  'If enabled, emails and phones will be formatted with their specific types (e.g. email_work, phone_mobile) instead of generic indexes. This is ignored in the Array naming strategy.':
+    'Если включено, электронные адреса и телефоны будут отформатированы с учетом их типов (например, email_work, phone_mobile) вместо индексов. Игнорируется в стратегии "Массив".',
 };
 
 /**
@@ -196,6 +200,10 @@ export const lv = {
   'Skip nameless contacts': 'Izlaist kontaktus bez vārda',
   'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync':
     'Ja iespējots, kontakti bez vārda (kuru fails tiktu nosaukts pēc ID) tiks izlaisti sinhronizācijas laikā',
+  'Use contact types for emails and phones':
+    'Izmantot e-pasta un tālruņa tipus',
+  'If enabled, emails and phones will be formatted with their specific types (e.g. email_work, phone_mobile) instead of generic indexes. This is ignored in the Array naming strategy.':
+    'Ja iespējots, e-pasti un tālruņi tiks formatēti ar to specifiskajiem tipiem (piem., email_work, phone_mobile), nevis vispārīgiem rādītājiem. Tas tiek ignorēts Array nosaukšanas stratēģijā.',
 };
 
 /**
@@ -294,4 +302,8 @@ export const en = {
   'Skip nameless contacts': 'Skip nameless contacts',
   'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync':
     'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync',
+  'Use contact types for emails and phones':
+    'Use contact types for emails and phones',
+  'If enabled, emails and phones will be formatted with their specific types (e.g. email_work, phone_mobile) instead of generic indexes. This is ignored in the Array naming strategy.':
+    'If enabled, emails and phones will be formatted with their specific types (e.g. email_work, phone_mobile) instead of generic indexes. This is ignored in the Array naming strategy.',
 };
