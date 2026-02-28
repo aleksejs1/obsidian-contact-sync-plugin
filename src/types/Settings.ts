@@ -58,6 +58,9 @@ export interface ContactSyncSettings {
 
   /** Whether to format names as Last, First */
   lastFirst: boolean;
+
+  /** Whether to skip contacts that have no name and would fall back to using their ID */
+  skipNamelessContacts: boolean;
 }
 
 export enum NamingStrategy {

@@ -13,4 +13,5 @@ export const DEFAULT_TEST_CONFIG: ContactNoteConfig = {
   renameFiles: false,
   namingStrategy: NamingStrategy.Default,
   lastFirst: false,
+  skipNamelessContacts: false,
 };

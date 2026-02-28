@@ -12,4 +12,5 @@ export interface ContactNoteConfig {
   renameFiles: boolean;
   namingStrategy: NamingStrategy;
   lastFirst: boolean;
+  skipNamelessContacts: boolean;
 }

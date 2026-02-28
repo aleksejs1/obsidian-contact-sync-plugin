@@ -214,6 +214,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       renameFiles: this.settings.renameFiles,
       namingStrategy: this.settings.namingStrategy,
       lastFirst: this.settings.lastFirst,
+      skipNamelessContacts: this.settings.skipNamelessContacts,
     };
   }
 

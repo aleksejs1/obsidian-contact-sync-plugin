@@ -42,4 +42,5 @@ export const DEFAULT_SETTINGS: ContactSyncSettings = {
   renameFiles: false,
   namingStrategy: NamingStrategy.Default,
   lastFirst: false,
+  skipNamelessContacts: false,
 };

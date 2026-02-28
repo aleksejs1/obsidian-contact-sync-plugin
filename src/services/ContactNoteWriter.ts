@@ -2,6 +2,7 @@ import {
   FileManager,
   MetadataCache,
   normalizePath,
+  Notice,
   TFile,
   Vault,
 } from 'obsidian';
@@ -112,6 +113,10 @@ export class ContactNoteWriter {
       return;
     }
 
+    if (context.skipNamelessContacts && !this.hasName(contact)) {
+      return;
+    }
+
     let filename = this.getFilename(
       contact,
       id,
@@ -123,23 +128,27 @@ export class ContactNoteWriter {
       return;
     }
 
-    if (context.renameFiles && filesIdMapping[id]) {
-      filename = await this.ensureRenamed(id, filename, filesIdMapping);
-    }
+    try {
+      if (context.renameFiles && filesIdMapping[id]) {
+        filename = await this.ensureRenamed(id, filename, filesIdMapping);
+      }
 
-    const file = await this.getOrCreateFile(
-      id,
-      filename,
-      filesIdMapping,
-      context.noteBody
-    );
-    if (!file) {
-      return;
+      const file = await this.getOrCreateFile(
+        id,
+        filename,
+        filesIdMapping,
+        context.noteBody
+      );
+      if (!file) {
+        return;
+      }
+      await this.fileManager.processFrontMatter(
+        file,
+        this.processFrontMatter(this.generateFrontmatterLines(context, contact))
+      );
+    } catch (error) {
+      new Notice(`Error processing contact "${filename}": ${error instanceof Error ? error.message : String(error)}`);
     }
-    await this.fileManager.processFrontMatter(
-      file,
-      this.processFrontMatter(this.generateFrontmatterLines(context, contact))
-    );
   }
 
   private async ensureRenamed(
@@ -210,6 +219,20 @@ export class ContactNoteWriter {
       return null;
     }
     return contact.names?.[0]?.displayNameLastFirst?.replace(/,/g, '');
+  }
+
+  /**
+   * Returns true if the contact has at least one resolvable name (display name or organization).
+   *
+   * @param contact - The Google contact to check.
+   * @returns Whether the contact has a usable name.
+   */
+  private hasName(contact: GoogleContact): boolean {
+    return !!(
+      contact.names?.[0]?.displayName ??
+      contact.names?.[0]?.displayNameLastFirst ??
+      contact.organizations?.[0]?.name
+    );
   }
 
   /**

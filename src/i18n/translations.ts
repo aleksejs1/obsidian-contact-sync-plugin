@@ -93,6 +93,9 @@ export const ru = {
     'Форматировать имена файлов как Фамилия Имя',
   'If enabled, contact file names will be formatted as Last First instead of First Last':
     'Если включено, имена файлов контактов будут форматироваться как Фамилия Имя вместо Имя Фамилия',
+  'Skip nameless contacts': 'Пропускать контакты без имени',
+  'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync':
+    'Если включено, контакты без имени (у которых файл называется по ID) будут пропускаться при синхронизации',
 };
 
 /**
@@ -190,6 +193,9 @@ export const lv = {
     'Formatēt failu nosaukumus kā Uzvārds Vārds',
   'If enabled, contact file names will be formatted as Last First instead of First Last':
     'Ja iespējots, kontaktu failu nosaukumi tiks formatēti kā Uzvārds Vārds, nevis Vārds Uzvārds',
+  'Skip nameless contacts': 'Izlaist kontaktus bez vārda',
+  'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync':
+    'Ja iespējots, kontakti bez vārda (kuru fails tiktu nosaukts pēc ID) tiks izlaisti sinhronizācijas laikā',
 };
 
 /**
@@ -285,4 +291,7 @@ export const en = {
   'Format file names as Last First': 'Format file names as Last First',
   'If enabled, contact file names will be formatted as Last First instead of First Last':
     'If enabled, contact file names will be formatted as Last First instead of First Last',
+  'Skip nameless contacts': 'Skip nameless contacts',
+  'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync':
+    'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync',
 };

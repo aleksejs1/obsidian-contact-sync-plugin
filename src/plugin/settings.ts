@@ -103,6 +103,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(t('Skip nameless contacts'))
+      .setDesc(
+        t(
+          'If enabled, contacts without a name (where the file would be named by ID) will be skipped during sync'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.skipNamelessContacts)
+          .onChange(async (value) => {
+            this.plugin.settings.skipNamelessContacts = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName(t('Naming strategy'))
       .setDesc(t('Strategy to generate frontmatter keys from contact data'))
       .addDropdown((dropdown) =>
