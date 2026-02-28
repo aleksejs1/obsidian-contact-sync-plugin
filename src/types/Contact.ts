@@ -24,10 +24,10 @@ export interface GoogleContact {
   }[];
 
   /** Array of email address objects */
-  emailAddresses?: { value: string }[];
+  emailAddresses?: { value: string; type?: string }[];
 
   /** Array of phone number objects */
-  phoneNumbers?: { value: string }[];
+  phoneNumbers?: { value: string; type?: string }[];
 
   /** Array of birthday objects associated with the contact */
   birthdays?: Birthday[];

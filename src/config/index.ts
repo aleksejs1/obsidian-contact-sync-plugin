@@ -43,4 +43,5 @@ export const DEFAULT_SETTINGS: ContactSyncSettings = {
   namingStrategy: NamingStrategy.Default,
   lastFirst: false,
   skipNamelessContacts: false,
+  useContactTypes: false,
 };
