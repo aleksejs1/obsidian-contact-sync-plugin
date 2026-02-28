@@ -117,7 +117,7 @@ export class ContactNoteWriter {
       return;
     }
 
-    let filename = this.getFilename(
+    const filename = this.getFilename(
       contact,
       id,
       context.folderPath,
@@ -128,6 +128,22 @@ export class ContactNoteWriter {
       return;
     }
 
+    await this.updateContactFile(
+      contact,
+      context,
+      id,
+      filename,
+      filesIdMapping
+    );
+  }
+
+  private async updateContactFile(
+    contact: GoogleContact,
+    context: AdapterContext,
+    id: string,
+    filename: string,
+    filesIdMapping: Record<string, TFile>
+  ): Promise<void> {
     try {
       if (context.renameFiles && filesIdMapping[id]) {
         filename = await this.ensureRenamed(id, filename, filesIdMapping);
@@ -147,7 +163,9 @@ export class ContactNoteWriter {
         this.processFrontMatter(this.generateFrontmatterLines(context, contact))
       );
     } catch (error) {
-      new Notice(`Error processing contact "${filename}": ${error instanceof Error ? error.message : String(error)}`);
+      new Notice(
+        `Error processing contact "${filename}": ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
