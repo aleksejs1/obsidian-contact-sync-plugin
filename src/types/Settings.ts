@@ -62,7 +62,7 @@ export interface ContactSyncSettings {
   /** Whether to skip contacts that have no name and would fall back to using their ID */
   skipNamelessContacts: boolean;
 
-  /** Whether to use contact types for emails and phones instead of index */
+  /** Whether to use contact types for emails, phones and addresses instead of index */
   useContactTypes: boolean;
 }
 

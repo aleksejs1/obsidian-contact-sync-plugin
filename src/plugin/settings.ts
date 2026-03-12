@@ -119,10 +119,10 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName(t('Use contact types for emails and phones'))
+      .setName(t('Use contact types for emails, phones and addresses'))
       .setDesc(
         t(
-          'If enabled, emails and phones will be formatted with their specific types (e.g. email_work, phone_mobile) instead of generic indexes. This is ignored in the Array naming strategy.'
+          'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.'
         )
       )
       .addToggle((toggle) =>
