@@ -23,13 +23,22 @@ export class VcfNamingStrategy implements KeyNamingStrategy {
     baseKey: string,
     index: number,
     _prefix: string,
-    suffix?: string
+    suffix?: string,
+    type?: string
   ): string {
     const vcfKey = this.keyMap[baseKey] ?? baseKey.toUpperCase();
-    // VCF format doesn't support prefixes, but needs indexed notation
-    // for multiple values: EMAIL[2], EMAIL[3], etc.
-    // This format is compatible with obsidian-vcf-contacts plugin
-    const indexSuffix = index === 0 ? '' : `[${index + 1}]`;
+
+    let indexSuffix = '';
+    if (type) {
+      const typeStr = type.toUpperCase().replace(/[^A-Z]/g, '');
+      indexSuffix = index === 0 ? `[${typeStr}]` : `[${typeStr}_${index + 1}]`;
+    } else {
+      // VCF format doesn't support prefixes, but needs indexed notation
+      // for multiple values: EMAIL[2], EMAIL[3], etc.
+      // This format is compatible with obsidian-vcf-contacts plugin
+      indexSuffix = index === 0 ? '' : `[${index + 1}]`;
+    }
+
     const fieldSuffix = suffix ? `.${suffix}` : '';
     return `${vcfKey}${indexSuffix}${fieldSuffix}`;
   }

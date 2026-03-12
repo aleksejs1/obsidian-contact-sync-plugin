@@ -119,6 +119,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(t('Use contact types for emails, phones and addresses'))
+      .setDesc(
+        t(
+          'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useContactTypes)
+          .onChange(async (value) => {
+            this.plugin.settings.useContactTypes = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName(t('Naming strategy'))
       .setDesc(t('Strategy to generate frontmatter keys from contact data'))
       .addDropdown((dropdown) =>

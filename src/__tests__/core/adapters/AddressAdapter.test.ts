@@ -66,6 +66,54 @@ describe('AddressAdapter', () => {
       };
       expect(adapter.extract(contact)).toEqual([]);
     });
+
+    it('supports useContactTypes correctly', () => {
+      const contact: GoogleContact = {
+        resourceName: 'p4',
+        addresses: [
+          createAddress({ type: 'Home', formattedValue: 'Home 1' }),
+          createAddress({ type: 'Home', formattedValue: 'Home 2' }),
+          createAddress({ type: 'Work', formattedValue: 'Work 1' }),
+          createAddress({ formattedValue: 'Other 1' }),
+        ],
+      };
+      const results = adapter.extract(contact, { useContactTypes: true });
+      expect(results).toEqual([
+        { value: 'Home 1', type: 'home', index: 0 },
+        { value: 'Home 2', type: 'home', index: 1 },
+        { value: 'Work 1', type: 'work', index: 0 },
+        { value: 'Other 1', type: 'other', index: 0 },
+      ]);
+    });
+  });
+
+  describe('Array Strategy', () => {
+    const contextWithArray = { namingStrategy: NamingStrategy.Array };
+
+    it('combines addresses into a single array extraction', () => {
+      const results = adapter.extract(mockContact, contextWithArray);
+      expect(results).toEqual([
+        {
+          value: [
+            '123 Main St\nSpringfield, USA 12345',
+            '456 Office Rd\nWorktown, UK AB1 2CD',
+          ],
+        },
+      ]);
+    });
+
+    it('returns single string value if only one address', () => {
+      const singleContact: GoogleContact = {
+        resourceName: 'p2',
+        addresses: [mockContact.addresses![0]!],
+      };
+      const results = adapter.extract(singleContact, contextWithArray);
+      expect(results).toEqual([
+        {
+          value: '123 Main St\nSpringfield, USA 12345',
+        },
+      ]);
+    });
   });
 
   describe('VCF Strategy', () => {
@@ -129,6 +177,31 @@ describe('AddressAdapter', () => {
       expect(adapter.extract({ resourceName: 'p5' }, contextWithVcf)).toEqual(
         []
       );
+    });
+
+    it('supports useContactTypes for VCF strategy', () => {
+      const typeContact: GoogleContact = {
+        resourceName: 'p6',
+        addresses: [
+          createAddress({
+            city: 'City 1',
+            type: 'Home',
+          }),
+          createAddress({
+            city: 'City 2',
+            type: 'Home',
+          }),
+        ],
+      };
+      const results = adapter.extract(typeContact, {
+        namingStrategy: NamingStrategy.VCF,
+        useContactTypes: true,
+      });
+
+      expect(results).toEqual([
+        { value: 'City 1', suffix: 'CITY', index: 0, type: 'home' },
+        { value: 'City 2', suffix: 'CITY', index: 1, type: 'home' },
+      ]);
     });
   });
 });

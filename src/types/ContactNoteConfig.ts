@@ -13,4 +13,5 @@ export interface ContactNoteConfig {
   namingStrategy: NamingStrategy;
   lastFirst: boolean;
   skipNamelessContacts: boolean;
+  useContactTypes: boolean;
 }
