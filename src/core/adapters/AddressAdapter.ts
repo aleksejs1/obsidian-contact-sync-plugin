@@ -50,6 +50,7 @@ export class AddressAdapter implements FieldAdapter {
         const fields = [
           { value: addr.streetAddress, suffix: 'STREET' },
           { value: addr.city, suffix: 'CITY' },
+          { value: addr.region, suffix: 'REGION' },
           { value: addr.country, suffix: 'COUNTRY' },
           { value: addr.postalCode, suffix: 'POSTALCODE' },
           { value: addr.extendedAddress, suffix: 'EXTENDED' },

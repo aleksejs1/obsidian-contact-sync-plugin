@@ -12,6 +12,7 @@ describe('VCF Address Verification', () => {
         {
           streetAddress: 'Salaspils iela 18',
           city: 'Riga',
+          region: 'Vidzeme',
           country: 'Latvia',
           postalCode: 'LV-1000',
           formattedValue: 'Salaspils iela 18\nRiga\nLatvia',
@@ -34,6 +35,7 @@ describe('VCF Address Verification', () => {
 
     expect(result['ADR.STREET']).toBe('Salaspils iela 18');
     expect(result['ADR.CITY']).toBe('Riga');
+    expect(result['ADR.REGION']).toBe('Vidzeme');
     expect(result['ADR.COUNTRY']).toBe('Latvia');
     expect(result['ADR.POSTALCODE']).not.toBeUndefined(); // AddressAdapter uses POSTALCODE suffix
   });
