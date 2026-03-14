@@ -56,6 +56,7 @@ describe('Adapters', () => {
           {
             formattedValue: '123 Main St',
             city: '',
+            region: '',
             country: '',
             countryCode: '',
             extendedAddress: '',
@@ -77,6 +78,7 @@ describe('Adapters', () => {
           {
             streetAddress: '123 Main St',
             city: 'Anytown',
+            region: 'Anystate',
             country: 'USA',
             postalCode: '12345',
             formattedType: 'Home',
@@ -93,6 +95,7 @@ describe('Adapters', () => {
       expect(result).toEqual([
         { value: '123 Main St', suffix: 'STREET', index: 0 },
         { value: 'Anytown', suffix: 'CITY', index: 0 },
+        { value: 'Anystate', suffix: 'REGION', index: 0 },
         { value: 'USA', suffix: 'COUNTRY', index: 0 },
         { value: '12345', suffix: 'POSTALCODE', index: 0 },
         { value: 'Home', suffix: 'TYPE', index: 0 },

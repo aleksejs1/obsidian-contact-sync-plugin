@@ -15,6 +15,7 @@ describe('AddressAdapter', () => {
     formattedType: '',
     formattedValue: '',
     postalCode: '',
+    region: '',
     streetAddress: '',
     type: '',
     ...overrides,
@@ -26,11 +27,12 @@ describe('AddressAdapter', () => {
       createAddress({
         streetAddress: '123 Main St',
         city: 'Springfield',
+        region: 'IL',
         country: 'USA',
         postalCode: '12345',
         extendedAddress: 'Apt 4B',
         formattedType: 'Home',
-        formattedValue: '123 Main St\nSpringfield, USA 12345',
+        formattedValue: '123 Main St\nSpringfield, IL USA 12345',
       }),
       createAddress({
         streetAddress: '456 Office Rd',
@@ -48,7 +50,7 @@ describe('AddressAdapter', () => {
       const results = adapter.extract(mockContact);
       expect(results).toHaveLength(2);
       expect(results[0]).toEqual({
-        value: '123 Main St\nSpringfield, USA 12345',
+        value: '123 Main St\nSpringfield, IL USA 12345',
       });
       expect(results[1]).toEqual({
         value: '456 Office Rd\nWorktown, UK AB1 2CD',
@@ -95,7 +97,7 @@ describe('AddressAdapter', () => {
       expect(results).toEqual([
         {
           value: [
-            '123 Main St\nSpringfield, USA 12345',
+            '123 Main St\nSpringfield, IL USA 12345',
             '456 Office Rd\nWorktown, UK AB1 2CD',
           ],
         },
@@ -110,7 +112,7 @@ describe('AddressAdapter', () => {
       const results = adapter.extract(singleContact, contextWithArray);
       expect(results).toEqual([
         {
-          value: '123 Main St\nSpringfield, USA 12345',
+          value: '123 Main St\nSpringfield, IL USA 12345',
         },
       ]);
     });
@@ -131,13 +133,14 @@ describe('AddressAdapter', () => {
         expect.arrayContaining([
           { value: '123 Main St', suffix: 'STREET', index: 0 },
           { value: 'Springfield', suffix: 'CITY', index: 0 },
+          { value: 'IL', suffix: 'REGION', index: 0 },
           { value: 'USA', suffix: 'COUNTRY', index: 0 },
           { value: '12345', suffix: 'POSTALCODE', index: 0 },
           { value: 'Apt 4B', suffix: 'EXTENDED', index: 0 },
           { value: 'Home', suffix: 'TYPE', index: 0 },
         ])
       );
-      expect(results).toHaveLength(6);
+      expect(results).toHaveLength(7);
     });
 
     it('assigns correct index for multiple addresses', () => {

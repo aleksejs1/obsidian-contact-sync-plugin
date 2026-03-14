@@ -47,6 +47,7 @@ export interface GoogleContact {
     formattedType: string;
     formattedValue: string;
     postalCode: string;
+    region: string;
     streetAddress: string;
     type: string;
   }[];
