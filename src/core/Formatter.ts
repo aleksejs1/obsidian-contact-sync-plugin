@@ -14,6 +14,7 @@ import { DepartmentAdapter } from './adapters/DepartmentAdapter';
 import { BirthdayAdapter } from './adapters/BirthdayAdapter';
 import { LabelAdapter } from './adapters/LabelAdapter';
 import { RelationsAdapter } from './adapters/RelationsAdapter';
+import { UrlAdapter } from './adapters/UrlAdapter';
 
 /**
  * Formatter class responsible for coordinating field extraction and key generation.
@@ -22,7 +23,7 @@ export class Formatter {
   constructor(
     private adapters: Record<string, FieldAdapter>,
     private strategy: KeyNamingStrategy
-  ) { }
+  ) {}
 
   /**
    * Generates a frontmatter object from a Google Contact.
@@ -107,6 +108,7 @@ export function createDefaultFormatter(
     department: new DepartmentAdapter(),
     labels: new LabelAdapter(),
     relations: new RelationsAdapter(),
+    url: new UrlAdapter(),
   };
 
   if (strategyType === NamingStrategy.VCF) {

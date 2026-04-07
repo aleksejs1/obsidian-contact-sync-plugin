@@ -15,4 +15,5 @@ export const DEFAULT_TEST_CONFIG: ContactNoteConfig = {
   lastFirst: false,
   skipNamelessContacts: false,
   useContactTypes: false,
+  website: true,
 };

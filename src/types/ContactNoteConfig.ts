@@ -14,4 +14,5 @@ export interface ContactNoteConfig {
   lastFirst: boolean;
   skipNamelessContacts: boolean;
   useContactTypes: boolean;
+  website: boolean;
 }

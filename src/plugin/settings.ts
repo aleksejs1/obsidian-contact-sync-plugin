@@ -135,6 +135,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(t('Sync website URLs'))
+      .setDesc(
+        t(
+          'If enabled, website URLs from contacts will be synced to the website frontmatter property'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.website)
+          .onChange(async (value) => {
+            this.plugin.settings.website = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName(t('Naming strategy'))
       .setDesc(t('Strategy to generate frontmatter keys from contact data'))
       .addDropdown((dropdown) =>

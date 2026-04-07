@@ -64,6 +64,9 @@ export interface ContactSyncSettings {
 
   /** Whether to use contact types for emails, phones and addresses instead of index */
   useContactTypes: boolean;
+
+  /** Whether to sync website URLs from contacts */
+  website: boolean;
 }
 
 export enum NamingStrategy {
