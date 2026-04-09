@@ -63,6 +63,11 @@ export interface GoogleContact {
     type: string;
     metadata: string;
   }[];
+
+  urls?: {
+    value: string;
+    type?: string;
+  }[];
 }
 
 /**

@@ -16,7 +16,9 @@ export class AddressAdapter implements FieldAdapter {
 
     const typeCounts: Record<string, number> = {};
     const processType = (typeStr?: string) => {
-      let normalizedType = (typeStr ?? 'other').toLowerCase().replace(/[^a-z0-9]/g, '');
+      let normalizedType = (typeStr ?? 'other')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
       if (!normalizedType) {
         normalizedType = 'other';
       }
@@ -102,7 +104,9 @@ export class AddressAdapter implements FieldAdapter {
     const results: ExtractionResult[] = [];
 
     for (const item of validAddresses) {
-      let normalizedType = (item.type ?? 'other').toLowerCase().replace(/[^a-z0-9]/g, '');
+      let normalizedType = (item.type ?? 'other')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
       if (!normalizedType) {
         normalizedType = 'other';
       }
