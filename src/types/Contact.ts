@@ -68,11 +68,6 @@ export interface GoogleContact {
     value: string;
     type?: string;
   }[];
-
-  photos?: {
-    url: string;
-    default: boolean;
-  }[];
 }
 
 /**

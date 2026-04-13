@@ -15,7 +15,6 @@ import { BirthdayAdapter } from './adapters/BirthdayAdapter';
 import { LabelAdapter } from './adapters/LabelAdapter';
 import { RelationsAdapter } from './adapters/RelationsAdapter';
 import { UrlAdapter } from './adapters/UrlAdapter';
-import { PhotoAdapter } from './adapters/PhotoAdapter';
 
 /**
  * Formatter class responsible for coordinating field extraction and key generation.
@@ -59,7 +58,6 @@ export class Formatter {
         // Use result.index if present (for grouping subfields),
         // otherwise use array index
         const index = result.index ?? arrayIndex;
-
         const key = this.strategy.generateKey(
           fieldId,
           index,
@@ -67,7 +65,6 @@ export class Formatter {
           result.suffix,
           result.type
         );
-
         frontmatter[key] = result.value;
       });
     }
@@ -112,7 +109,6 @@ export function createDefaultFormatter(
     labels: new LabelAdapter(),
     relations: new RelationsAdapter(),
     url: new UrlAdapter(),
-    photo: new PhotoAdapter(),
   };
 
   if (strategyType === NamingStrategy.VCF) {

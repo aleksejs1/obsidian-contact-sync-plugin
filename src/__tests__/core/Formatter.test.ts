@@ -66,15 +66,5 @@ describe('Formatter', () => {
 
       expect(result).toEqual({ key1: 'val1', key2: 'val2' });
     });
-
-    it('should handle photo as a standard field with prefix', () => {
-      const contact = {
-        photos: [{ url: 'http://pic.jpg', default: true }],
-      } as GoogleContact;
-      const formatter = createDefaultFormatter(NamingStrategy.Default);
-      const result = formatter.generateFrontmatter(contact, 'prefix_');
-
-      expect(result.prefix_photo).toBe('http://pic.jpg');
-    });
   });
 });
