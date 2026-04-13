@@ -217,7 +217,6 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       skipNamelessContacts: this.settings.skipNamelessContacts,
       useContactTypes: this.settings.useContactTypes,
       website: this.settings.website,
-      photoProperty: this.settings.photoProperty,
     };
   }
 

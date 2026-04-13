@@ -17,6 +17,7 @@ export class VcfNamingStrategy implements KeyNamingStrategy {
     department: 'ROLE', // VCard ROLE property seems appropriate for department/role
     labels: 'CATEGORIES',
     biographies: 'NOTE', // Map biographies to NOTE as well
+    photo: 'PHOTO',
   };
 
   generateKey(

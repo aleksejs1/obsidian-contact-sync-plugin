@@ -151,21 +151,6 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName(t('Photo frontmatter key'))
-      .setDesc(
-        t('Frontmatter key for contact photo URL (e.g., photo, banner, avatar)')
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder(t('photo'))
-          .setValue(this.plugin.settings.photoProperty)
-          .onChange(async (value) => {
-            this.plugin.settings.photoProperty = value.trim() || 'photo';
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
       .setName(t('Naming strategy'))
       .setDesc(t('Strategy to generate frontmatter keys from contact data'))
       .addDropdown((dropdown) =>
