@@ -312,6 +312,13 @@ export class ContactNoteWriter {
         new Date().toISOString();
     }
 
+    if (context.photoProperty) {
+      const primaryPhoto = (contact.photos ?? []).find((p) => p.url);
+      if (primaryPhoto?.url) {
+        frontmatterLines[context.photoProperty] = primaryPhoto.url;
+      }
+    }
+
     return frontmatterLines;
   }
 

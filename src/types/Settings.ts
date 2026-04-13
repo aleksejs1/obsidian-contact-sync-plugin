@@ -67,6 +67,9 @@ export interface ContactSyncSettings {
 
   /** Whether to sync website URLs from contacts */
   website: boolean;
+
+  /** Frontmatter key for photo URL (e.g., "photo" or "banner") */
+  photoProperty: string;
 }
 
 export enum NamingStrategy {

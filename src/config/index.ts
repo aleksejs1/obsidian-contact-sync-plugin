@@ -5,7 +5,7 @@ export const URL_OAUTH_TOKEN = 'https://oauth2.googleapis.com/token';
 /** Google People API endpoints */
 const URL_PEOPLE_BASE = 'https://people.googleapis.com/v1';
 export const URL_PEOPLE_CONNECTIONS = `${URL_PEOPLE_BASE}/people/me/connections`;
-export const PERSONAL_FIELDS = `names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations,relations,urls`;
+export const PERSONAL_FIELDS = `names,emailAddresses,phoneNumbers,birthdays,memberships,metadata,addresses,biographies,organizations,relations,urls,photos`;
 export const OTHER_CONTACTS_FIELDS = `names,emailAddresses,phoneNumbers`;
 export const URL_CONTACT_GROUPS = `${URL_PEOPLE_BASE}/contactGroups?pageSize=1000`;
 
@@ -45,4 +45,5 @@ export const DEFAULT_SETTINGS: ContactSyncSettings = {
   skipNamelessContacts: false,
   useContactTypes: false,
   website: true,
+  photoProperty: 'photo',
 };

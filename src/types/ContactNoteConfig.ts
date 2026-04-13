@@ -15,4 +15,5 @@ export interface ContactNoteConfig {
   skipNamelessContacts: boolean;
   useContactTypes: boolean;
   website: boolean;
+  photoProperty: string;
 }

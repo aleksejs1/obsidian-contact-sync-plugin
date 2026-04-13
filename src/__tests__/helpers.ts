@@ -16,4 +16,5 @@ export const DEFAULT_TEST_CONFIG: ContactNoteConfig = {
   skipNamelessContacts: false,
   useContactTypes: false,
   website: true,
+  photoProperty: 'photo',
 };
