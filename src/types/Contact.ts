@@ -68,6 +68,12 @@ export interface GoogleContact {
     value: string;
     type?: string;
   }[];
+
+  photos?: {
+    url: string;
+    /** true = Google-generated avatar, false = user-uploaded photo */
+    default: boolean;
+  }[];
 }
 
 /**

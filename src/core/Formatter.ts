@@ -15,6 +15,7 @@ import { BirthdayAdapter } from './adapters/BirthdayAdapter';
 import { LabelAdapter } from './adapters/LabelAdapter';
 import { RelationsAdapter } from './adapters/RelationsAdapter';
 import { UrlAdapter } from './adapters/UrlAdapter';
+import { PhotoAdapter } from './adapters/PhotoAdapter';
 
 /**
  * Formatter class responsible for coordinating field extraction and key generation.
@@ -109,6 +110,7 @@ export function createDefaultFormatter(
     labels: new LabelAdapter(),
     relations: new RelationsAdapter(),
     url: new UrlAdapter(),
+    photo: new PhotoAdapter(),
   };
 
   if (strategyType === NamingStrategy.VCF) {

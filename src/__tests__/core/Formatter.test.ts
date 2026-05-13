@@ -66,5 +66,27 @@ describe('Formatter', () => {
 
       expect(result).toEqual({ key1: 'val1', key2: 'val2' });
     });
+
+    it('should sync photo URL as a standard field', () => {
+      const contact = {
+        resourceName: 'people/1',
+        photos: [{ url: 'https://example.com/photo.jpg', default: false }],
+      } as GoogleContact;
+      const formatter = createDefaultFormatter(NamingStrategy.Default);
+      const result = formatter.generateFrontmatter(contact, 'prefix_');
+
+      expect(result.prefix_photo).toBe('https://example.com/photo.jpg');
+    });
+
+    it('should sync photo URL with VCF strategy as PHOTO key', () => {
+      const contact = {
+        resourceName: 'people/1',
+        photos: [{ url: 'https://example.com/photo.jpg', default: false }],
+      } as GoogleContact;
+      const formatter = createDefaultFormatter(NamingStrategy.VCF);
+      const result = formatter.generateFrontmatter(contact, '');
+
+      expect(result.PHOTO).toBe('https://example.com/photo.jpg');
+    });
   });
 });
