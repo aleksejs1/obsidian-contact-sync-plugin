@@ -95,7 +95,7 @@ export class ContactNoteWriter {
   ): Record<string, string> {
     return Object.fromEntries(
       Object.entries(labelMap).map(([key, value]) => [value, key])
-    ) as Record<string, string>;
+    );
   }
 
   private async processContact(

@@ -63,7 +63,7 @@ describe('ContactNoteWriterUpdate', () => {
   let fileManager: FileManager;
 
   beforeEach(() => {
-    vault = new Vault() as unknown as Vault;
+    vault = new Vault();
     // metadataCache = new MetadataCache();
     metadataCache = new MockMetadataCache() as unknown as MetadataCache;
     fileManager = {
@@ -88,7 +88,7 @@ describe('ContactNoteWriterUpdate', () => {
           resourceName: 'people/123',
           names: [{ displayName: 'Alice Smith' }],
           emailAddresses: [{ value: 'alice@example.com' }],
-        } as GoogleContact,
+        },
       ];
       const mockLabelMap = { family: 'group1' };
       const mockNoteBody = 'This is a note body';
@@ -126,7 +126,7 @@ describe('ContactNoteWriterUpdate', () => {
           resourceName: 'people/123',
           names: [{ displayName: 'Alice Smith' }],
           emailAddresses: [{ value: 'alice@example.com' }],
-        } as GoogleContact,
+        },
       ];
       const mockLabelMap = { family: 'group1' };
       const mockNoteBody = 'This is a note body';

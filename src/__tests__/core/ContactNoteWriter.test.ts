@@ -80,7 +80,7 @@ describe('ContactNoteWriter', () => {
   let fileManager: FileManager;
 
   beforeEach(() => {
-    vault = new Vault() as unknown as Vault;
+    vault = new Vault();
     metadataCache = new MockMetadataCache() as unknown as MetadataCache;
     metadataCache.getFileCache = jest.fn();
     fileManager = {

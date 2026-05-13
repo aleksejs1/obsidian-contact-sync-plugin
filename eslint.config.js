@@ -70,53 +70,22 @@ export default tseslint.config(
       },
     },
     rules: {
-      'boundaries/entry-point': [
-        'error',
-        {
-          default: 'allow',
-        },
-      ],
-      'boundaries/no-private': 'error',
-      'boundaries/element-types': [
+      'boundaries/dependencies': [
         'error',
         {
           default: 'disallow',
           rules: [
             {
               from: 'entry',
-              allow: [
-                'core',
-                'plugin',
-                'services',
-                'auth',
-                'types',
-                'utils',
-                'i18n',
-                'config',
-              ],
+              allow: ['core', 'plugin', 'services', 'auth', 'types', 'utils', 'i18n', 'config'],
             },
             {
               from: 'core',
-              allow: [
-                'types',
-                'utils',
-                'config',
-                'i18n',
-                'core',
-              ],
+              allow: ['types', 'utils', 'config', 'i18n', 'core'],
             },
             {
               from: 'plugin',
-              allow: [
-                'core',
-                'services',
-                'auth',
-                'types',
-                'utils',
-                'i18n',
-                'config',
-                'plugin',
-              ],
+              allow: ['core', 'services', 'auth', 'types', 'utils', 'i18n', 'config', 'plugin'],
             },
             {
               from: 'services',
@@ -126,36 +95,13 @@ export default tseslint.config(
               from: 'auth',
               allow: ['types', 'utils', 'config', 'auth'],
             },
-            {
-              from: 'types',
-              allow: ['types'],
-            },
-            {
-              from: 'utils',
-              allow: ['utils'],
-            },
-            {
-              from: 'i18n',
-              allow: ['i18n', 'types'],
-            },
-            {
-              from: 'config',
-              allow: ['config'],
-            },
+            { from: 'types', allow: ['types'] },
+            { from: 'utils', allow: ['utils'] },
+            { from: 'i18n', allow: ['i18n', 'types'] },
+            { from: 'config', allow: ['config'] },
             {
               from: 'tests',
-              allow: [
-                'core',
-                'plugin',
-                'services',
-                'auth',
-                'types',
-                'utils',
-                'i18n',
-                'config',
-                'mocks',
-                'tests',
-              ],
+              allow: ['core', 'plugin', 'services', 'auth', 'types', 'utils', 'i18n', 'config', 'mocks', 'tests'],
             },
           ],
         },
