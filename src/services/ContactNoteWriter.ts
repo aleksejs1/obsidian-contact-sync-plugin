@@ -104,7 +104,7 @@ export class ContactNoteWriter {
     labelMap: Record<string, string>,
     filesIdMapping: Record<string, TFile>
   ): Promise<void> {
-    if (!this.hasSyncLabel(contact, context.syncLabel, labelMap)) {
+    if (!this.hasSyncLabel(contact, context.syncLabel, context.excludeLabel, labelMap)) {
       return;
     }
 
@@ -326,14 +326,26 @@ export class ContactNoteWriter {
   protected hasSyncLabel(
     contact: GoogleContact,
     syncLabel: string,
+    excludeLabel: string,
     labelMap: Record<string, string>
   ): boolean {
+    const memberships = contact.memberships ?? [];
+
+    if (excludeLabel) {
+      const excludeGroupId = labelMap[excludeLabel];
+      if (excludeGroupId && memberships.some(
+        (m) => m.contactGroupMembership?.contactGroupId === excludeGroupId
+      )) {
+        return false;
+      }
+    }
+
     if (!syncLabel) {
       return true;
     }
 
     const targetGroupId = labelMap[syncLabel];
-    return (contact.memberships ?? []).some(
+    return memberships.some(
       (m) => m.contactGroupMembership?.contactGroupId === targetGroupId
     );
   }

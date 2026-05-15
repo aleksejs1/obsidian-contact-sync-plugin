@@ -67,6 +67,9 @@ export interface ContactSyncSettings {
 
   /** Whether to sync website URLs from contacts */
   website: boolean;
+
+  /** Name of the contact group to exclude from sync */
+  excludeLabel: string;
 }
 
 export enum NamingStrategy {

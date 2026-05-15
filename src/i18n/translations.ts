@@ -100,6 +100,10 @@ export const ru = {
     'Использовать типы для e-mail, телефонов и адресов',
   'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.':
     'Если включено, электронные адреса, телефоны и адреса будут отформатированы с учетом их типов (например, email_work, phone_mobile, address_home) вместо индексов. Игнорируется в стратегии "Массив".',
+  'Label to exclude': 'Лейбл для исключения',
+  'If not empty, contacts with this label will be excluded from sync':
+    'Если указан, контакты с этим лейблом будут исключены из синхронизации',
+  'e.g. excluded': 'например, excluded',
 };
 
 /**
@@ -204,6 +208,10 @@ export const lv = {
     'Izmantot e-pasta, tālruņa un adrešu tipus',
   'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.':
     'Ja iespējots, e-pasti, tālruņi un adreses tiks formatēti ar to specifiskajiem tipiem (piem., email_work, phone_mobile, address_home), nevis vispārīgiem rādītājiem. Tas tiek ignorēts Array nosaukšanas stratēģijā.',
+  'Label to exclude': 'Etiķete izslēgšanai',
+  'If not empty, contacts with this label will be excluded from sync':
+    'Ja nav tukšs, kontakti ar šo etiķeti tiks izslēgti no sinhronizācijas',
+  'e.g. excluded': 'piem., excluded',
 };
 
 /**
@@ -306,4 +314,8 @@ export const en = {
     'Use contact types for emails, phones and addresses',
   'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.':
     'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.',
+  'Label to exclude': 'Label to exclude',
+  'If not empty, contacts with this label will be excluded from sync':
+    'If not empty, contacts with this label will be excluded from sync',
+  'e.g. excluded': 'e.g. excluded',
 };
