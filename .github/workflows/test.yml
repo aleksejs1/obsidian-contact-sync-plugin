@@ -14,25 +14,17 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: npm
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
-    - name: Run tests
-      run: npm run test
-
-    - name: Run linter
-      run: npm run lint
-
-    - name: Run type check
-      run: npm run typecheck
-
-    - name: Run dependency check
-      run: npm run lint:deps
+    - name: Run quality gate
+      run: npm run quality
 
