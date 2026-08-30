@@ -34,7 +34,7 @@
     "eslint-plugin-obsidianmd": "^0.4.2",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
-    "lint-staged": "^15.5.1",
+    "nano-staged": "^1.0.2",
     "obsidian": "^1.8.7",
     "prettier": "^3.5.3",
     "rollup": "^4.40.0",
@@ -48,7 +48,7 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.8.1"
   },
-  "lint-staged": {
+  "nano-staged": {
     "src/**/*.{ts,tsx}": [
       "eslint --fix",
       "prettier --write"
