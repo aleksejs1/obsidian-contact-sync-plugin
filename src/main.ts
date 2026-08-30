@@ -143,13 +143,13 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       return;
     }
 
-    const labelMap = await this.getLabelMap(token);
-    if (!labelMap) {
+    const contacts = await this.getContacts(token);
+    if (!contacts) {
       return;
     }
 
-    const contacts = await this.getContacts(token);
-    if (!contacts) {
+    const labelMap = await this.getLabelMap(token, contacts);
+    if (!labelMap) {
       return;
     }
 
@@ -169,11 +169,42 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     return token;
   }
 
+  private collectUnknownGroupIds(
+    contacts: GoogleContact[],
+    knownIds: Set<string>
+  ): string[] {
+    const unknownIds = new Set<string>();
+    for (const contact of contacts) {
+      for (const m of contact.memberships ?? []) {
+        const id = m.contactGroupMembership?.contactGroupId;
+        if (id && !knownIds.has(id)) {
+          unknownIds.add(id);
+        }
+      }
+    }
+    return [...unknownIds];
+  }
+
   private async getLabelMap(
-    token: string
+    token: string,
+    contacts: GoogleContact[]
   ): Promise<Record<string, string> | null> {
     try {
-      return (await this.googleService?.fetchGoogleGroups(token)) ?? {};
+      const labelMap =
+        (await this.googleService?.fetchGoogleGroups(token)) ?? {};
+
+      const unknownIds = this.collectUnknownGroupIds(
+        contacts,
+        new Set(Object.values(labelMap))
+      );
+
+      if (unknownIds.length > 0) {
+        const extra =
+          (await this.googleService?.batchGetGroups(token, unknownIds)) ?? {};
+        Object.assign(labelMap, extra);
+      }
+
+      return labelMap;
     } catch (error) {
       console.error(
         'Failed to fetch Google groups',
@@ -217,6 +248,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       skipNamelessContacts: this.settings.skipNamelessContacts,
       useContactTypes: this.settings.useContactTypes,
       website: this.settings.website,
+      excludeLabel: this.settings.excludeLabel,
     };
   }
 

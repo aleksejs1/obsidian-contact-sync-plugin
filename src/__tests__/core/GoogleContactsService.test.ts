@@ -4,6 +4,7 @@ import {
   URL_PEOPLE_CONNECTIONS,
   PERSONAL_FIELDS,
   URL_CONTACT_GROUPS,
+  URL_CONTACT_GROUPS_BATCH,
 } from '../../config';
 import type { GoogleContact, GoogleContactGroup } from '../../types/Contact';
 
@@ -138,12 +139,8 @@ describe('GoogleContactsService', () => {
     });
 
     it('should return an empty object when no contactGroups are provided', async () => {
-      const mockData = {
-        contactGroups: [],
-      };
-
       (requestUrl as jest.Mock).mockResolvedValue({
-        json: Promise.resolve(mockData),
+        json: Promise.resolve({ contactGroups: [] }),
       });
 
       const result = await googleContactsService.fetchGoogleGroups('someToken');
@@ -152,85 +149,106 @@ describe('GoogleContactsService', () => {
     });
 
     it('should map group names to their resource names', async () => {
-      const mockData = {
-        contactGroups: [
-          {
-            name: 'Family',
-            resourceName: 'contactGroups/group1',
-          },
-          {
-            name: 'Friends',
-            resourceName: 'contactGroups/group2',
-          },
-        ],
-      };
-
       (requestUrl as jest.Mock).mockResolvedValue({
-        json: Promise.resolve(mockData),
+        json: Promise.resolve({
+          contactGroups: [
+            { name: 'Family', resourceName: 'contactGroups/group1' },
+            { name: 'Friends', resourceName: 'contactGroups/group2' },
+          ],
+        }),
       });
 
       const result = await googleContactsService.fetchGoogleGroups('someToken');
 
-      const expectedLabelMap = {
-        family: 'group1',
-        friends: 'group2',
-      };
-
-      expect(result).toEqual(expectedLabelMap);
+      expect(result).toEqual({ family: 'group1', friends: 'group2' });
     });
 
     it('should remove "contactGroups/" from resourceName', async () => {
-      const mockData = {
-        contactGroups: [
-          {
-            name: 'Work',
-            resourceName: 'contactGroups/workGroup',
-          },
-        ],
-      };
-
       (requestUrl as jest.Mock).mockResolvedValue({
-        json: Promise.resolve(mockData),
+        json: Promise.resolve({
+          contactGroups: [{ name: 'Work', resourceName: 'contactGroups/workGroup' }],
+        }),
       });
 
       const result = await googleContactsService.fetchGoogleGroups('someToken');
 
-      const expectedLabelMap = {
-        work: 'workGroup',
-      };
+      expect(result).toEqual({ work: 'workGroup' });
+    });
 
-      expect(result).toEqual(expectedLabelMap);
+    it('should lowercase group names as keys', async () => {
+      (requestUrl as jest.Mock).mockResolvedValue({
+        json: Promise.resolve({
+          contactGroups: [{ name: 'MyLabel', resourceName: 'contactGroups/abc' }],
+        }),
+      });
+
+      const result = await googleContactsService.fetchGoogleGroups(mockToken);
+      expect(result).toEqual({ mylabel: 'abc' });
     });
 
     it('should not add group to labelMap if name or resourceName is missing', async () => {
-      const mockData = {
-        contactGroups: [
-          {
-            name: 'Team',
-            resourceName: 'contactGroups/teamGroup',
-          },
-          {
-            name: '', // invalid name
-            resourceName: 'contactGroups/invalidGroup',
-          },
-          {
-            name: 'Other', // valid name
-            resourceName: '', // invalid resourceName
-          },
-        ],
-      };
-
       (requestUrl as jest.Mock).mockResolvedValue({
-        json: Promise.resolve(mockData),
+        json: Promise.resolve({
+          contactGroups: [
+            { name: 'Team', resourceName: 'contactGroups/teamGroup' },
+            { name: '', resourceName: 'contactGroups/invalidGroup' },
+            { name: 'Other', resourceName: '' },
+          ],
+        }),
       });
 
       const result = await googleContactsService.fetchGoogleGroups('someToken');
 
-      const expectedLabelMap = {
-        team: 'teamGroup',
-      };
+      expect(result).toEqual({ team: 'teamGroup' });
+    });
+  });
 
-      expect(result).toEqual(expectedLabelMap);
+  describe('batchGetGroups', () => {
+    it('should return empty object for empty input', async () => {
+      const result = await googleContactsService.batchGetGroups(mockToken, []);
+      expect(result).toEqual({});
+      expect(requestUrl).not.toHaveBeenCalled();
+    });
+
+    it('should fetch and map groups by ID', async () => {
+      (requestUrl as jest.Mock).mockResolvedValue({
+        json: Promise.resolve({
+          responses: [
+            { contactGroup: { name: 'Friends', resourceName: 'contactGroups/abc123' } },
+            { contactGroup: { name: 'Family', resourceName: 'contactGroups/def456' } },
+          ],
+        }),
+      });
+
+      const result = await googleContactsService.batchGetGroups(mockToken, ['abc123', 'def456']);
+
+      expect(requestUrl).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining(URL_CONTACT_GROUPS_BATCH),
+          method: 'GET',
+        })
+      );
+      expect(result).toEqual({ friends: 'abc123', family: 'def456' });
+    });
+
+    it('should skip responses without contactGroup', async () => {
+      (requestUrl as jest.Mock).mockResolvedValue({
+        json: Promise.resolve({
+          responses: [
+            { requestedResourceName: 'contactGroups/deleted', contactGroup: undefined },
+            { contactGroup: { name: 'Work', resourceName: 'contactGroups/work1' } },
+          ],
+        }),
+      });
+
+      const result = await googleContactsService.batchGetGroups(mockToken, ['deleted', 'work1']);
+      expect(result).toEqual({ work: 'work1' });
+    });
+
+    it('should return empty object on API error', async () => {
+      (requestUrl as jest.Mock).mockRejectedValue(new Error('Network error'));
+      const result = await googleContactsService.batchGetGroups(mockToken, ['abc123']);
+      expect(result).toEqual({});
     });
   });
 });

@@ -67,9 +67,10 @@ class TestContactNoteWriter extends ContactNoteWriter {
   public hasSyncLabel(
     contact: GoogleContact,
     syncLabel: string,
+    excludeLabel: string,
     labelMap: Record<string, string>
   ): boolean {
-    return super.hasSyncLabel(contact, syncLabel, labelMap);
+    return super.hasSyncLabel(contact, syncLabel, excludeLabel, labelMap);
   }
 }
 
@@ -391,6 +392,7 @@ describe('ContactNoteWriter', () => {
       const result = contactNoteWriter.hasSyncLabel(
         mockContact,
         'family',
+        '',
         mockLabelMap
       );
 
@@ -413,6 +415,7 @@ describe('ContactNoteWriter', () => {
       const result = contactNoteWriter.hasSyncLabel(
         mockContact,
         'family',
+        '',
         mockLabelMap
       );
 
@@ -429,10 +432,85 @@ describe('ContactNoteWriter', () => {
       const result = contactNoteWriter.hasSyncLabel(
         mockContact,
         'family',
+        '',
         mockLabelMap
       );
 
       expect(result).toBe(false);
+    });
+
+    it('should return false if contact has the exclude label', () => {
+      const mockContact: GoogleContact = {
+        resourceName: 'people/123',
+        memberships: [
+          {
+            contactGroupMembership: {
+              contactGroupId: 'group2',
+            },
+          },
+        ],
+      };
+      const mockLabelMap = { excluded: 'group2' };
+
+      const result = contactNoteWriter.hasSyncLabel(
+        mockContact,
+        '',
+        'excluded',
+        mockLabelMap
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if contact has both sync and exclude labels', () => {
+      const mockContact: GoogleContact = {
+        resourceName: 'people/123',
+        memberships: [
+          {
+            contactGroupMembership: {
+              contactGroupId: 'group1',
+            },
+          },
+          {
+            contactGroupMembership: {
+              contactGroupId: 'group2',
+            },
+          },
+        ],
+      };
+      const mockLabelMap = { family: 'group1', excluded: 'group2' };
+
+      const result = contactNoteWriter.hasSyncLabel(
+        mockContact,
+        'family',
+        'excluded',
+        mockLabelMap
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('should not exclude contact if excludeLabel is unknown', () => {
+      const mockContact: GoogleContact = {
+        resourceName: 'people/123',
+        memberships: [
+          {
+            contactGroupMembership: {
+              contactGroupId: 'group1',
+            },
+          },
+        ],
+      };
+      const mockLabelMap = { family: 'group1' };
+
+      const result = contactNoteWriter.hasSyncLabel(
+        mockContact,
+        'family',
+        'nonexistent',
+        mockLabelMap
+      );
+
+      expect(result).toBe(true);
     });
   });
 

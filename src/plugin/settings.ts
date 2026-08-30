@@ -375,6 +375,21 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(t('Label to exclude'))
+      .setDesc(
+        t('If not empty, contacts with this label will be excluded from sync')
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder(t('e.g. excluded'))
+          .setValue(this.plugin.settings.excludeLabel)
+          .onChange(async (value) => {
+            this.plugin.settings.excludeLabel = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName(t('Auto sync period'))
       .setDesc(t('Period in minutes. If 0, then never. 1 day = 1440'))
       .addText((text) =>

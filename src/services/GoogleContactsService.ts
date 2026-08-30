@@ -1,6 +1,7 @@
 import { requestUrl } from 'obsidian';
 import {
   URL_CONTACT_GROUPS,
+  URL_CONTACT_GROUPS_BATCH,
   URL_PEOPLE_CONNECTIONS,
   PERSONAL_FIELDS,
   URL_PEOPLE_OTHER_CONTACTS,
@@ -21,6 +22,13 @@ interface OtherContactsResponse {
 
 interface ContactGroupsResponse {
   contactGroups?: GoogleContactGroup[];
+}
+
+interface BatchGetContactGroupsResponse {
+  responses?: {
+    requestedResourceName?: string;
+    contactGroup?: GoogleContactGroup;
+  }[];
 }
 
 /**
@@ -160,5 +168,53 @@ export class GoogleContactsService {
       }
     });
     return labelMap;
+  }
+
+  /**
+   * Fetches contact groups by their IDs and returns a mapping of lowercase group name → group ID.
+   * Used to resolve group IDs that are present in contact memberships but missing from the
+   * contactGroups.list response (e.g. legacy groups or groups created via the old Contacts API).
+   * @param token OAuth access token.
+   * @param groupIds Array of group IDs (without the "contactGroups/" prefix).
+   * @returns Record mapping lowercase group names to their resource IDs.
+   */
+  async batchGetGroups(
+    token: string,
+    groupIds: string[]
+  ): Promise<Record<string, string>> {
+    if (groupIds.length === 0) {
+      return {};
+    }
+
+    const params = new URLSearchParams();
+    groupIds.forEach((id) => {
+      params.append('resourceNames', `contactGroups/${id}`);
+    });
+
+    try {
+      const response = await requestUrl({
+        url: `${URL_CONTACT_GROUPS_BATCH}?${params.toString()}`,
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data =
+        (await response.json) as BatchGetContactGroupsResponse;
+      const result: Record<string, string> = {};
+
+      data.responses?.forEach((r) => {
+        const group = r.contactGroup;
+        if (group?.name && group.resourceName) {
+          result[group.name.toLowerCase()] = group.resourceName.replace(
+            'contactGroups/',
+            ''
+          );
+        }
+      });
+
+      return result;
+    } catch {
+      return {};
+    }
   }
 }
