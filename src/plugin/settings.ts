@@ -1,4 +1,4 @@
-import { Notice, Setting, App, PluginSettingTab } from 'obsidian';
+import { Notice, Setting, App, PluginSettingTab, SettingDefinitionItem } from 'obsidian';
 import { LINK_TO_MANUAL } from '../config';
 import { getAuthUrl } from '../auth/getAuthUrl';
 import { IPlugin } from '../types/IPlugin';
@@ -22,6 +22,153 @@ export class ContactSyncSettingTab extends PluginSettingTab {
   constructor(app: App, plugin: IPlugin) {
     super(app, plugin);
     this.plugin = plugin;
+  }
+
+  /**
+   * Declarative setting definitions for Obsidian 1.13.0+ settings search.
+   */
+  override getSettingDefinitions(): SettingDefinitionItem[] {
+    return [
+      {
+        name: t('Contacts folder'),
+        desc: t('Vault folder where contact notes will be stored'),
+        control: {
+          type: 'text',
+          key: 'contactsFolder',
+        },
+      },
+      {
+        name: t('Note template'),
+        desc: t(
+          'Template to insert below the metadata block for new contact notes'
+        ),
+        control: {
+          type: 'textarea',
+          key: 'noteTemplate',
+        },
+      },
+      {
+        name: t('File name prefix'),
+        desc: t(
+          'Prefix to add to the beginning of each contact file name'
+        ),
+        control: {
+          type: 'text',
+          key: 'fileNamePrefix',
+        },
+      },
+      {
+        name: t('Format file names as Last First'),
+        desc: t(
+          'If enabled, contact file names will be formatted as Last First instead of First Last'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'lastFirst',
+        },
+      },
+      {
+        name: t('Naming strategy'),
+        desc: t('Select naming strategy for frontmatter keys'),
+        control: {
+          type: 'dropdown',
+          key: 'namingStrategy',
+          options: {
+            [NamingStrategy.Default]: t('Default'),
+            [NamingStrategy.VCF]: t('VCF (vCard compatible)'),
+            [NamingStrategy.Array]: t('Array'),
+          },
+        },
+      },
+      {
+        name: t('Custom prefix'),
+        desc: t(
+          'Prefix to use for properties when Default naming strategy is selected'
+        ),
+        control: {
+          type: 'text',
+          key: 'propertyNamePrefix',
+        },
+      },
+      {
+        name: t('Save organizations as links'),
+        desc: t(
+          'If enabled, organizations will be saved as Obsidian links (e.g. [[Organization]])'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'organizationAsLink',
+        },
+      },
+      {
+        name: t('Save relations as links'),
+        desc: t(
+          'If enabled, relations will be saved as Obsidian links (e.g. [[Jane Doe|Jane Doe (spouse)]])'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'relationsAsLink',
+        },
+      },
+      {
+        name: t('Track last sync time'),
+        desc: t(
+          'If enabled, adds or updates a synced field with the last sync timestamp in UTC'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'trackSyncTime',
+        },
+      },
+      {
+        name: t('Sync interval (minutes)'),
+        desc: t(
+          'Set the interval for automatic contact synchronization. Set to 0 to disable'
+        ),
+        control: {
+          type: 'number',
+          key: 'syncIntervalMinutes',
+        },
+      },
+      {
+        name: t('Sync on startup'),
+        desc: t(
+          'If enabled, automatically sync contacts when Obsidian starts'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'syncOnStartup',
+        },
+      },
+      {
+        name: t('Google contact label'),
+        desc: t(
+          'Synchronize only contacts that have this specific Google Contacts label. Leave empty to sync all contacts'
+        ),
+        control: {
+          type: 'text',
+          key: 'syncLabel',
+        },
+      },
+      {
+        name: t('Rename files'),
+        desc: t(
+          'Rename existing contact notes when their contact name changes'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'renameFiles',
+        },
+      },
+      {
+        name: t('Skip nameless contacts'),
+        desc: t('Skip contacts that do not have a name'),
+        control: {
+          type: 'toggle',
+          key: 'skipNamelessContacts',
+        },
+      },
+    ];
   }
 
   /**
