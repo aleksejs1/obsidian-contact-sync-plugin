@@ -45,7 +45,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
     this.addCommand({
       id: 'audit-contacts',
-      name: 'Audit Contacts',
+      name: 'Audit contacts',
       callback: async () => {
         const token = await this.auth?.ensureValidToken();
         if (!token) {
@@ -83,7 +83,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
 
   onunload() {
     if (this.syncIntervalId) {
-      clearInterval(this.syncIntervalId);
+      window.clearInterval(this.syncIntervalId);
     }
   }
 
@@ -92,7 +92,7 @@ export default class GoogleContactsSyncPlugin extends Plugin {
    */
   setupAutoSync() {
     if (this.syncIntervalId) {
-      clearInterval(this.syncIntervalId);
+      window.clearInterval(this.syncIntervalId);
     }
 
     const interval = this.settings.syncIntervalMinutes;

@@ -2,11 +2,13 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import boundaries from 'eslint-plugin-boundaries';
+import obsidianmd from 'eslint-plugin-obsidianmd';
 
 export default tseslint.config(
   {
     ignores: ['dist/', 'node_modules/', 'coverage/', 'main.js'],
   },
+  ...obsidianmd.configs.recommended,
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
@@ -134,6 +136,7 @@ export default tseslint.config(
   {
     files: ['src/__{tests,mocks}__/**/*.ts'],
     rules: {
+      'obsidianmd/no-tfile-tfolder-cast': 'off',
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
