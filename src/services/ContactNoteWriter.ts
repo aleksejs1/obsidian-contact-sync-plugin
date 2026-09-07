@@ -353,8 +353,7 @@ export class ContactNoteWriter {
 
     for (const file of files) {
       const frontmatter = this.metadataCache.getFileCache(file)?.frontmatter as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       const idFieldName = `${propertyPrefix}id`;
       const idValue = frontmatter?.[idFieldName];
       if (typeof idValue === 'string' || typeof idValue === 'number') {

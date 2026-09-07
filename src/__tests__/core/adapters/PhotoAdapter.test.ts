@@ -36,7 +36,12 @@ describe('PhotoAdapter', () => {
     it('should fall back to Google-generated avatar if no user photo exists', () => {
       const contact: GoogleContact = {
         resourceName: 'people/1',
-        photos: [{ url: 'https://lh3.googleusercontent.com/avatar.jpg', default: true }],
+        photos: [
+          {
+            url: 'https://lh3.googleusercontent.com/avatar.jpg',
+            default: true,
+          },
+        ],
       };
       expect(adapter.extract(contact)).toEqual([
         { value: 'https://lh3.googleusercontent.com/avatar.jpg' },
@@ -47,7 +52,10 @@ describe('PhotoAdapter', () => {
       const contact: GoogleContact = {
         resourceName: 'people/1',
         photos: [
-          { url: 'https://lh3.googleusercontent.com/avatar.jpg', default: true },
+          {
+            url: 'https://lh3.googleusercontent.com/avatar.jpg',
+            default: true,
+          },
           { url: 'https://example.com/user-photo.jpg', default: false },
         ],
       };
