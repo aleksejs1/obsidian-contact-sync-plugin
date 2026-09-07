@@ -104,8 +104,7 @@ export class ContactAuditService {
   private getContactIdFromFile(file: TFile, idField: string): string | null {
     const cache = this.app.metadataCache.getFileCache(file);
     const frontmatter = cache?.frontmatter as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     const id = frontmatter?.[idField];
 
     if (typeof id === 'string' || typeof id === 'number') {

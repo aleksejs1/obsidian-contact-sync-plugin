@@ -1,4 +1,10 @@
-import { Notice, Setting, App, PluginSettingTab, SettingDefinitionItem } from 'obsidian';
+import {
+  Notice,
+  Setting,
+  App,
+  PluginSettingTab,
+  SettingDefinitionItem,
+} from 'obsidian';
 import { LINK_TO_MANUAL } from '../config';
 import { getAuthUrl } from '../auth/getAuthUrl';
 import { IPlugin } from '../types/IPlugin';
@@ -22,6 +28,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
   constructor(app: App, plugin: IPlugin) {
     super(app, plugin);
     this.plugin = plugin;
+  }
+
+  private getManualFragment(): DocumentFragment | string {
+    if (typeof createFragment === 'function') {
+      const manual = createFragment();
+      manual.append(
+        t('Here is the manual about creating your own client:'),
+        ' ',
+        manual.createEl('a', {
+          href: LINK_TO_MANUAL,
+          text: t('manual'),
+        })
+      );
+      return manual;
+    }
+    return `${t('Here is the manual about creating your own client:')} ${LINK_TO_MANUAL}`;
   }
 
   /**
@@ -49,9 +71,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       },
       {
         name: t('File name prefix'),
-        desc: t(
-          'Prefix to add to the beginning of each contact file name'
-        ),
+        desc: t('Prefix to add to the beginning of each contact file name'),
         control: {
           type: 'text',
           key: 'fileNamePrefix',
@@ -65,6 +85,34 @@ export class ContactSyncSettingTab extends PluginSettingTab {
         control: {
           type: 'toggle',
           key: 'lastFirst',
+        },
+      },
+      {
+        name: t('Skip nameless contacts'),
+        desc: t('Skip contacts that do not have a name'),
+        control: {
+          type: 'toggle',
+          key: 'skipNamelessContacts',
+        },
+      },
+      {
+        name: t('Use contact types for emails, phones and addresses'),
+        desc: t(
+          'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'useContactTypes',
+        },
+      },
+      {
+        name: t('Sync website URLs'),
+        desc: t(
+          'If enabled, website URLs from contacts will be synced to the website frontmatter property'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'website',
         },
       },
       {
@@ -111,13 +159,13 @@ export class ContactSyncSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: t('Track last sync time'),
+        name: t('Google contact label'),
         desc: t(
-          'If enabled, adds or updates a synced field with the last sync timestamp in UTC'
+          'Synchronize only contacts that have this specific Google Contacts label. Leave empty to sync all contacts'
         ),
         control: {
-          type: 'toggle',
-          key: 'trackSyncTime',
+          type: 'text',
+          key: 'syncLabel',
         },
       },
       {
@@ -132,22 +180,10 @@ export class ContactSyncSettingTab extends PluginSettingTab {
       },
       {
         name: t('Sync on startup'),
-        desc: t(
-          'If enabled, automatically sync contacts when Obsidian starts'
-        ),
+        desc: t('If enabled, automatically sync contacts when Obsidian starts'),
         control: {
           type: 'toggle',
           key: 'syncOnStartup',
-        },
-      },
-      {
-        name: t('Google contact label'),
-        desc: t(
-          'Synchronize only contacts that have this specific Google Contacts label. Leave empty to sync all contacts'
-        ),
-        control: {
-          type: 'text',
-          key: 'syncLabel',
         },
       },
       {
@@ -161,14 +197,136 @@ export class ContactSyncSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: t('Skip nameless contacts'),
-        desc: t('Skip contacts that do not have a name'),
+        name: t('Track last sync time'),
+        desc: t(
+          'If enabled, adds or updates a synced field with the last sync timestamp in UTC'
+        ),
         control: {
           type: 'toggle',
-          key: 'skipNamelessContacts',
+          key: 'trackSyncTime',
         },
       },
+      {
+        type: 'group',
+        heading: t('Google auth'),
+        items: [
+          {
+            name: t('Google client ID'),
+            desc: this.getManualFragment(),
+            control: {
+              type: 'text',
+              key: 'clientId',
+            },
+          },
+          {
+            name: t('Google client secret'),
+            desc: t('Enter your client secret'),
+            control: {
+              type: 'text',
+              key: 'clientSecret',
+            },
+          },
+          {
+            name: t('Login with Google'),
+            desc: t("Open Google's auth page in your browser"),
+            render: (setting: Setting) => {
+              setting.addButton((btn) =>
+                btn.setButtonText(t('Login')).onClick(() => {
+                  if (!this.plugin.settings.clientId) {
+                    new Notice(t('Please enter your client ID first.'));
+                    return;
+                  }
+                  window.open(
+                    getAuthUrl(this.plugin.settings.clientId),
+                    '_blank'
+                  );
+                })
+              );
+            },
+          },
+          {
+            name: t('Authorization code'),
+            desc: t('Paste the code from Google after login'),
+            visible: () =>
+              Boolean(
+                this.plugin.settings.clientId &&
+                this.plugin.settings.clientSecret
+              ),
+            render: (setting: Setting) => {
+              setting.addText((text) =>
+                text
+                  .setPlaceholder(t('Paste code here'))
+                  .onChange(async (code) => {
+                    if (!code) {
+                      return;
+                    }
+                    if (
+                      !this.plugin.settings.clientId ||
+                      !this.plugin.settings.clientSecret ||
+                      !this.plugin.auth
+                    ) {
+                      new Notice(t('Client ID and secret required.'));
+                      return;
+                    }
+
+                    try {
+                      await this.plugin.auth.exchangeCode(code);
+                    } catch (error) {
+                      console.error(
+                        'Failed to exchange code:',
+                        JSON.stringify(error, null, 2)
+                      );
+                      new Notice(
+                        t('Failed to exchange code. Check console for details.')
+                      );
+                      return;
+                    }
+
+                    Object.assign(
+                      this.plugin.settings,
+                      this.plugin.auth.getSettingsUpdate()
+                    );
+                    await this.plugin.saveSettings();
+                    new Notice(t('Tokens saved!'));
+                  })
+              );
+            },
+          },
+        ],
+      },
     ];
+  }
+
+  override getControlValue(key: string): unknown {
+    return (this.plugin.settings as unknown as Record<string, unknown>)[key];
+  }
+
+  private updateControlValue(key: string, value: unknown): void {
+    if (key === 'contactsFolder' && typeof value === 'string') {
+      this.plugin.settings.contactsFolder = value.trim() || 'Contacts';
+    } else if (key === 'syncIntervalMinutes') {
+      const parsed =
+        typeof value === 'number' ? value : parseInt(String(value), 10);
+      this.plugin.settings.syncIntervalMinutes =
+        !isNaN(parsed) && parsed > 0 ? parsed : 0;
+      this.plugin.setupAutoSync();
+    } else {
+      (this.plugin.settings as unknown as Record<string, unknown>)[key] = value;
+    }
+  }
+
+  private triggerDomRefresh(): void {
+    const tab = this as unknown as { refreshDomState?: () => void };
+    tab.refreshDomState?.();
+  }
+
+  override async setControlValue(key: string, value: unknown): Promise<void> {
+    this.updateControlValue(key, value);
+    await this.plugin.saveSettings();
+    if (key === 'clientId' || key === 'clientSecret') {
+      this.plugin.auth?.updateSettings(this.plugin.settings);
+      this.triggerDomRefresh();
+    }
   }
 
   /**
@@ -178,15 +336,7 @@ export class ContactSyncSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    const manual = createFragment();
-    manual.append(
-      t('Here is the manual about creating your own client:'),
-      ' ',
-      manual.createEl('a', {
-        href: LINK_TO_MANUAL,
-        text: t('manual'),
-      })
-    );
+    const manual = this.getManualFragment();
 
     new Setting(containerEl)
       .setName(t('Contacts folder'))

@@ -137,6 +137,8 @@ export default tseslint.config(
     files: ['src/__{tests,mocks}__/**/*.ts'],
     rules: {
       'obsidianmd/no-tfile-tfolder-cast': 'off',
+      'obsidianmd/no-unsupported-api': 'off',
+      'obsidianmd/no-global-this': 'off',
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
@@ -149,6 +151,9 @@ export default tseslint.config(
       '@typescript-eslint/no-empty-function': 'off',
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/no-useless-constructor': 'off',
+      '@typescript-eslint/no-deprecated': 'off',
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+      '@typescript-eslint/no-unnecessary-condition': 'off',
     },
   }
 );

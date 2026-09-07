@@ -100,6 +100,34 @@ export const ru = {
     'Использовать типы для e-mail, телефонов и адресов',
   'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.':
     'Если включено, электронные адреса, телефоны и адреса будут отформатированы с учетом их типов (например, email_work, phone_mobile, address_home) вместо индексов. Игнорируется в стратегии "Массив".',
+  'Sync website URLs': 'Синхронизировать веб-сайты',
+  'If enabled, website URLs from contacts will be synced to the website frontmatter property':
+    'Если включено, ссылки на веб-сайты из контактов будут синхронизированы в свойство website frontmatter',
+  'VCF (vCard compatible)': 'VCF (совместимый с vCard)',
+  'Custom prefix': 'Префикс свойств',
+  'Prefix to use for properties when Default naming strategy is selected':
+    'Префикс, используемый для свойств при выборе стандартной стратегии именования',
+  'Save organizations as links': 'Сохранять организации как ссылки',
+  'If enabled, organizations will be saved as Obsidian links (e.g. [[Organization]])':
+    'Если включено, организации будут сохранены как ссылки Obsidian (например, [[Организация]])',
+  'Save relations as links': 'Сохранять связи как ссылки',
+  'If enabled, relations will be saved as Obsidian links (e.g. [[Jane Doe|Jane Doe (spouse)]])':
+    'Если включено, связи будут сохранены как ссылки Obsidian (например, [[Иван Иванов|Иван Иванов (супруг)]])',
+  'Track last sync time': 'Отслеживать время последней синхронизации',
+  'If enabled, adds or updates a synced field with the last sync timestamp in UTC':
+    'Если включено, добавляет или обновляет поле synced с отметкой времени последней синхронизации в UTC',
+  'Sync interval (minutes)': 'Интервал синхронизации (минуты)',
+  'Set the interval for automatic contact synchronization. Set to 0 to disable':
+    'Период автоматической синхронизации контактов в минутах. Установите 0 для отключения',
+  'Google contact label': 'Лейбл контактов Google',
+  'Synchronize only contacts that have this specific Google Contacts label. Leave empty to sync all contacts':
+    'Синхронизировать только контакты с этим лейблом Google Contacts. Оставьте пустым для синхронизации всех контактов',
+  'Rename files': 'Переименовывать файлы',
+  'Rename existing contact notes when their contact name changes':
+    'Переименовывать существующие заметки контактов при изменении их имени',
+  'Skip contacts that do not have a name': 'Пропускать контакты без имени',
+  'Select naming strategy for frontmatter keys':
+    'Выберите стратегию именования ключей frontmatter',
 };
 
 /**
@@ -204,6 +232,34 @@ export const lv = {
     'Izmantot e-pasta, tālruņa un adrešu tipus',
   'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.':
     'Ja iespējots, e-pasti, tālruņi un adreses tiks formatēti ar to specifiskajiem tipiem (piem., email_work, phone_mobile, address_home), nevis vispārīgiem rādītājiem. Tas tiek ignorēts Array nosaukšanas stratēģijā.',
+  'Sync website URLs': 'Sinhronizēt tīmekļa vietņu adreses',
+  'If enabled, website URLs from contacts will be synced to the website frontmatter property':
+    'Ja iespējots, tīmekļa vietņu adreses no kontaktiem tiks sinhronizētas website metadatu rekvizītā',
+  'VCF (vCard compatible)': 'VCF (vCard saderīgs)',
+  'Custom prefix': 'Pielāgots prefikss',
+  'Prefix to use for properties when Default naming strategy is selected':
+    'Prefikss, ko izmantot rekvizītiem, kad ir atlasīta noklusējuma nosaukšanas stratēģija',
+  'Save organizations as links': 'Saglabāt organizācijas kā saites',
+  'If enabled, organizations will be saved as Obsidian links (e.g. [[Organization]])':
+    'Ja iespējots, organizācijas tiks saglabātas kā Obsidian saites (piem., [[Organizācija]])',
+  'Save relations as links': 'Saglabāt attiecības kā saites',
+  'If enabled, relations will be saved as Obsidian links (e.g. [[Jane Doe|Jane Doe (spouse)]])':
+    'Ja iespējots, attiecības tiks saglabātas kā Obsidian saites (piem., [[Jane Doe|Jane Doe (laulātais)]])',
+  'Track last sync time': 'Sekot pēdējās sinhronizācijas laikam',
+  'If enabled, adds or updates a synced field with the last sync timestamp in UTC':
+    'Ja iespējots, pievieno vai atjaunina lauku synced ar pēdējās sinhronizācijas laika zīmogu UTC',
+  'Sync interval (minutes)': 'Sinhronizācijas intervāls (minūtēs)',
+  'Set the interval for automatic contact synchronization. Set to 0 to disable':
+    'Iestatiet automātiskās kontaktu sinhronizācijas intervālu. Iestatiet 0, lai atspējotu',
+  'Google contact label': 'Google kontaktu etiķete',
+  'Synchronize only contacts that have this specific Google Contacts label. Leave empty to sync all contacts':
+    'Sinhronizēt tikai tos kontaktus, kuriem ir šī konkrētā Google Contacts etiķete. Atstājiet tukšu, lai sinhronizētu visus kontaktus',
+  'Rename files': 'Pārdēvēt failus',
+  'Rename existing contact notes when their contact name changes':
+    'Pārdēvēt esošās kontaktu piezīmes, ja mainās to kontakta nosaukums',
+  'Skip contacts that do not have a name': 'Izlaist kontaktus bez vārda',
+  'Select naming strategy for frontmatter keys':
+    'Atlasiet metadatu atslēgu nosaukšanas stratēģiju',
 };
 
 /**
@@ -306,4 +362,33 @@ export const en = {
     'Use contact types for emails, phones and addresses',
   'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.':
     'If enabled, emails, phones and addresses will be formatted with their specific types (e.g. email_work, phone_mobile, address_home) instead of generic indexes. This is ignored in the Array naming strategy.',
+  'Sync website URLs': 'Sync website URLs',
+  'If enabled, website URLs from contacts will be synced to the website frontmatter property':
+    'If enabled, website URLs from contacts will be synced to the website frontmatter property',
+  'VCF (vCard compatible)': 'VCF (vCard compatible)',
+  'Custom prefix': 'Custom prefix',
+  'Prefix to use for properties when Default naming strategy is selected':
+    'Prefix to use for properties when Default naming strategy is selected',
+  'Save organizations as links': 'Save organizations as links',
+  'If enabled, organizations will be saved as Obsidian links (e.g. [[Organization]])':
+    'If enabled, organizations will be saved as Obsidian links (e.g. [[Organization]])',
+  'Save relations as links': 'Save relations as links',
+  'If enabled, relations will be saved as Obsidian links (e.g. [[Jane Doe|Jane Doe (spouse)]])':
+    'If enabled, relations will be saved as Obsidian links (e.g. [[Jane Doe|Jane Doe (spouse)]])',
+  'Track last sync time': 'Track last sync time',
+  'If enabled, adds or updates a synced field with the last sync timestamp in UTC':
+    'If enabled, adds or updates a synced field with the last sync timestamp in UTC',
+  'Sync interval (minutes)': 'Sync interval (minutes)',
+  'Set the interval for automatic contact synchronization. Set to 0 to disable':
+    'Set the interval for automatic contact synchronization. Set to 0 to disable',
+  'Google contact label': 'Google contact label',
+  'Synchronize only contacts that have this specific Google Contacts label. Leave empty to sync all contacts':
+    'Synchronize only contacts that have this specific Google Contacts label. Leave empty to sync all contacts',
+  'Rename files': 'Rename files',
+  'Rename existing contact notes when their contact name changes':
+    'Rename existing contact notes when their contact name changes',
+  'Skip contacts that do not have a name':
+    'Skip contacts that do not have a name',
+  'Select naming strategy for frontmatter keys':
+    'Select naming strategy for frontmatter keys',
 };
