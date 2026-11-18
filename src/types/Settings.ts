@@ -67,6 +67,9 @@ export interface ContactSyncSettings {
 
   /** Whether to sync website URLs from contacts */
   website: boolean;
+
+  /** Whether to write the Google "Notes" field to a managed block in the note body instead of frontmatter */
+  notesInBody: boolean;
 }
 
 export enum NamingStrategy {

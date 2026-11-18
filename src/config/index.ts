@@ -45,4 +45,5 @@ export const DEFAULT_SETTINGS: ContactSyncSettings = {
   skipNamelessContacts: false,
   useContactTypes: false,
   website: true,
+  notesInBody: false,
 };

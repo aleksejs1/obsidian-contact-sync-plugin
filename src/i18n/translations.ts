@@ -103,6 +103,10 @@ export const ru = {
   'Sync website URLs': 'Синхронизировать веб-сайты',
   'If enabled, website URLs from contacts will be synced to the website frontmatter property':
     'Если включено, ссылки на веб-сайты из контактов будут синхронизированы в свойство website frontmatter',
+  'Sync contact notes to note body':
+    'Синхронизировать примечания контакта в текст заметки',
+  'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.':
+    'Если включено, поле «Примечания» из Google Contacts записывается в отдельный блок в тексте заметки вместо свойства bio во frontmatter. Текст за пределами блока не изменяется.',
   'VCF (vCard compatible)': 'VCF (совместимый с vCard)',
   'Custom prefix': 'Префикс свойств',
   'Prefix to use for properties when Default naming strategy is selected':
@@ -235,6 +239,10 @@ export const lv = {
   'Sync website URLs': 'Sinhronizēt tīmekļa vietņu adreses',
   'If enabled, website URLs from contacts will be synced to the website frontmatter property':
     'Ja iespējots, tīmekļa vietņu adreses no kontaktiem tiks sinhronizētas website metadatu rekvizītā',
+  'Sync contact notes to note body':
+    'Sinhronizēt kontakta piezīmes piezīmes tekstā',
+  'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.':
+    'Ja iespējots, Google Contacts lauks “Piezīmes” tiek ierakstīts atsevišķā blokā piezīmes tekstā, nevis bio metadatu rekvizītā. Teksts ārpus bloka netiek mainīts.',
   'VCF (vCard compatible)': 'VCF (vCard saderīgs)',
   'Custom prefix': 'Pielāgots prefikss',
   'Prefix to use for properties when Default naming strategy is selected':
@@ -365,6 +373,9 @@ export const en = {
   'Sync website URLs': 'Sync website URLs',
   'If enabled, website URLs from contacts will be synced to the website frontmatter property':
     'If enabled, website URLs from contacts will be synced to the website frontmatter property',
+  'Sync contact notes to note body': 'Sync contact notes to note body',
+  'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.':
+    'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.',
   'VCF (vCard compatible)': 'VCF (vCard compatible)',
   'Custom prefix': 'Custom prefix',
   'Prefix to use for properties when Default naming strategy is selected':

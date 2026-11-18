@@ -116,6 +116,16 @@ export class ContactSyncSettingTab extends PluginSettingTab {
         },
       },
       {
+        name: t('Sync contact notes to note body'),
+        desc: t(
+          'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'notesInBody',
+        },
+      },
+      {
         name: t('Naming strategy'),
         desc: t('Select naming strategy for frontmatter keys'),
         control: {
@@ -443,6 +453,22 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.website)
           .onChange(async (value) => {
             this.plugin.settings.website = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(t('Sync contact notes to note body'))
+      .setDesc(
+        t(
+          'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.notesInBody)
+          .onChange(async (value) => {
+            this.plugin.settings.notesInBody = value;
             await this.plugin.saveSettings();
           })
       );

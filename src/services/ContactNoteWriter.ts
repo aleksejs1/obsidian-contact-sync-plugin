@@ -8,7 +8,11 @@ import {
 } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
-import { createDefaultFormatter } from '../core/Formatter';
+import {
+  createDefaultFormatter,
+  createNamingStrategy,
+} from '../core/Formatter';
+import { getContactNotesText, upsertNotesBlock } from 'src/core/notesBlock';
 import { VaultService } from './VaultService';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 import { NamingStrategy } from 'src/types/Settings';
@@ -158,15 +162,58 @@ export class ContactNoteWriter {
       if (!file) {
         return;
       }
+      if (context.notesInBody) {
+        await this.writeNotesBlock(file, contact);
+      }
       await this.fileManager.processFrontMatter(
         file,
-        this.processFrontMatter(this.generateFrontmatterLines(context, contact))
+        this.processFrontMatter(
+          this.generateFrontmatterLines(context, contact),
+          this.getObsoleteFrontmatterKeys(context)
+        )
       );
     } catch (error) {
       new Notice(
         `Error processing contact "${filename}": ${error instanceof Error ? error.message : String(error)}`
       );
     }
+  }
+
+  /**
+   * Writes the contact's Google notes into the managed block of the note body.
+   * The file is only written when the block content actually changes.
+   *
+   * @param file - The contact note.
+   * @param contact - The Google contact.
+   */
+  private async writeNotesBlock(
+    file: TFile,
+    contact: GoogleContact
+  ): Promise<void> {
+    const text = getContactNotesText(contact);
+    const current = await this.vaultService.readFile(file);
+    if (upsertNotesBlock(current, text) === current) {
+      return;
+    }
+    await this.vaultService.processFile(file, (data) =>
+      upsertNotesBlock(data, text)
+    );
+  }
+
+  /**
+   * Returns frontmatter keys previously written by the plugin that must be removed
+   * under the current configuration.
+   * When notes are synced to the body, the old notes property is dropped so it can't go stale.
+   *
+   * @param context - The adapter context.
+   * @returns Keys to delete from frontmatter.
+   */
+  private getObsoleteFrontmatterKeys(context: AdapterContext): string[] {
+    if (!context.notesInBody) {
+      return [];
+    }
+    const strategy = createNamingStrategy(context.namingStrategy);
+    return [strategy.generateKey('bio', 0, context.propertyPrefix)];
   }
 
   private async ensureRenamed(
@@ -257,12 +304,19 @@ export class ContactNoteWriter {
    * Processes the frontmatter lines and updates the frontmatter of the given file.
    *
    * @param frontmatterLines - The frontmatter lines to process.
+   * @param keysToDelete - Keys to remove from the frontmatter.
    * @returns A function that takes a frontmatter object and updates it with the provided lines.
    */
   private processFrontMatter(
-    frontmatterLines: Record<string, string | string[]>
+    frontmatterLines: Record<string, string | string[]>,
+    keysToDelete: string[] = []
   ): (frontmatter: Record<string, unknown>) => void {
     return (frontmatter: Record<string, unknown>) => {
+      for (const key of keysToDelete) {
+        if (!(key in frontmatterLines)) {
+          Reflect.deleteProperty(frontmatter, key);
+        }
+      }
       for (const key in frontmatterLines) {
         frontmatter[key] = frontmatterLines[key];
       }

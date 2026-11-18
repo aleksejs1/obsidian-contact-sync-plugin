@@ -73,6 +73,26 @@ export class VaultService {
     return await this.vault.create(normalizedPath, content);
   }
 
+  /**
+   * Reads the content of a file.
+   *
+   * @param file - The file to read.
+   * @returns The file content.
+   */
+  async readFile(file: TFile): Promise<string> {
+    return await this.vault.read(file);
+  }
+
+  /**
+   * Atomically reads, transforms and saves a file.
+   *
+   * @param file - The file to modify.
+   * @param fn - Receives the current content and returns the new content.
+   */
+  async processFile(file: TFile, fn: (data: string) => string): Promise<void> {
+    await this.vault.process(file, fn);
+  }
+
   async renameFile(file: TFile, newPath: string): Promise<void> {
     const normalizedPath = normalizePath(newPath);
     await this.fileManager.renameFile(file, normalizedPath);

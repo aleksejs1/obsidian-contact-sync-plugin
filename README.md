@@ -145,6 +145,16 @@ You can write anything here — this section is safe.
     
 - The plugin only updates properties related to the contact (such as `name`, `email`, `phone`, etc.). Any custom properties created by the user will **remain untouched**.
     
+- **Contact notes in the note body** (optional, off by default): enable *Sync contact notes to note body* to write the Google Contacts **Notes** field into a managed section of the note instead of the `bio` frontmatter property:
+
+```md
+<!-- google-contacts:notes:start -->
+Notes from Google Contacts
+<!-- google-contacts:notes:end -->
+```
+
+  The section is added to the end of the note the first time a contact has notes. On every sync only the text between the markers is replaced. Everything outside them stays as you wrote it. While this option is on, the plugin removes the `bio` (or `NOTE` in VCF) property it wrote before, so the notes are not stored twice. Edits made inside the section are overwritten by the next sync.
+
 - If auto-syncing fails (e.g., due to a lack of internet connection), the next attempt will only occur during the next scheduled auto-sync. **No retries will be attempted** in between.
 
 - If a sync label is configured, only contacts with that label will be synchronized. Contacts without the specified label will be ignored during the sync process.

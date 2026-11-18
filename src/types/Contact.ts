@@ -35,8 +35,12 @@ export interface GoogleContact {
   /** Array of group/domain memberships associated with the contact */
   memberships?: Membership[];
 
-  /** Array of biographies objects associated with the contact */
-  biographies?: { value: string }[];
+  /** Array of biographies objects associated with the contact (Google "Notes" field) */
+  biographies?: {
+    value: string;
+    /** Content type of the value; older contacts may hold HTML */
+    contentType?: 'CONTENT_TYPE_UNSPECIFIED' | 'TEXT_PLAIN' | 'TEXT_HTML';
+  }[];
 
   /** Array of address objects associated with the contact */
   addresses?: {
