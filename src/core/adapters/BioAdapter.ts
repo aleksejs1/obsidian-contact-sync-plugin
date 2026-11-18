@@ -1,5 +1,5 @@
-import { FieldAdapter, ExtractionResult } from '../interfaces';
-import { GoogleContact } from '../../types/Contact';
+import { FieldAdapter, ExtractionResult } from 'src/core/interfaces';
+import { GoogleContact } from 'src/types/Contact';
 
 export class BioAdapter implements FieldAdapter {
   extract(

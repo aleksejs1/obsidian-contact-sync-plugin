@@ -1,60 +1,18 @@
-import { FileManager, MetadataCache, TFile, Vault } from 'obsidian';
-import { ContactNoteWriter } from 'src/services/ContactNoteWriter';
+import { FileManager, TFile } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 import { NamingStrategy } from 'src/types/Settings';
-import { renderNotesBlock } from 'src/core/notesBlock';
+import { hashNotesText, renderNotesBlock } from 'src/core/notesBlock';
+
+/** Block as written by one-way sync: the closing marker records the synced value. */
+const synced = (text: string) => renderNotesBlock(text, hashNotesText(text));
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
 import { DEFAULT_TEST_CONFIG } from '../helpers';
+import { InMemoryVault, TestWriter } from '../inMemoryVault';
 
 jest.mock('src/utils/getAllMarkdownFilesInFolder', () => ({
   getAllMarkdownFilesInFolder: jest.fn(),
 }));
-
-/** Minimal in-memory vault: file content and frontmatter are kept separately. */
-class InMemoryVault {
-  contents = new Map<string, string>();
-  frontmatters = new Map<string, Record<string, unknown>>();
-  files = new Map<string, TFile>();
-
-  create = jest.fn(async (path: string, content: string) => {
-    const file = { path } as TFile;
-    this.files.set(path, file);
-    this.contents.set(path, content);
-    this.frontmatters.set(path, {});
-    return file;
-  });
-  createFolder = jest.fn(async () => undefined);
-  getFolderByPath = jest.fn(() => ({ path: 'folder' }));
-  getFileByPath = jest.fn((path: string) => this.files.get(path) ?? null);
-  read = jest.fn(async (file: TFile) => this.contents.get(file.path) ?? '');
-  process = jest.fn(async (file: TFile, fn: (data: string) => string) => {
-    const next = fn(this.contents.get(file.path) ?? '');
-    this.contents.set(file.path, next);
-    return next;
-  });
-
-  addFile(path: string, content: string, frontmatter: Record<string, unknown>) {
-    const file = { path } as TFile;
-    this.files.set(path, file);
-    this.contents.set(path, content);
-    this.frontmatters.set(path, { ...frontmatter });
-    return file;
-  }
-}
-
-class TestWriter extends ContactNoteWriter {
-  constructor(
-    vault: InMemoryVault,
-    fileManager: FileManager,
-    private idMapping: () => Record<string, TFile>
-  ) {
-    super(vault as unknown as Vault, {} as MetadataCache, fileManager);
-  }
-  protected override scanFiles(): Record<string, TFile> {
-    return this.idMapping();
-  }
-}
 
 const contact = (notes?: string): GoogleContact => ({
   resourceName: 'people/c1',
@@ -102,7 +60,7 @@ describe('ContactNoteWriter – notes in body', () => {
     ]);
 
     expect(vault.contents.get(path)).toBe(
-      `# Notes\n\n${renderNotesBlock('Hello\nthere')}\n`
+      `# Notes\n\n${synced('Hello\nthere')}\n`
     );
     expect(vault.frontmatters.get(path)).not.toHaveProperty('bio');
     expect(vault.frontmatters.get(path)).toHaveProperty('id', 'c1');
@@ -119,12 +77,12 @@ describe('ContactNoteWriter – notes in body', () => {
     await writer.writeNotesForContacts(config(), {}, [contact('new')]);
 
     expect(vault.contents.get(path)).toBe(
-      `# Notes\nmy text\n${renderNotesBlock('new')}\nmore of my text\n`
+      `# Notes\nmy text\n${synced('new')}\nmore of my text\n`
     );
   });
 
   it('does not write the file when the block is unchanged', async () => {
-    const file = vault.addFile(path, `${renderNotesBlock('same')}\n`, {
+    const file = vault.addFile(path, `${synced('same')}\n`, {
       id: 'c1',
     });
     idMapping = { c1: file };

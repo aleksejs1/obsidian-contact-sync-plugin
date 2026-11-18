@@ -17,4 +17,5 @@ export const DEFAULT_TEST_CONFIG: ContactNoteConfig = {
   useContactTypes: false,
   website: true,
   notesInBody: false,
+  notesWriteBack: false,
 };

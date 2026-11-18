@@ -5,6 +5,7 @@ import {
   PERSONAL_FIELDS,
   URL_PEOPLE_OTHER_CONTACTS,
   OTHER_CONTACTS_FIELDS,
+  URL_PEOPLE_API,
 } from '../config';
 import type { GoogleContact, GoogleContactGroup } from '../types/Contact';
 import { RequestUrlResponse } from 'obsidian';
@@ -17,6 +18,14 @@ interface PeopleConnectionsResponse {
 interface OtherContactsResponse {
   otherContacts?: GoogleContact[] | undefined;
   nextPageToken?: string | undefined;
+}
+
+/** Outcome of a single contact update. */
+export type UpdateNotesResult =
+  { ok: true } | { ok: false; status: number; message: string };
+
+interface GoogleErrorResponse {
+  error?: { message?: string; status?: string };
 }
 
 interface ContactGroupsResponse {
@@ -160,5 +169,67 @@ export class GoogleContactsService {
       }
     });
     return labelMap;
+  }
+
+  /**
+   * Replaces the Notes field (biographies) of a contact.
+   * The contact's etag guards against overwriting a change made in Google after it was fetched:
+   * on mismatch Google rejects the request and nothing is changed.
+   *
+   * @param token - OAuth access token with the `contacts` scope.
+   * @param contact - The contact as fetched during this sync.
+   * @param text - New plain-text notes; empty string clears the field.
+   * @returns Whether the update succeeded and, if not, why.
+   */
+  async updateContactNotes(
+    token: string,
+    contact: GoogleContact,
+    text: string
+  ): Promise<UpdateNotesResult> {
+    const res: RequestUrlResponse = await requestUrl({
+      url: `${URL_PEOPLE_API}/${contact.resourceName}:updateContact?updatePersonFields=biographies`,
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(this.buildNotesUpdate(contact, text)),
+      throw: false,
+    });
+
+    if (res.status >= 200 && res.status < 300) {
+      return { ok: true };
+    }
+    return {
+      ok: false,
+      status: res.status,
+      message: this.getErrorMessage(res),
+    };
+  }
+
+  private buildNotesUpdate(
+    contact: GoogleContact,
+    text: string
+  ): Record<string, unknown> {
+    return {
+      resourceName: contact.resourceName,
+      etag: contact.etag,
+      metadata: {
+        sources: (contact.metadata?.sources ?? []).filter(
+          (s) => s.type === 'CONTACT'
+        ),
+      },
+      biographies: text ? [{ value: text, contentType: 'TEXT_PLAIN' }] : [],
+    };
+  }
+
+  private getErrorMessage(res: RequestUrlResponse): string {
+    const fallback = `HTTP ${res.status}`;
+    try {
+      const data = res.json as GoogleErrorResponse;
+      return data.error?.message ?? data.error?.status ?? fallback;
+    } catch {
+      return fallback;
+    }
   }
 }

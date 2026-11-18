@@ -70,6 +70,12 @@ export interface ContactSyncSettings {
 
   /** Whether to write the Google "Notes" field to a managed block in the note body instead of frontmatter */
   notesInBody: boolean;
+
+  /** Whether edits to the notes block are sent back to Google Contacts (requires notesInBody) */
+  notesWriteBack: boolean;
+
+  /** Space-separated OAuth scopes granted to the current token */
+  grantedScopes: string;
 }
 
 export enum NamingStrategy {

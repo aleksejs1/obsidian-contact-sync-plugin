@@ -5,6 +5,14 @@ export interface GoogleContact {
   /** Unique resource identifier for the contact (e.g., "people/c123...") */
   resourceName: string;
 
+  /** HTTP entity tag of the resource, required for updates */
+  etag?: string;
+
+  /** Person metadata; `sources` carry the per-source etags required by updateContact */
+  metadata?: {
+    sources?: { type: string; id: string; etag?: string }[];
+  };
+
   /** Array of name objects (usually contains a displayName) */
   names?: {
     displayName?: string;

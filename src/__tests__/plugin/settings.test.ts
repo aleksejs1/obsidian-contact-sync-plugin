@@ -78,6 +78,24 @@ describe('ContactSyncSettingTab', () => {
       expect(keys).toContain('skipNamelessContacts');
     });
 
+    it('should show the write-back toggle only when notes go to the body', () => {
+      const def = tab
+        .getSettingDefinitions()
+        .find(
+          (d): d is SettingDefinitionControl =>
+            'control' in d && d.control.key === 'notesWriteBack'
+        );
+      const visible = def?.visible;
+      if (typeof visible !== 'function') {
+        throw new Error('expected a visible predicate');
+      }
+
+      mockPlugin.settings.notesInBody = false;
+      expect(visible()).toBe(false);
+      mockPlugin.settings.notesInBody = true;
+      expect(visible()).toBe(true);
+    });
+
     it('should evaluate visible predicate on authorization code correctly', () => {
       const defs = tab.getSettingDefinitions();
       const authGroup = defs.find(
@@ -234,7 +252,8 @@ describe('ContactSyncSettingTab', () => {
       await changeHandler?.('test-auth-code');
 
       expect(mockPlugin.auth?.exchangeCode).toHaveBeenCalledWith(
-        'test-auth-code'
+        'test-auth-code',
+        expect.stringContaining('contacts.readonly')
       );
       expect(mockPlugin.saveSettings).toHaveBeenCalled();
       expect(mockPlugin.settings.accessToken).toBe('new-access-token');

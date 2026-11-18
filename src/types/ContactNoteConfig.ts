@@ -16,4 +16,5 @@ export interface ContactNoteConfig {
   useContactTypes: boolean;
   website: boolean;
   notesInBody: boolean;
+  notesWriteBack: boolean;
 }

@@ -150,10 +150,21 @@ You can write anything here — this section is safe.
 ```md
 <!-- google-contacts:notes:start -->
 Notes from Google Contacts
-<!-- google-contacts:notes:end -->
+<!-- google-contacts:notes:end sync=1x2y3z -->
 ```
 
-  The section is added to the end of the note the first time a contact has notes. On every sync only the text between the markers is replaced. Everything outside them stays as you wrote it. While this option is on, the plugin removes the `bio` (or `NOTE` in VCF) property it wrote before, so the notes are not stored twice. Edits made inside the section are overwritten by the next sync.
+  The `sync=…` value is a short hash of the last synced text. It is used to tell which side changed when sending notes back to Google is enabled. Don't edit the marker lines.
+
+  The section is added to the end of the note the first time a contact has notes. On every sync only the text between the markers is replaced. Everything outside them stays as you wrote it. While this option is on, the plugin removes the `bio` (or `NOTE` in VCF) property it wrote before, so the notes are not stored twice. Edits made inside the section are overwritten by the next sync, unless write-back (below) is enabled.
+
+- **Sending notes back to Google** (optional, experimental, off by default): with *Send note edits back to Google Contacts* enabled, edits you make inside the notes section are sent to the contact's **Notes** field in Google during sync.
+    - Requires full access to your contacts (`https://www.googleapis.com/auth/contacts` scope). After enabling the option, click **Login** again in the plugin settings and paste the new code. If you use your own OAuth client, add this scope to its consent screen. Until you log in again, notes are only read from Google.
+    - Every contact note gets a notes section (empty if the contact has no notes yet), so you have a place to write.
+    - If only Google changed, the note is updated. If only the note changed, Google is updated. If **both** changed, nothing is changed on either side and you get a notification. Make the text match on one side to resolve it.
+    - If more than 5 notes are about to be sent in one sync, you are asked to confirm and shown the list of contacts. This protects your address book from scripts or bulk edits in the vault.
+    - Only "My contacts" can be updated. "Other contacts" are read-only in Google. Notes with formatting (HTML) are read-only too, because a plain-text update would remove the formatting.
+    - If one of the marker lines is deleted or duplicated, that note is left untouched and you get a notification. Restore both marker lines, or delete both to let the plugin recreate the section.
+    - Only the Notes field is ever written to Google. All other fields stay read-only.
 
 - If auto-syncing fails (e.g., due to a lack of internet connection), the next attempt will only occur during the next scheduled auto-sync. **No retries will be attempted** in between.
 
