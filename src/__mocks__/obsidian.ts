@@ -65,6 +65,7 @@ export class App {
 export class MetadataCache {}
 
 export class Setting {
+  settingEl = { toggle: jest.fn() };
   setName = jest.fn().mockReturnThis();
   setDesc = jest.fn().mockReturnThis();
   setHeading = jest.fn().mockReturnThis();

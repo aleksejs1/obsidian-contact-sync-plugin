@@ -82,20 +82,27 @@ import { GoogleIdAdapter } from './adapters/GoogleIdAdapter';
 import { NamingStrategy } from 'src/types/Settings';
 
 /**
+ * Factory to create the key naming strategy for the given setting value.
+ */
+export function createNamingStrategy(
+  strategyType: NamingStrategy = NamingStrategy.Default
+): KeyNamingStrategy {
+  if (strategyType === NamingStrategy.VCF) {
+    return new VcfNamingStrategy();
+  }
+  if (strategyType === NamingStrategy.Array) {
+    return new ArrayNamingStrategy();
+  }
+  return new DefaultNamingStrategy();
+}
+
+/**
  * Factory to create a formatter with default Obsidian-style adapters.
  */
 export function createDefaultFormatter(
   strategyType: NamingStrategy = NamingStrategy.Default
 ): Formatter {
-  let strategy: KeyNamingStrategy;
-
-  if (strategyType === NamingStrategy.VCF) {
-    strategy = new VcfNamingStrategy();
-  } else if (strategyType === NamingStrategy.Array) {
-    strategy = new ArrayNamingStrategy();
-  } else {
-    strategy = new DefaultNamingStrategy();
-  }
+  const strategy = createNamingStrategy(strategyType);
 
   const adapters: Record<string, FieldAdapter> = {
     name: new NameAdapter(),

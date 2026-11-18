@@ -5,6 +5,14 @@ export interface GoogleContact {
   /** Unique resource identifier for the contact (e.g., "people/c123...") */
   resourceName: string;
 
+  /** HTTP entity tag of the resource, required for updates */
+  etag?: string;
+
+  /** Person metadata; `sources` carry the per-source etags required by updateContact */
+  metadata?: {
+    sources?: { type: string; id: string; etag?: string }[];
+  };
+
   /** Array of name objects (usually contains a displayName) */
   names?: {
     displayName?: string;
@@ -35,8 +43,12 @@ export interface GoogleContact {
   /** Array of group/domain memberships associated with the contact */
   memberships?: Membership[];
 
-  /** Array of biographies objects associated with the contact */
-  biographies?: { value: string }[];
+  /** Array of biographies objects associated with the contact (Google "Notes" field) */
+  biographies?: {
+    value: string;
+    /** Content type of the value; older contacts may hold HTML */
+    contentType?: 'CONTENT_TYPE_UNSPECIFIED' | 'TEXT_PLAIN' | 'TEXT_HTML';
+  }[];
 
   /** Array of address objects associated with the contact */
   addresses?: {

@@ -8,7 +8,21 @@ import {
 } from 'obsidian';
 import { GoogleContact } from 'src/types/Contact';
 import { getAllMarkdownFilesInFolder } from 'src/utils/getAllMarkdownFilesInFolder';
-import { createDefaultFormatter } from '../core/Formatter';
+import {
+  createDefaultFormatter,
+  createNamingStrategy,
+} from 'src/core/Formatter';
+import {
+  decideNotesSync,
+  getContactNotesText,
+  hasBrokenNotesBlock,
+  NotesBlock,
+  hashNotesText,
+  isWritableContact,
+  readNotesBlock,
+  upsertNotesBlock,
+} from 'src/core/notesBlock';
+import { NotesSyncReport, PendingNotesPush } from 'src/types/NotesSync';
 import { VaultService } from './VaultService';
 import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
 import { NamingStrategy } from 'src/types/Settings';
@@ -63,17 +77,25 @@ export class ContactNoteWriter {
    * @param config - The configuration for writing contact notes.
    * @param labelMap - A mapping of label names to their corresponding group IDs.
    * @param contacts - The list of Google contacts to write notes for.
+   * @returns Notes edited in Obsidian that should be sent to Google, plus conflicts
+   *   (only populated when notes write-back is enabled).
    */
   async writeNotesForContacts(
     config: ContactNoteConfig,
     labelMap: Record<string, string>,
     contacts: GoogleContact[]
-  ): Promise<void> {
+  ): Promise<NotesSyncReport> {
+    const report: NotesSyncReport = {
+      pushes: [],
+      conflicts: [],
+      readOnly: [],
+      broken: [],
+    };
     await this.vaultService.createFolderIfNotExists(config.folderPath);
 
     const folder = this.vaultService.getFolderByPath(config.folderPath);
     if (!folder) {
-      return;
+      return report;
     }
 
     const files = getAllMarkdownFilesInFolder(folder);
@@ -86,8 +108,31 @@ export class ContactNoteWriter {
     };
 
     for (const contact of contacts) {
-      await this.processContact(contact, context, labelMap, filesIdMapping);
+      await this.processContact(
+        contact,
+        context,
+        labelMap,
+        filesIdMapping,
+        report
+      );
     }
+    return report;
+  }
+
+  /**
+   * Records that a pushed value is now in sync, so it isn't sent again.
+   * If the block was edited again in the meantime, it is left as is and will be sent on the next sync.
+   *
+   * @param push - The push that Google accepted.
+   */
+  async markNotesPushed(push: PendingNotesPush): Promise<void> {
+    await this.vaultService.processFile(push.file, (data) => {
+      const block = readNotesBlock(data);
+      if (block?.text !== push.text) {
+        return data;
+      }
+      return upsertNotesBlock(data, push.text, hashNotesText(push.text));
+    });
   }
 
   private getInvertedLabelMap(
@@ -102,7 +147,8 @@ export class ContactNoteWriter {
     contact: GoogleContact,
     context: AdapterContext,
     labelMap: Record<string, string>,
-    filesIdMapping: Record<string, TFile>
+    filesIdMapping: Record<string, TFile>,
+    report: NotesSyncReport
   ): Promise<void> {
     if (!this.hasSyncLabel(contact, context.syncLabel, labelMap)) {
       return;
@@ -133,7 +179,8 @@ export class ContactNoteWriter {
       context,
       id,
       filename,
-      filesIdMapping
+      filesIdMapping,
+      report
     );
   }
 
@@ -142,7 +189,8 @@ export class ContactNoteWriter {
     context: AdapterContext,
     id: string,
     filename: string,
-    filesIdMapping: Record<string, TFile>
+    filesIdMapping: Record<string, TFile>,
+    report: NotesSyncReport
   ): Promise<void> {
     try {
       if (context.renameFiles && filesIdMapping[id]) {
@@ -158,15 +206,144 @@ export class ContactNoteWriter {
       if (!file) {
         return;
       }
+      if (context.notesInBody && context.notesWriteBack) {
+        await this.syncNotesTwoWay(file, contact, report);
+      } else if (context.notesInBody) {
+        await this.writeNotesBlock(file, contact, report);
+      }
       await this.fileManager.processFrontMatter(
         file,
-        this.processFrontMatter(this.generateFrontmatterLines(context, contact))
+        this.processFrontMatter(
+          this.generateFrontmatterLines(context, contact),
+          this.getObsoleteFrontmatterKeys(context)
+        )
       );
     } catch (error) {
       new Notice(
         `Error processing contact "${filename}": ${error instanceof Error ? error.message : String(error)}`
       );
     }
+  }
+
+  /**
+   * Writes the contact's Google notes into the managed block of the note body (one-way mode).
+   * The hash of the written value is always recorded in the closing marker, so that when
+   * write-back is enabled later the plugin knows which side changed since the last sync.
+   * No empty block is added to a note that has none. The file is only written when it changes.
+   *
+   * @param file - The contact note.
+   * @param contact - The Google contact.
+   * @param report - Collects notes with broken block markers.
+   */
+  private async writeNotesBlock(
+    file: TFile,
+    contact: GoogleContact,
+    report: NotesSyncReport
+  ): Promise<void> {
+    const text = getContactNotesText(contact);
+    const baseline = hashNotesText(text);
+    const update = (data: string) =>
+      !text && !readNotesBlock(data)
+        ? data
+        : upsertNotesBlock(data, text, baseline);
+
+    const current = await this.vaultService.readFile(file);
+    if (hasBrokenNotesBlock(current)) {
+      report.broken.push(this.getContactName(contact, file));
+      return;
+    }
+    if (update(current) === current) {
+      return;
+    }
+    await this.vaultService.processFile(file, update);
+  }
+
+  /**
+   * Reconciles the notes block with Google using the baseline hash stored in the block.
+   * Google-side changes are applied immediately; Obsidian-side changes are queued in the report
+   * and sent by the caller; conflicts are reported and leave the note untouched.
+   *
+   * @param file - The contact note.
+   * @param contact - The Google contact.
+   * @param report - Collects pending pushes and problems.
+   */
+  private async syncNotesTwoWay(
+    file: TFile,
+    contact: GoogleContact,
+    report: NotesSyncReport
+  ): Promise<void> {
+    const remote = getContactNotesText(contact);
+    const content = await this.vaultService.readFile(file);
+    const name = this.getContactName(contact, file);
+    if (hasBrokenNotesBlock(content)) {
+      report.broken.push(name);
+      return;
+    }
+    const local = readNotesBlock(content);
+
+    switch (decideNotesSync(local, remote)) {
+      case 'none':
+      case 'pull':
+        await this.applyRemoteNotes(file, content, local, remote);
+        return;
+      case 'push':
+        if (!local) {
+          return;
+        }
+        if (isWritableContact(contact)) {
+          report.pushes.push({ contact, file, text: local.text, name });
+        } else {
+          report.readOnly.push(name);
+        }
+        return;
+      case 'conflict':
+        report.conflicts.push(name);
+        return;
+    }
+  }
+
+  /**
+   * Writes the Google value into the block and records it as the baseline.
+   * If the block was edited after it was read, the note is left as is; the edit is picked up
+   * on the next sync instead of being overwritten.
+   */
+  private async applyRemoteNotes(
+    file: TFile,
+    content: string,
+    local: NotesBlock | null,
+    remote: string
+  ): Promise<void> {
+    const baseline = hashNotesText(remote);
+    if (upsertNotesBlock(content, remote, baseline) === content) {
+      return;
+    }
+    await this.vaultService.processFile(file, (data) => {
+      const fresh = readNotesBlock(data);
+      if (fresh?.text !== local?.text) {
+        return data;
+      }
+      return upsertNotesBlock(data, remote, baseline);
+    });
+  }
+
+  private getContactName(contact: GoogleContact, file: TFile): string {
+    return contact.names?.[0]?.displayName ?? file.path;
+  }
+
+  /**
+   * Returns frontmatter keys previously written by the plugin that must be removed
+   * under the current configuration.
+   * When notes are synced to the body, the old notes property is dropped so it can't go stale.
+   *
+   * @param context - The adapter context.
+   * @returns Keys to delete from frontmatter.
+   */
+  private getObsoleteFrontmatterKeys(context: AdapterContext): string[] {
+    if (!context.notesInBody) {
+      return [];
+    }
+    const strategy = createNamingStrategy(context.namingStrategy);
+    return [strategy.generateKey('bio', 0, context.propertyPrefix)];
   }
 
   private async ensureRenamed(
@@ -257,12 +434,19 @@ export class ContactNoteWriter {
    * Processes the frontmatter lines and updates the frontmatter of the given file.
    *
    * @param frontmatterLines - The frontmatter lines to process.
+   * @param keysToDelete - Keys to remove from the frontmatter.
    * @returns A function that takes a frontmatter object and updates it with the provided lines.
    */
   private processFrontMatter(
-    frontmatterLines: Record<string, string | string[]>
+    frontmatterLines: Record<string, string | string[]>,
+    keysToDelete: string[] = []
   ): (frontmatter: Record<string, unknown>) => void {
     return (frontmatter: Record<string, unknown>) => {
+      for (const key of keysToDelete) {
+        if (!(key in frontmatterLines)) {
+          Reflect.deleteProperty(frontmatter, key);
+        }
+      }
       for (const key in frontmatterLines) {
         frontmatter[key] = frontmatterLines[key];
       }

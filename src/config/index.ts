@@ -15,6 +15,10 @@ export const URL_PEOPLE_OTHER_CONTACTS = `${URL_PEOPLE_BASE}/otherContacts`;
 export const URI_OATUH_REDIRECT = 'urn:ietf:wg:oauth:2.0:oob';
 export const URL_OAUTH_SCOPE =
   'https://www.googleapis.com/auth/contacts.readonly https://www.googleapis.com/auth/contacts.other.readonly';
+/** Full contacts access, requested only when notes write-back is enabled */
+export const SCOPE_CONTACTS_WRITE = 'https://www.googleapis.com/auth/contacts';
+export const URL_OAUTH_SCOPE_WRITE = `${SCOPE_CONTACTS_WRITE} https://www.googleapis.com/auth/contacts.other.readonly`;
+export const URL_PEOPLE_API = URL_PEOPLE_BASE;
 
 /** External links */
 export const LINK_TO_MANUAL =
@@ -45,4 +49,10 @@ export const DEFAULT_SETTINGS: ContactSyncSettings = {
   skipNamelessContacts: false,
   useContactTypes: false,
   website: true,
+  notesInBody: false,
+  notesWriteBack: false,
+  grantedScopes: '',
 };
+
+/** Ask for confirmation before sending more than this many notes to Google in one sync */
+export const NOTES_PUSH_CONFIRM_THRESHOLD = 5;

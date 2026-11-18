@@ -1,12 +1,19 @@
-import type { ContactSyncSettings } from '../types/Settings';
+import type { ContactSyncSettings } from 'src/types/Settings';
 import { requestUrl } from 'obsidian';
-import { URL_OAUTH_TOKEN, URI_OATUH_REDIRECT } from '../config';
+import {
+  URL_OAUTH_TOKEN,
+  URI_OATUH_REDIRECT,
+  SCOPE_CONTACTS_WRITE,
+  URL_OAUTH_SCOPE,
+} from 'src/config';
 import { RequestUrlResponse } from 'obsidian';
 
 interface TokenResponse {
   access_token: string;
   refresh_token?: string;
   expires_in: number;
+  /** Space-separated scopes granted to the access token */
+  scope?: string;
 }
 
 /**
@@ -20,6 +27,7 @@ export class AuthManager {
   private accessToken: string;
   private refreshToken: string;
   private tokenExpiresAt: number;
+  private grantedScopes: string;
 
   /**
    * Creates a new AuthManager instance using saved authentication settings.
@@ -32,15 +40,21 @@ export class AuthManager {
     this.accessToken = settings.accessToken;
     this.refreshToken = settings.refreshToken;
     this.tokenExpiresAt = settings.tokenExpiresAt;
+    this.grantedScopes = settings.grantedScopes;
   }
 
   /**
    * Exchanges an authorization code for access and refresh tokens.
    *
    * @param code - The authorization code received from the OAuth flow.
+   * @param requestedScopes - Scopes asked for in the auth URL; assumed granted if the
+   *   token response doesn't list them (the `scope` field is optional in OAuth 2.0).
    * @returns A promise that resolves when tokens have been successfully obtained.
    */
-  async exchangeCode(code: string): Promise<void> {
+  async exchangeCode(
+    code: string,
+    requestedScopes: string = URL_OAUTH_SCOPE
+  ): Promise<void> {
     const body = {
       code: code,
       client_id: this.clientId,
@@ -61,6 +75,7 @@ export class AuthManager {
     this.accessToken = data.access_token;
     this.refreshToken = data.refresh_token ?? this.refreshToken;
     this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
+    this.grantedScopes = data.scope ?? requestedScopes;
   }
 
   /**
@@ -106,6 +121,7 @@ export class AuthManager {
       }
       this.accessToken = data.access_token;
       this.tokenExpiresAt = Date.now() + data.expires_in * 1000;
+      this.grantedScopes = data.scope ?? this.grantedScopes;
     } catch (error) {
       console.error(
         'Failed to refresh access token',
@@ -125,7 +141,17 @@ export class AuthManager {
       accessToken: this.accessToken,
       refreshToken: this.refreshToken,
       tokenExpiresAt: this.tokenExpiresAt,
+      grantedScopes: this.grantedScopes,
     };
+  }
+
+  /**
+   * Whether the current token may modify contacts (needed for notes write-back).
+   *
+   * @returns True if the full `contacts` scope was granted.
+   */
+  hasWriteScope(): boolean {
+    return this.grantedScopes.split(' ').includes(SCOPE_CONTACTS_WRITE);
   }
 
   updateSettings(settings: ContactSyncSettings): void {
@@ -134,5 +160,6 @@ export class AuthManager {
     this.accessToken = settings.accessToken;
     this.refreshToken = settings.refreshToken;
     this.tokenExpiresAt = settings.tokenExpiresAt;
+    this.grantedScopes = settings.grantedScopes;
   }
 }

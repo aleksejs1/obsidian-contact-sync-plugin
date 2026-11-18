@@ -103,6 +103,10 @@ export const ru = {
   'Sync website URLs': 'Синхронизировать веб-сайты',
   'If enabled, website URLs from contacts will be synced to the website frontmatter property':
     'Если включено, ссылки на веб-сайты из контактов будут синхронизированы в свойство website frontmatter',
+  'Sync contact notes to note body':
+    'Синхронизировать примечания контакта в текст заметки',
+  'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.':
+    'Если включено, поле «Примечания» из Google Contacts записывается в отдельный блок в тексте заметки вместо свойства bio во frontmatter. Текст за пределами блока не изменяется.',
   'VCF (vCard compatible)': 'VCF (совместимый с vCard)',
   'Custom prefix': 'Префикс свойств',
   'Prefix to use for properties when Default naming strategy is selected':
@@ -128,6 +132,32 @@ export const ru = {
   'Skip contacts that do not have a name': 'Пропускать контакты без имени',
   'Select naming strategy for frontmatter keys':
     'Выберите стратегию именования ключей frontmatter',
+  'Send note edits back to Google Contacts':
+    'Отправлять правки примечаний обратно в Google Contacts',
+  'Experimental. Edits made inside the notes section are sent to the Notes field in Google Contacts during sync. Requires logging in with Google again to grant write access. If notes were changed both in Obsidian and in Google, neither side is changed and you are notified.':
+    'Экспериментально. Правки внутри блока примечаний при синхронизации отправляются в поле «Примечания» в Google Contacts. Нужно заново войти через Google, чтобы выдать доступ на запись. Если примечания изменились и в Obsidian, и в Google, ни одна сторона не меняется, и вы получите уведомление.',
+  'Log in with Google again to grant write access to your contacts.':
+    'Войдите через Google ещё раз, чтобы выдать доступ на запись к контактам.',
+  'Write access to Google Contacts is not granted. Log in with Google again in the plugin settings to send notes to Google.':
+    'Нет доступа на запись в Google Contacts. Войдите через Google ещё раз в настройках плагина, чтобы отправлять примечания в Google.',
+  'Sending notes to Google Contacts was cancelled.':
+    'Отправка примечаний в Google Contacts отменена.',
+  'Notes sent to Google Contacts: {count}':
+    'Примечаний отправлено в Google Contacts: {count}',
+  'Failed to send notes to Google Contacts for: {names}. Check console for details.':
+    'Не удалось отправить примечания в Google Contacts для: {names}. Подробности в консоли.',
+  'Notes were changed both in Obsidian and in Google Contacts, nothing was changed for: {names}. Make the notes match on one side to resolve.':
+    'Примечания изменились и в Obsidian, и в Google Contacts, ничего не изменено для: {names}. Сделайте их одинаковыми на одной из сторон, чтобы разрешить конфликт.',
+  'Edits to these notes were not sent: Google Contacts only allows reading them (other contacts or formatted notes): {names}':
+    'Правки этих примечаний не отправлены: Google Contacts позволяет только читать их (другие контакты или примечания с форматированием): {names}',
+  'Send notes to Google Contacts?': 'Отправить примечания в Google Contacts?',
+  'Notes of {count} contacts were changed in Obsidian. They will replace the Notes field of these contacts in Google Contacts:':
+    'Примечания {count} контактов изменены в Obsidian. Они заменят поле «Примечания» этих контактов в Google Contacts:',
+  Send: 'Отправить',
+  Cancel: 'Отмена',
+  'Sync is already in progress.': 'Синхронизация уже выполняется.',
+  'The notes section markers are damaged, these notes were not changed: {names}. Restore both marker lines or delete them.':
+    'Маркеры блока примечаний повреждены, эти заметки не изменены: {names}. Восстановите обе строки маркеров или удалите их.',
 };
 
 /**
@@ -235,6 +265,10 @@ export const lv = {
   'Sync website URLs': 'Sinhronizēt tīmekļa vietņu adreses',
   'If enabled, website URLs from contacts will be synced to the website frontmatter property':
     'Ja iespējots, tīmekļa vietņu adreses no kontaktiem tiks sinhronizētas website metadatu rekvizītā',
+  'Sync contact notes to note body':
+    'Sinhronizēt kontakta piezīmes piezīmes tekstā',
+  'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.':
+    'Ja iespējots, Google Contacts lauks “Piezīmes” tiek ierakstīts atsevišķā blokā piezīmes tekstā, nevis bio metadatu rekvizītā. Teksts ārpus bloka netiek mainīts.',
   'VCF (vCard compatible)': 'VCF (vCard saderīgs)',
   'Custom prefix': 'Pielāgots prefikss',
   'Prefix to use for properties when Default naming strategy is selected':
@@ -260,6 +294,32 @@ export const lv = {
   'Skip contacts that do not have a name': 'Izlaist kontaktus bez vārda',
   'Select naming strategy for frontmatter keys':
     'Atlasiet metadatu atslēgu nosaukšanas stratēģiju',
+  'Send note edits back to Google Contacts':
+    'Sūtīt piezīmju labojumus atpakaļ uz Google Contacts',
+  'Experimental. Edits made inside the notes section are sent to the Notes field in Google Contacts during sync. Requires logging in with Google again to grant write access. If notes were changed both in Obsidian and in Google, neither side is changed and you are notified.':
+    'Eksperimentāli. Labojumi piezīmju blokā sinhronizācijas laikā tiek nosūtīti uz Google Contacts lauku “Piezīmes”. Nepieciešams atkārtoti pieteikties ar Google, lai piešķirtu rakstīšanas piekļuvi. Ja piezīmes ir mainītas gan Obsidian, gan Google, neviena puse netiek mainīta un jūs saņemsiet paziņojumu.',
+  'Log in with Google again to grant write access to your contacts.':
+    'Piesakieties ar Google vēlreiz, lai piešķirtu rakstīšanas piekļuvi kontaktiem.',
+  'Write access to Google Contacts is not granted. Log in with Google again in the plugin settings to send notes to Google.':
+    'Nav rakstīšanas piekļuves Google Contacts. Piesakieties ar Google vēlreiz spraudņa iestatījumos, lai sūtītu piezīmes uz Google.',
+  'Sending notes to Google Contacts was cancelled.':
+    'Piezīmju sūtīšana uz Google Contacts atcelta.',
+  'Notes sent to Google Contacts: {count}':
+    'Uz Google Contacts nosūtītās piezīmes: {count}',
+  'Failed to send notes to Google Contacts for: {names}. Check console for details.':
+    'Neizdevās nosūtīt piezīmes uz Google Contacts: {names}. Sīkāka informācija konsolē.',
+  'Notes were changed both in Obsidian and in Google Contacts, nothing was changed for: {names}. Make the notes match on one side to resolve.':
+    'Piezīmes ir mainītas gan Obsidian, gan Google Contacts, nekas netika mainīts: {names}. Lai atrisinātu, padariet piezīmes vienādas vienā pusē.',
+  'Edits to these notes were not sent: Google Contacts only allows reading them (other contacts or formatted notes): {names}':
+    'Šo piezīmju labojumi netika nosūtīti: Google Contacts ļauj tās tikai lasīt (citi kontakti vai formatētas piezīmes): {names}',
+  'Send notes to Google Contacts?': 'Sūtīt piezīmes uz Google Contacts?',
+  'Notes of {count} contacts were changed in Obsidian. They will replace the Notes field of these contacts in Google Contacts:':
+    '{count} kontaktu piezīmes ir mainītas Obsidian. Tās aizstās šo kontaktu lauku “Piezīmes” Google Contacts:',
+  Send: 'Sūtīt',
+  Cancel: 'Atcelt',
+  'Sync is already in progress.': 'Sinhronizācija jau notiek.',
+  'The notes section markers are damaged, these notes were not changed: {names}. Restore both marker lines or delete them.':
+    'Piezīmju bloka marķieri ir bojāti, šīs piezīmes netika mainītas: {names}. Atjaunojiet abas marķieru rindas vai izdzēsiet tās.',
 };
 
 /**
@@ -365,6 +425,9 @@ export const en = {
   'Sync website URLs': 'Sync website URLs',
   'If enabled, website URLs from contacts will be synced to the website frontmatter property':
     'If enabled, website URLs from contacts will be synced to the website frontmatter property',
+  'Sync contact notes to note body': 'Sync contact notes to note body',
+  'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.':
+    'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.',
   'VCF (vCard compatible)': 'VCF (vCard compatible)',
   'Custom prefix': 'Custom prefix',
   'Prefix to use for properties when Default naming strategy is selected':
@@ -391,4 +454,30 @@ export const en = {
     'Skip contacts that do not have a name',
   'Select naming strategy for frontmatter keys':
     'Select naming strategy for frontmatter keys',
+  'Send note edits back to Google Contacts':
+    'Send note edits back to Google Contacts',
+  'Experimental. Edits made inside the notes section are sent to the Notes field in Google Contacts during sync. Requires logging in with Google again to grant write access. If notes were changed both in Obsidian and in Google, neither side is changed and you are notified.':
+    'Experimental. Edits made inside the notes section are sent to the Notes field in Google Contacts during sync. Requires logging in with Google again to grant write access. If notes were changed both in Obsidian and in Google, neither side is changed and you are notified.',
+  'Log in with Google again to grant write access to your contacts.':
+    'Log in with Google again to grant write access to your contacts.',
+  'Write access to Google Contacts is not granted. Log in with Google again in the plugin settings to send notes to Google.':
+    'Write access to Google Contacts is not granted. Log in with Google again in the plugin settings to send notes to Google.',
+  'Sending notes to Google Contacts was cancelled.':
+    'Sending notes to Google Contacts was cancelled.',
+  'Notes sent to Google Contacts: {count}':
+    'Notes sent to Google Contacts: {count}',
+  'Failed to send notes to Google Contacts for: {names}. Check console for details.':
+    'Failed to send notes to Google Contacts for: {names}. Check console for details.',
+  'Notes were changed both in Obsidian and in Google Contacts, nothing was changed for: {names}. Make the notes match on one side to resolve.':
+    'Notes were changed both in Obsidian and in Google Contacts, nothing was changed for: {names}. Make the notes match on one side to resolve.',
+  'Edits to these notes were not sent: Google Contacts only allows reading them (other contacts or formatted notes): {names}':
+    'Edits to these notes were not sent: Google Contacts only allows reading them (other contacts or formatted notes): {names}',
+  'Send notes to Google Contacts?': 'Send notes to Google Contacts?',
+  'Notes of {count} contacts were changed in Obsidian. They will replace the Notes field of these contacts in Google Contacts:':
+    'Notes of {count} contacts were changed in Obsidian. They will replace the Notes field of these contacts in Google Contacts:',
+  Send: 'Send',
+  Cancel: 'Cancel',
+  'Sync is already in progress.': 'Sync is already in progress.',
+  'The notes section markers are damaged, these notes were not changed: {names}. Restore both marker lines or delete them.':
+    'The notes section markers are damaged, these notes were not changed: {names}. Restore both marker lines or delete them.',
 };

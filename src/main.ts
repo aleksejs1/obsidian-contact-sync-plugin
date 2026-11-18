@@ -1,14 +1,17 @@
-import type { ContactSyncSettings } from './types/Settings';
-import { ContactSyncSettingTab } from './plugin/settings';
-import { DEFAULT_SETTINGS } from './config';
+import type { ContactSyncSettings } from 'src/types/Settings';
+import { ContactSyncSettingTab } from 'src/plugin/settings';
+import { DEFAULT_SETTINGS } from 'src/config';
 import { Plugin, Notice } from 'obsidian';
-import { AuthManager } from './auth/AuthManager';
-import { GoogleContactsService } from './services/GoogleContactsService';
-import { ContactNoteWriter } from './services/ContactNoteWriter';
-import { ContactNoteConfig } from './types/ContactNoteConfig';
-import { ContactAuditService } from './services/ContactAuditService';
-import { t } from './i18n/translator';
-import type { GoogleContact } from './types/Contact';
+import { AuthManager } from 'src/auth/AuthManager';
+import { GoogleContactsService } from 'src/services/GoogleContactsService';
+import { ContactNoteWriter } from 'src/services/ContactNoteWriter';
+import { ContactNoteConfig } from 'src/types/ContactNoteConfig';
+import { ContactAuditService } from 'src/services/ContactAuditService';
+import { t } from 'src/i18n/translator';
+import type { GoogleContact } from 'src/types/Contact';
+import type { NotesSyncReport } from 'src/types/NotesSync';
+import { NotesPushService } from 'src/services/NotesPushService';
+import { ConfirmNotesPushModal } from 'src/plugin/ConfirmNotesPushModal';
 
 /**
  * Obsidian plugin for synchronizing contacts from Google contacts into markdown notes.
@@ -29,6 +32,9 @@ export default class GoogleContactsSyncPlugin extends Plugin {
   /** Handles writing contact notes to the vault */
   noteWriter: ContactNoteWriter | null = null;
   auditService: ContactAuditService | null = null;
+
+  /** Set while a sync runs, so syncs never overlap (e.g. a timer firing during a confirmation) */
+  private syncInProgress = false;
 
   /** ID of the interval used for periodic sync */
   private syncIntervalId: number | null = null;
@@ -136,6 +142,19 @@ export default class GoogleContactsSyncPlugin extends Plugin {
    * Performs the contact synchronization process: fetching, processing, and saving contact notes.
    */
   async syncContacts() {
+    if (this.syncInProgress) {
+      new Notice(t('Sync is already in progress.'));
+      return;
+    }
+    this.syncInProgress = true;
+    try {
+      await this.runSync();
+    } finally {
+      this.syncInProgress = false;
+    }
+  }
+
+  private async runSync(): Promise<void> {
     void this.updateLastSyncTime();
 
     const token = await this.getToken();
@@ -154,9 +173,42 @@ export default class GoogleContactsSyncPlugin extends Plugin {
     }
 
     const config = this.getNoteConfig();
-    await this.noteWriter?.writeNotesForContacts(config, labelMap, contacts);
+    const report = await this.noteWriter?.writeNotesForContacts(
+      config,
+      labelMap,
+      contacts
+    );
+
+    if (report && config.notesInBody) {
+      await this.handleNotesReport(token, report, config.notesWriteBack);
+    }
 
     new Notice(t('Google contacts synced!'));
+  }
+
+  private async handleNotesReport(
+    token: string,
+    report: NotesSyncReport,
+    writeBack: boolean
+  ): Promise<void> {
+    const googleService = this.googleService;
+    const noteWriter = this.noteWriter;
+    if (!googleService || !noteWriter) {
+      return;
+    }
+    const pushService = new NotesPushService({
+      updateContactNotes: (tkn, contact, text) =>
+        googleService.updateContactNotes(tkn, contact, text),
+      markNotesPushed: (push) => noteWriter.markNotesPushed(push),
+      hasWriteScope: () => this.auth?.hasWriteScope() ?? false,
+      confirm: (names) => new ConfirmNotesPushModal(this.app, names).ask(),
+      notify: (message) => new Notice(message),
+    });
+    if (writeBack) {
+      await pushService.pushNotes(token, report);
+    } else {
+      pushService.reportProblems(report);
+    }
   }
 
   private async getToken(): Promise<string | null> {
@@ -217,6 +269,8 @@ export default class GoogleContactsSyncPlugin extends Plugin {
       skipNamelessContacts: this.settings.skipNamelessContacts,
       useContactTypes: this.settings.useContactTypes,
       website: this.settings.website,
+      notesInBody: this.settings.notesInBody,
+      notesWriteBack: this.settings.notesWriteBack,
     };
   }
 

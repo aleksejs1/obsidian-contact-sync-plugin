@@ -15,4 +15,6 @@ export interface ContactNoteConfig {
   skipNamelessContacts: boolean;
   useContactTypes: boolean;
   website: boolean;
+  notesInBody: boolean;
+  notesWriteBack: boolean;
 }

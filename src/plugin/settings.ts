@@ -6,7 +6,7 @@ import {
   SettingDefinitionItem,
 } from 'obsidian';
 import { LINK_TO_MANUAL } from '../config';
-import { getAuthUrl } from '../auth/getAuthUrl';
+import { getAuthUrl, getRequestedScopes } from 'src/auth/getAuthUrl';
 import { IPlugin } from '../types/IPlugin';
 import { NamingStrategy } from 'src/types/Settings';
 import { t } from '../i18n/translator';
@@ -113,6 +113,27 @@ export class ContactSyncSettingTab extends PluginSettingTab {
         control: {
           type: 'toggle',
           key: 'website',
+        },
+      },
+      {
+        name: t('Sync contact notes to note body'),
+        desc: t(
+          'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.'
+        ),
+        control: {
+          type: 'toggle',
+          key: 'notesInBody',
+        },
+      },
+      {
+        name: t('Send note edits back to Google Contacts'),
+        desc: t(
+          'Experimental. Edits made inside the notes section are sent to the Notes field in Google Contacts during sync. Requires logging in with Google again to grant write access. If notes were changed both in Obsidian and in Google, neither side is changed and you are notified.'
+        ),
+        visible: () => this.plugin.settings.notesInBody,
+        control: {
+          type: 'toggle',
+          key: 'notesWriteBack',
         },
       },
       {
@@ -237,7 +258,10 @@ export class ContactSyncSettingTab extends PluginSettingTab {
                     return;
                   }
                   window.open(
-                    getAuthUrl(this.plugin.settings.clientId),
+                    getAuthUrl(
+                      this.plugin.settings.clientId,
+                      this.plugin.settings.notesWriteBack
+                    ),
                     '_blank'
                   );
                 })
@@ -270,7 +294,10 @@ export class ContactSyncSettingTab extends PluginSettingTab {
                     }
 
                     try {
-                      await this.plugin.auth.exchangeCode(code);
+                      await this.plugin.auth.exchangeCode(
+                        code,
+                        getRequestedScopes(this.plugin.settings.notesWriteBack)
+                      );
                     } catch (error) {
                       console.error(
                         'Failed to exchange code:',
@@ -315,6 +342,39 @@ export class ContactSyncSettingTab extends PluginSettingTab {
     }
   }
 
+  private addWriteBackSetting(containerEl: HTMLElement): Setting {
+    return new Setting(containerEl)
+      .setName(t('Send note edits back to Google Contacts'))
+      .setDesc(
+        t(
+          'Experimental. Edits made inside the notes section are sent to the Notes field in Google Contacts during sync. Requires logging in with Google again to grant write access. If notes were changed both in Obsidian and in Google, neither side is changed and you are notified.'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.notesWriteBack)
+          .onChange(async (value) => {
+            this.plugin.settings.notesWriteBack = value;
+            await this.plugin.saveSettings();
+            this.warnIfWriteScopeMissing();
+          })
+      );
+  }
+
+  /**
+   * Tells the user to log in again when write-back is on but the token can't modify contacts.
+   */
+  private warnIfWriteScopeMissing(): void {
+    if (
+      this.plugin.settings.notesWriteBack &&
+      !this.plugin.auth?.hasWriteScope()
+    ) {
+      new Notice(
+        t('Log in with Google again to grant write access to your contacts.')
+      );
+    }
+  }
+
   private triggerDomRefresh(): void {
     const tab = this as unknown as { refreshDomState?: () => void };
     tab.refreshDomState?.();
@@ -323,6 +383,12 @@ export class ContactSyncSettingTab extends PluginSettingTab {
   override async setControlValue(key: string, value: unknown): Promise<void> {
     this.updateControlValue(key, value);
     await this.plugin.saveSettings();
+    if (key === 'notesWriteBack') {
+      this.warnIfWriteScopeMissing();
+    }
+    if (key === 'notesInBody') {
+      this.triggerDomRefresh();
+    }
     if (key === 'clientId' || key === 'clientSecret') {
       this.plugin.auth?.updateSettings(this.plugin.settings);
       this.triggerDomRefresh();
@@ -446,6 +512,28 @@ export class ContactSyncSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    let writeBackSetting: Setting | null = null;
+    new Setting(containerEl)
+      .setName(t('Sync contact notes to note body'))
+      .setDesc(
+        t(
+          'If enabled, the Notes field from Google Contacts is written to a managed section of the note body instead of the bio frontmatter property. Text outside that section is never changed.'
+        )
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.notesInBody)
+          .onChange(async (value) => {
+            this.plugin.settings.notesInBody = value;
+            await this.plugin.saveSettings();
+            writeBackSetting?.settingEl.toggle(value);
+          })
+      );
+
+    // Write-back only applies when notes go to the note body
+    writeBackSetting = this.addWriteBackSetting(containerEl);
+    writeBackSetting.settingEl.toggle(this.plugin.settings.notesInBody);
 
     new Setting(containerEl)
       .setName(t('Naming strategy'))
@@ -626,7 +714,13 @@ export class ContactSyncSettingTab extends PluginSettingTab {
             new Notice(t('Please enter your client ID first.'));
             return;
           }
-          window.open(getAuthUrl(this.plugin.settings.clientId), '_blank');
+          window.open(
+            getAuthUrl(
+              this.plugin.settings.clientId,
+              this.plugin.settings.notesWriteBack
+            ),
+            '_blank'
+          );
         })
       );
 
@@ -645,7 +739,10 @@ export class ContactSyncSettingTab extends PluginSettingTab {
           }
 
           try {
-            await this.plugin.auth.exchangeCode(code);
+            await this.plugin.auth.exchangeCode(
+              code,
+              getRequestedScopes(this.plugin.settings.notesWriteBack)
+            );
           } catch (error) {
             console.error(
               'Failed to exchange code:',

@@ -48,8 +48,19 @@ const translator = new Translator(getLanguage()); // Default to the current Obsi
  * Global translation function.
  *
  * @param key - The translation key.
+ * @param params - Values for `{name}` placeholders in the translated string.
  * @returns The translated string.
  */
-export function t(key: string): string {
-  return translator.t(key);
+export function t(
+  key: string,
+  params?: Record<string, string | number>
+): string {
+  const text = translator.t(key);
+  if (!params) {
+    return text;
+  }
+  // A replacer function keeps `$&`-style sequences in values literal
+  return text.replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in params ? String(params[name]) : match
+  );
 }
